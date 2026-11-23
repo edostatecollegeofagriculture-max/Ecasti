@@ -388,6 +388,37 @@ export async function assignStudentCurriculum(input: AssignStudentCurriculumInpu
           WHERE student_id = $1 AND is_required = TRUE`,
         [studentId]
       );
+      if (Number(courseCount.rows[0]?.count ?? 0) < 1) {
+        throw new Error('An existing student assignment has no effective required-course snapshots. Registry review is required.');
+      }
+      const existingLedger = await client.query(
+        `SELECT id, status, mapping_id
+           FROM academic_curriculum_assignment_ledger
+          WHERE student_id = $1 AND programme_id = $2 AND cohort_session = $3
+          FOR UPDATE`,
+        [studentId, programmeId, cohortSession]
+      );
+      if (existingLedger.rows[0]) {
+        if (existingLedger.rows[0].status !== 'ASSIGNED' || existingLedger.rows[0].mapping_id !== existing.mapping_id) {
+          await client.query(
+            `UPDATE academic_curriculum_assignment_ledger
+                SET status = 'ASSIGNED', mapping_id = $2,
+                    assigned_at = COALESCE(assigned_at, $3),
+                    review_reason = NULL, error_code = NULL,
+                    updated_at = NOW()
+              WHERE id = $1`,
+            [existingLedger.rows[0].id, existing.mapping_id, existing.assigned_at]
+          );
+        }
+      } else {
+        await client.query(
+          `INSERT INTO academic_curriculum_assignment_ledger
+             (id, student_id, programme_id, cohort_session, idempotency_key,
+              status, mapping_id, attempt_count, last_attempt_at, assigned_at)
+           VALUES ($1, $2, $3, $4, $5, 'ASSIGNED', $6, 1, NOW(), $7)`,
+          [newId('assignment-ledger'), studentId, programmeId, cohortSession, ledgerIdempotencyKey, existing.mapping_id, existing.assigned_at]
+        );
+      }
       return {
         status: 'ALREADY_ASSIGNED' as const,
         assignmentId: String(existing.id),
@@ -469,7 +500,7 @@ export async function assignStudentCurriculum(input: AssignStudentCurriculumInpu
         ORDER BY course_level_snapshot, semester_snapshot, course_code_snapshot`,
       [mappingId]
     );
-    if (mappingCourses.rowCount < 1) {
+    if (Number(mappingCourses.rowCount ?? 0) < 1) {
       throw new Error('The current approved mapping has no compulsory course snapshots. Registry review is required.');
     }
 
@@ -536,7 +567,7 @@ export async function assignStudentCurriculum(input: AssignStudentCurriculumInpu
       programmeId,
       cohortSession,
       isCurrent: true,
-      requiredCourseCount: mappingCourses.rowCount,
+      requiredCourseCount: Number(mappingCourses.rowCount ?? 0),
     };
   });
 }
