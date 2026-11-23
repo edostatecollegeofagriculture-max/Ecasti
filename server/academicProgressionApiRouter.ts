@@ -538,7 +538,7 @@ academicProgressionApiRouter.post(
       return res.json({ success: true, progression: result });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Progression decision could not be recorded.';
-      const conflict = /not initialized|already|withdrawn|snapshot|course does not|session/i.test(message);
+      const conflict = /not initialized|already|withdrawn|snapshot|programme|course does not|session/i.test(message);
       return res.status(conflict ? 409 : 503).json({ success: false, message });
     }
   }
@@ -606,7 +606,7 @@ academicProgressionApiRouter.post(
       return res.json({ success: true, progression: result });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Management pass could not be approved.';
-      return res.status(/not found|only to students|only be available/i.test(message) ? 409 : 503)
+      return res.status(/not found|programme|only to students|only be available/i.test(message) ? 409 : 503)
         .json({ success: false, message });
     }
   }
