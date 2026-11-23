@@ -243,6 +243,13 @@ async function main() {
       }
     });
 
+    await test('actual assignment API denies a Student role from creating an assignment', async () => {
+      const result = await api(`/students/${studentOneId}/curriculum-assignment`, {
+        method: 'POST', userId: studentOneUserId, body: {},
+      });
+      assert.equal(result.status, 403);
+    });
+
     await test('actual assignment API is idempotent on a repeated request', async () => {
       const result = await api(`/students/${studentOneId}/curriculum-assignment`, {
         method: 'POST', userId: registrarId, body: {},
@@ -267,6 +274,11 @@ async function main() {
         method: 'POST', userId: studentTwoUserId,
         body: { action: 'ADD_COURSE', courseId: courseIds[3], reason: 'Synthetic test only.' },
       });
+      assert.equal(result.status, 403);
+    });
+
+    await test('actual exception GET blocks cross-student access', async () => {
+      const result = await api(`/students/${studentOneId}/curriculum-exceptions`, { userId: studentTwoUserId });
       assert.equal(result.status, 403);
     });
 
@@ -365,6 +377,14 @@ async function main() {
       api(`/students/${studentId}/progression/advance`, {
         method: 'POST', userId, body: { academicSession: session },
       });
+
+    await test('actual management-pass API rejects a Rector request before Extension Year 3', async () => {
+      const result = await api(`/students/${studentOneId}/progression/management-pass`, {
+        method: 'POST', userId: rectorId,
+        body: { academicSession: `TEST-API-EARLY-PASS-${suffix}`, reason: 'Synthetic early-stage rejection test.' },
+      });
+      assert.equal(result.status, 409, JSON.stringify(result.payload));
+    });
 
     await test('actual progression API advances ND I to ND II with outstanding requirements', async () => {
       const result = await advance(studentOneId, `TEST-API-2026-${suffix}`);
