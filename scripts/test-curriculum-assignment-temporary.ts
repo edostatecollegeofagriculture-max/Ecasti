@@ -22,7 +22,7 @@ async function main() {
   const parsed = new URL(connectionString);
   const expectedHost = 'ep-blue-mud-bdm6m3i0-pooler.c-8.us-east-2.aws.neon.tech';
   assert(parsed.hostname === expectedHost, 'STOP: DATABASE_URL host is not the confirmed temporary Neon test branch.');
-  assert(parsed.pathname.replace(/^\\//, '') === 'neondb', 'STOP: database name is not neondb.');
+  assert(parsed.pathname.slice(1) === 'neondb', 'STOP: database name is not neondb.');
 
   const rl = createInterface({ input: stdin, output: stdout });
   try {
