@@ -281,10 +281,13 @@ async function main() {
     const managementPass = await approveExtensionYearThreeManagementPass({
       studentId, academicSession: 'TEST-SESSION-2030', rectorUserId: 'TEST-RECTOR',
       reason: 'Synthetic test: Rector-approved management pass.',
+      outstandingCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-C-' + tag, 'TEST-COURSE-ADD-' + tag],
+      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-C-' + tag, 'TEST-COURSE-ADD-' + tag],
     });
     assert(managementPass.status === 'GRADUATED' && managementPass.decisionType === 'MANAGEMENT_APPROVED_PASS', 'Extension Year 3 management pass did not graduate the synthetic student.');
-    const managementHistory = await neonPool.query('SELECT decided_by, approved_by FROM academic_progression_history WHERE id = $1', [managementPass.historyId]);
+    const managementHistory = await neonPool.query('SELECT decided_by, approved_by, outstanding_course_ids, missing_result_course_ids FROM academic_progression_history WHERE id = $1', [managementPass.historyId]);
     assert(managementHistory.rows[0]?.decided_by === 'TEST-RECTOR' && managementHistory.rows[0]?.approved_by === 'TEST-RECTOR', 'Management-pass history did not record the Rector as both actor and approver.');
+    assert(managementHistory.rows[0]?.outstanding_course_ids.length === 3 && managementHistory.rows[0]?.missing_result_course_ids.length === 3, 'Management-pass history did not preserve the outstanding and missing-result course lists.');
     check('Extension Year 3 management pass records Rector approval and immutable history');
 
     // A second synthetic student proves normal graduation is blocked until all
