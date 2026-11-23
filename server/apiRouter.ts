@@ -26,8 +26,10 @@ import {
 import { activateAdmissionFeeObligations, listRetryableAdmissionFeeActivations } from './feeAdmissionLedgerService';
 
 import { evaluateNdGraduationEligibility } from './academicProgressionService';
+import { academicProgressionApiRouter } from './academicProgressionApiRouter';
 
 export const apiRouter = Router();
+apiRouter.use('/academic-progression', academicProgressionApiRouter);
 // ==================== ACADEMIC PROGRESSION (READ ONLY) ====================
 apiRouter.get(
   '/academic-progression/students/:studentId/eligibility',
