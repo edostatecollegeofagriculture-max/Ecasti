@@ -391,49 +391,51 @@ export async function assignStudentCurriculum(input: AssignStudentCurriculumInpu
       if (Number(courseCount.rows[0]?.count ?? 0) < 1) {
         throw new Error('An existing student assignment has no effective required-course snapshots. Registry review is required.');
       }
-      const existingLedger = await client.query(
-        `SELECT id, status, mapping_id
-           FROM academic_curriculum_assignment_ledger
-          WHERE student_id = $1 AND programme_id = $2 AND cohort_session = $3
-          FOR UPDATE`,
-        [studentId, programmeId, cohortSession]
-      );
-      if (existingLedger.rows[0]) {
-        const currentLedger = existingLedger.rows[0];
-        if (currentLedger.status === 'REVIEW_REQUIRED' || currentLedger.status === 'FAILED') {
-          await client.query(
-            `UPDATE academic_curriculum_assignment_ledger
-                SET status = 'PENDING',
-                    mapping_id = NULL,
-                    attempt_count = attempt_count + 1,
-                    last_attempt_at = NOW(),
-                    assigned_at = NULL,
-                    review_reason = NULL,
-                    error_code = NULL,
-                    updated_at = NOW()
-              WHERE id = $1`,
-            [currentLedger.id]
-          );
-        }
-        if (currentLedger.status !== 'ASSIGNED' || currentLedger.mapping_id !== existing.mapping_id) {
-          await client.query(
-            `UPDATE academic_curriculum_assignment_ledger
-                SET status = 'ASSIGNED', mapping_id = $2,
-                    assigned_at = COALESCE(assigned_at, $3),
-                    review_reason = NULL, error_code = NULL,
-                    updated_at = NOW()
-              WHERE id = $1`,
-            [currentLedger.id, existing.mapping_id, existing.assigned_at]
-          );
-        }
-      } else {
-        await client.query(
-          `INSERT INTO academic_curriculum_assignment_ledger
-             (id, student_id, programme_id, cohort_session, idempotency_key,
-              status, mapping_id, attempt_count, last_attempt_at, assigned_at)
-           VALUES ($1, $2, $3, $4, $5, 'ASSIGNED', $6, 1, NOW(), $7)`,
-          [newId('assignment-ledger'), studentId, programmeId, cohortSession, ledgerIdempotencyKey, existing.mapping_id, existing.assigned_at]
+      if (existing.is_current) {
+        const existingLedger = await client.query(
+          `SELECT id, status, mapping_id
+             FROM academic_curriculum_assignment_ledger
+            WHERE student_id = $1 AND programme_id = $2 AND cohort_session = $3
+            FOR UPDATE`,
+          [studentId, programmeId, cohortSession]
         );
+        if (existingLedger.rows[0]) {
+          const currentLedger = existingLedger.rows[0];
+          if (currentLedger.status === 'REVIEW_REQUIRED' || currentLedger.status === 'FAILED') {
+            await client.query(
+              `UPDATE academic_curriculum_assignment_ledger
+                  SET status = 'PENDING',
+                      mapping_id = NULL,
+                      attempt_count = attempt_count + 1,
+                      last_attempt_at = NOW(),
+                      assigned_at = NULL,
+                      review_reason = NULL,
+                      error_code = NULL,
+                      updated_at = NOW()
+                WHERE id = $1`,
+              [currentLedger.id]
+            );
+          }
+          if (currentLedger.status !== 'ASSIGNED' || currentLedger.mapping_id !== existing.mapping_id) {
+            await client.query(
+              `UPDATE academic_curriculum_assignment_ledger
+                  SET status = 'ASSIGNED', mapping_id = $2,
+                      assigned_at = COALESCE(assigned_at, $3),
+                      review_reason = NULL, error_code = NULL,
+                      updated_at = NOW()
+                WHERE id = $1`,
+              [currentLedger.id, existing.mapping_id, existing.assigned_at]
+            );
+          }
+        } else {
+          await client.query(
+            `INSERT INTO academic_curriculum_assignment_ledger
+               (id, student_id, programme_id, cohort_session, idempotency_key,
+                status, mapping_id, attempt_count, last_attempt_at, assigned_at)
+             VALUES ($1, $2, $3, $4, $5, 'ASSIGNED', $6, 1, NOW(), $7)`,
+            [newId('assignment-ledger'), studentId, programmeId, cohortSession, ledgerIdempotencyKey, existing.mapping_id, existing.assigned_at]
+          );
+        }
       }
       return {
         status: 'ALREADY_ASSIGNED' as const,
