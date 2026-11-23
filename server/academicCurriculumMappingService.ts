@@ -231,10 +231,12 @@ export async function submitCurriculumMapping(mappingIdInput: string, actorIdInp
     if (mapping.rows[0].status !== 'DRAFT') throw new Error('Only a DRAFT mapping can be submitted.');
     if (mapping.rows[0].prepared_by !== actorId) throw new Error('Only the mapping preparer may submit this draft.');
     const count = await client.query(
-      'SELECT COUNT(*)::int AS count FROM academic_curriculum_mapping_courses WHERE mapping_id = $1',
+      'SELECT COUNT(*)::int AS count,
+              COUNT(*) FILTER (WHERE is_compulsory_snapshot = TRUE)::int AS compulsory_count
+         FROM academic_curriculum_mapping_courses WHERE mapping_id = $1',
       [mappingId]
     );
-    if (Number(count.rows[0].count) < 1) throw new Error('Add at least one course before submitting the mapping.');
+    if (Number(count.rows[0].count) < 1 || Number(count.rows[0].compulsory_count) < 1) throw new Error('Add at least one course, including at least one compulsory course, before submitting the mapping.');
     await client.query(
       `UPDATE academic_curriculum_mappings
           SET status = 'SUBMITTED', submitted_at = NOW()
@@ -264,6 +266,10 @@ export async function reviewCurriculumMapping(
   if (decision === 'REJECT' && !reason) throw new Error('A rejection reason is required.');
 
   return transaction(async (client) => {
+    await client.query(
+      'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
+      [`curriculum-review:${mappingId}`]
+    );
     const mappingResult = await client.query(
       'SELECT * FROM academic_curriculum_mappings WHERE id = $1 FOR UPDATE',
       [mappingId]
@@ -277,7 +283,7 @@ export async function reviewCurriculumMapping(
       'SELECT COUNT(*)::int AS count FROM academic_curriculum_mapping_courses WHERE mapping_id = $1',
       [mappingId]
     );
-    if (Number(courseCount.rows[0].count) < 1) throw new Error('A curriculum mapping must contain at least one course.');
+    if (Number(courseCount.rows[0].count) < 1 || Number(courseCount.rows[0].compulsory_count) < 1) throw new Error('A curriculum mapping must contain at least one course, including at least one compulsory course.');
 
     if (decision === 'APPROVE') {
       const current = await client.query(
