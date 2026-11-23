@@ -156,8 +156,8 @@ async function main() {
          to_regclass('public.student_academic_curriculum_assignments') AS assignments,
          to_regclass('public.student_academic_required_courses') AS required_courses,
          to_regclass('public.academic_curriculum_assignment_ledger') AS assignment_ledger,
-         to_regclass('public.student_curriculum_exceptions') AS exceptions,
-         to_regclass('public.academic_progression') AS progression,
+         to_regclass('public.academic_student_curriculum_exceptions') AS exceptions,
+         to_regclass('public.student_academic_progression') AS progression,
          to_regclass('public.academic_progression_history') AS progression_history`,
     );
     const schema = schemaCheck.rows[0];
