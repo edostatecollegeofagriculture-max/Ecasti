@@ -301,6 +301,7 @@ function main(): void {
     sourceFile: path.basename(DB_FILE),
     mode: 'READ_ONLY_NO_NEON_CONNECTION',
     collections,
+    referenceDiagnostics,
     findings,
     totals: {
       collectionsChecked: Object.keys(collections).length,
