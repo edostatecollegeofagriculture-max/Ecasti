@@ -653,6 +653,7 @@ CREATE TABLE academic_progression_history (
         CHECK (jsonb_typeof(missing_result_course_ids) = 'array'),
 
     reason TEXT,
+    decided_by TEXT,
     approved_by TEXT,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
