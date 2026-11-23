@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api, type FeeCatalogItem, type ProgramFeeSchedule, type ProgramFeeScheduleItem } from '../services/api';
 import {
@@ -23,17 +23,7 @@ import { matchesWildcard } from '../utils/wildcard';
 import { readImageFileAsDataUrl } from '../utils/imageUpload';
 import { WildcardFilterBar } from '../components/WildcardFilterBar';
 import { ContentManagementModule } from '../components/ContentManagementModule';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
+const AdminAnalyticsCharts = lazy(() => import('../components/AdminAnalyticsCharts'));
 import {
   Shield,
   Settings,
@@ -1421,49 +1411,13 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
-                  <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                    Student Enrolment by Department
-                  </h3>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={enrollmentData}>
-                        <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                        <YAxis tick={{ fontSize: 11 }} />
-                        <Tooltip />
-                        <Bar dataKey="students" radius={[6, 6, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
-                  <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                    Bursary Collection vs Outstanding
-                  </h3>
-                  <div className="h-64 flex items-center justify-center">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={financialData}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          label={({ name }) => name}
-                        >
-                          {financialData.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
+              <Suspense fallback={<div className="grid grid-cols-1 lg:grid-cols-2 gap-6" role="status" aria-label="Loading analytics charts"><div className="h-72 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" /><div className="h-72 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" /></div>}>
+                <AdminAnalyticsCharts
+                  enrollmentData={enrollmentData}
+                  financialData={financialData}
+                  colors={COLORS}
+                />
+              </Suspense>
             </div>
           )}
 
