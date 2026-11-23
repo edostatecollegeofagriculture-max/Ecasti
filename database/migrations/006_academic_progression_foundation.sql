@@ -1585,14 +1585,14 @@ EXECUTE FUNCTION prevent_academic_append_only_changes();
 CREATE OR REPLACE FUNCTION validate_management_pass_approval()
 RETURNS TRIGGER AS $$
 DECLARE
-    progression_stage TEXT;
-    progression_status TEXT;
+    v_progression_stage TEXT;
+    v_progression_status TEXT;
     history_matches BOOLEAN;
 BEGIN
-    SELECT current_stage, progression_status
-      INTO progression_stage, progression_status
-      FROM student_academic_progression
-     WHERE student_id = NEW.student_id
+    SELECT p.current_stage, p.progression_status
+      INTO v_progression_stage, v_progression_status
+      FROM student_academic_progression AS p
+     WHERE p.student_id = NEW.student_id
      FOR SHARE;
 
     IF NOT FOUND THEN
@@ -1600,8 +1600,8 @@ BEGIN
             'Management approval requires an existing progression record';
     END IF;
 
-    IF progression_stage IS DISTINCT FROM 'GRADUATED'
-       OR progression_status IS DISTINCT FROM 'GRADUATED'
+    IF v_progression_stage IS DISTINCT FROM 'GRADUATED'
+       OR v_progression_status IS DISTINCT FROM 'GRADUATED'
     THEN
         RAISE EXCEPTION
             'Management approval requires the student progression record to be GRADUATED';
