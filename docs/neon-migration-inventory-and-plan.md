@@ -91,3 +91,16 @@ The gate is intentionally a source-code constant, not an environment toggle. Do 
 ## Immediate deployment warning
 
 The Render and Vercel configuration files added in this branch establish deployment wiring only. They do not migrate the JSON-backed core API. Do not deploy this version as the live production application or set the Render production database URL until all acceptance criteria above have passed.
+
+
+## Migration 009 — authoritative academic result foundation
+
+Migration `009_authoritative_academic_results.sql` adds a versioned Neon result-attempt store, append-only workflow events, a publication view, and a single source-freshness record. It is additive and deliberately imports no live or historical records. The initial freshness record is incomplete, so no application may treat the new source as authoritative until a controlled reconciliation establishes a complete source watermark and the integration layer verifies freshness.
+
+Important semantics:
+
+- Each result attempt is retained independently; a later failed attempt does not erase an earlier published pass.
+- Published scores cannot be edited in place. Formal corrections require explicit invalidation/cancellation events with an actor and reason.
+- Result events and attempts cannot be deleted or truncated.
+- The published-results view includes attempts whose latest event remains `PUBLISHED`; consumers must also require a complete, sufficiently fresh `academic_result_source_sync` record.
+- This schema is a foundation only. It does not migrate the JSON results, implement the event-writing API, prove reconciliation, or authorize enabling the progression endpoints. The hard fail-closed guard remains in place.
