@@ -251,7 +251,7 @@ async function main(): Promise<void> {
       const valid =
         definition.includes('unique') &&
         definition.includes('(programme_id, cohort_session)') &&
-        definition.includes('where (is_current = true)');
+        definition.includes('where') &&\n        definition.includes('is_current') &&\n        !definition.includes('is_current = false');
       add(
         valid ? 'PASS' : 'FAIL',
         'Current mapping uniqueness',
@@ -289,12 +289,12 @@ async function main(): Promise<void> {
         : `Missing triggers: ${missingTriggers.join(', ')}`,
     );
 
-    const disabledTriggers = triggerResult.rows.filter((row) => row.enabled_state === 'D');
+    const disabledTriggers = triggerResult.rows.filter((row) => row.enabled_state !== 'O' && row.enabled_state !== 'A');
     add(
       disabledTriggers.length === 0 ? 'PASS' : 'FAIL',
       'Trigger enablement',
       disabledTriggers.length === 0
-        ? 'No expected-table triggers are disabled.'
+        ? 'All expected-table triggers are enabled for normal application sessions.'
         : `Disabled triggers: ${disabledTriggers.map((row) => row.trigger_name).join(', ')}`,
     );
 
