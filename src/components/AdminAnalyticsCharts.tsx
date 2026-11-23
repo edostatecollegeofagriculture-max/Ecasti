@@ -77,3 +77,5 @@ export const AdminAnalyticsCharts: FC<Props> = ({
     </div>
   </div>
 );
+
+export default AdminAnalyticsCharts;
