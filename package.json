@@ -17,7 +17,8 @@
     "test:academic-progression-http-authorization": "tsx scripts/test-academic-progression-http-authorization.ts",
     "test:academic-progression-api:temporary": "tsx scripts/test-academic-progression-api-temporary.ts",
     "test:academic-results:neon-temporary": "tsx scripts/test-academic-results-neon-temporary.ts",
-    "test:academic-results-api:temporary": "tsx scripts/test-academic-results-api-temporary.ts"
+    "test:academic-results-api:temporary": "tsx scripts/test-academic-results-api-temporary.ts",
+    "preflight:json-migration:readonly": "tsx scripts/preflight-json-migration-readonly.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
