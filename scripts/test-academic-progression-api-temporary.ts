@@ -462,7 +462,7 @@ async function main() {
     });
 
     console.log(`RESULT: ${passed} PASS, 0 FAIL`);
-    console.log('Only TEST-API-prefixed synthetic rows were written to the confirmed temporary Neon branch.');
+    console.log('All student, programme, cohort and course identifiers are TEST-API-prefixed; service-generated IDs are linked only to these synthetic records on the temporary branch.');
     console.log('The disposable JSON fixture was isolated under the OS temporary directory and will be removed.');
   } finally {
     if (server) {
