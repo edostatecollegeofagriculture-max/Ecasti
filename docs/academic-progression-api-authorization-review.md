@@ -58,8 +58,9 @@ policy.
 
 - Progression advance now rejects a missing student and non-ND programme before
   attempting a decision.
-- Rector management-pass now rejects a missing student and non-ND programme
-  before attempting approval.
+- Management-pass rejects a missing student and non-ND programme before
+  attempting approval. Rector and SUPER_ADMIN may approve; the actual
+  SUPER_ADMIN actor is recorded when acting on the Rector's behalf.
 - Re-initialization now rejects an existing progression record if its
   programme differs from the supplied student programme.
 - Advance and management-pass service transactions now verify that each
@@ -81,15 +82,16 @@ Neon branch using synthetic test identities and records:
 
 - The actual academic progression router and nested curriculum mapping router
   were mounted in an ephemeral Express server.
-- The full API integration suite reported **25 PASS, 0 FAIL**, covering
-  authentication, scoped curriculum mapping, assignment idempotency and
-  cross-student access, exception submission/review, eligibility result
-  states, progression through Extension Years 1–3, Rector-only management
-  pass, and normal graduation.
+- The prior full API integration baseline reported **25 PASS, 0 FAIL**. The
+  suite has since been updated to verify SUPER_ADMIN management-pass
+  delegation and approver attribution; that updated suite must be rerun before
+  treating the new authorization policy as verified.
 - The separate curriculum assignment service workflow suite reported
   **17 PASS, 0 FAIL**.
-- The separate HTTP authorization middleware suite reported **20 PASS,
-  0 FAIL**, and authorization predicate tests reported **13 PASS, 0 FAIL**.
+- The prior HTTP authorization baseline reported **20 PASS, 0 FAIL**, and
+  authorization predicate tests reported **13 PASS, 0 FAIL**. Both suites have
+  since been extended for SUPER_ADMIN cross-scope access and management-pass
+  delegation and must be rerun.
 - Result evaluation tests reported **7 PASS, 0 FAIL**.
 
 These tests close the isolated route and workflow verification items above.
@@ -98,7 +100,7 @@ configuration, or operational synchronization between the local result store
 and Neon requirement snapshots. The latter remains a production-readiness
 dependency and must be verified operationally before rollout.
 
-No production data was read or changed during this source review. The review
+The updated authorization and API tests have not yet been rerun against this latest commit. No production data was read or changed during this source review. The review
 does not authorize production migrations, database writes, deployment, or PR
 merge.
 
