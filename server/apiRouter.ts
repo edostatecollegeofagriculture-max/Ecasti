@@ -2207,14 +2207,31 @@ apiRouter.get(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const state = db.getState();
+      const allowedStatuses = ['SUBMITTED', 'VERIFIED', 'APPROVED', 'PUBLISHED', 'INVALIDATED', 'CANCELLED'];
+      const queryFilters = [
+        ['studentId', req.query.studentId, 200],
+        ['courseId', req.query.courseId, 200],
+        ['session', req.query.session, 40],
+      ] as const;
+      for (const [label, value, maxLength] of queryFilters) {
+        if (value !== undefined && (typeof value !== 'string' || !value.trim() || value.trim().length > maxLength)) {
+          return res.status(400).json({ success: false, message: `Invalid ${label} filter.` });
+        }
+      }
+      if (req.query.semester !== undefined
+          && (typeof req.query.semester !== 'string'
+            || !['First Semester', 'Second Semester'].includes(req.query.semester))) {
+        return res.status(400).json({ success: false, message: 'Invalid semester filter.' });
+      }
+      if (req.query.status !== undefined
+          && (typeof req.query.status !== 'string' || !allowedStatuses.includes(req.query.status))) {
+        return res.status(400).json({ success: false, message: 'Invalid result status filter.' });
+      }
       const filters = {
-        studentId: typeof req.query.studentId === 'string' ? req.query.studentId : undefined,
-        courseId: typeof req.query.courseId === 'string' ? req.query.courseId : undefined,
-        academicSession: typeof req.query.session === 'string' ? req.query.session : undefined,
-        semester: typeof req.query.semester === 'string'
-          && ['First Semester', 'Second Semester'].includes(req.query.semester)
-          ? req.query.semester as 'First Semester' | 'Second Semester'
-          : undefined,
+        studentId: typeof req.query.studentId === 'string' ? req.query.studentId.trim() : undefined,
+        courseId: typeof req.query.courseId === 'string' ? req.query.courseId.trim() : undefined,
+        academicSession: typeof req.query.session === 'string' ? req.query.session.trim() : undefined,
+        semester: req.query.semester as 'First Semester' | 'Second Semester' | undefined,
       };
       const attempts = await listAcademicResultAttempts(filters);
       const assignedCourseIds = req.user!.role === 'LECTURER'
@@ -2222,7 +2239,7 @@ apiRouter.get(
         : null;
       const results = attempts
         .filter((attempt) => !assignedCourseIds || assignedCourseIds.has(String(attempt.course_id)))
-        .filter((attempt) => !req.query.status || attempt.latest_event_type === req.query.status)
+        .filter((attempt) => req.query.status === undefined || attempt.latest_event_type === req.query.status)
         .map((attempt) => {
           const student = state.students.find((item) => item.id === attempt.student_id);
           const user = student ? state.users.find((item) => item.id === student.userId) : undefined;
@@ -2252,9 +2269,12 @@ apiRouter.get(
           };
         });
       return res.json({ success: true, results, source: 'NEON_ATTEMPT_LEDGER' });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to read Neon result attempts.';
-      return res.status(503).json({ success: false, message });
+    } catch {
+      // Keep database and connection details out of API responses.
+      return res.status(503).json({
+        success: false,
+        message: 'Neon result attempts are temporarily unavailable.',
+      });
     }
   }
 );
