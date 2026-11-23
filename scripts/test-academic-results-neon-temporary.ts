@@ -144,6 +144,20 @@ async function main() {
       idempotencyKey: key('invalid-pass'),
     });
     assert.equal(event.created, true);
+    const retried = await service.appendAcademicResultEvent({
+      resultAttemptId: passingAttemptId, eventType: 'INVALIDATED',
+      actorUserId: actorId, reason: 'Synthetic integration test invalidation',
+      idempotencyKey: key('invalid-pass'),
+    });
+    assert.equal(retried.created, false, 'The same actor and reason should retry idempotently.');
+    await assert.rejects(
+      () => service.appendAcademicResultEvent({
+        resultAttemptId: passingAttemptId, eventType: 'INVALIDATED',
+        actorUserId: `${actorId}-different`, reason: 'Synthetic integration test invalidation',
+        idempotencyKey: key('invalid-pass'),
+      }),
+      /different result event/i,
+    );
     const published = await neonPool!.query(
       'SELECT result_attempt_id FROM academic_authoritative_published_results WHERE result_attempt_id = $1',
       [passingAttemptId],
