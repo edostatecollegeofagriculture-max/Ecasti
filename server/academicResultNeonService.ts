@@ -232,7 +232,9 @@ export async function appendAcademicResultEvent(input: {
     );
     if (existing.rows[0]) {
       if (existing.rows[0].result_attempt_id !== resultAttemptId
-          || existing.rows[0].event_type !== input.eventType) {
+          || existing.rows[0].event_type !== input.eventType
+          || existing.rows[0].actor_user_id !== actorUserId
+          || (existing.rows[0].reason || null) !== reason) {
         throw new Error('Idempotency key was already used for a different result event.');
       }
       return { created: false, event: existing.rows[0] };
