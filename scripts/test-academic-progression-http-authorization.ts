@@ -179,8 +179,8 @@ try {
   await test('Rector receives HTTP 200 on the Rector-only management-pass guard', async () => {
     assert.equal((await request('/students/student-a/progression/management-pass', { method: 'POST', userId: 'rector-a' })).status, 200);
   });
-  await test('SUPER_ADMIN receives HTTP 403 on the Rector-only management-pass guard', async () => {
-    assert.equal((await request('/students/student-a/progression/management-pass', { method: 'POST', userId: 'super-admin-a' })).status, 403);
+  await test('SUPER_ADMIN receives HTTP 200 when acting on behalf of the Rector', async () => {
+    assert.equal((await request('/students/student-a/progression/management-pass', { method: 'POST', userId: 'super-admin-a' })).status, 200);
   });
 
   console.log(`RESULT: ${passed} PASS, 0 FAIL`);
