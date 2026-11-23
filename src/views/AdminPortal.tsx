@@ -799,7 +799,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
       return;
     }
     const course = courses.find((item) => item.id === courseId);
-    const courseLabel = course ? `${course.code} â€” ${course.title}` : courseId;
+    const courseLabel = course ? `${course.code} — ${course.title}` : courseId;
     if (!window.confirm(`Remove ${courseLabel} from this student's registration?`)) return;
 
     const nextCourseIds = reviewRegistration.courseIds.filter((id) => id !== courseId);
@@ -876,7 +876,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
       });
       if (res.success) {
         notify(
-          `${docForm.type === 'TRANSCRIPT' ? 'Official Transcript' : 'Final Certificate'} (${res.document.documentNumber}) generated. Invoice â‚¦${Number(res.invoice.amount).toLocaleString('en-NG')} issued for student payment.`
+          `${docForm.type === 'TRANSCRIPT' ? 'Official Transcript' : 'Final Certificate'} (${res.document.documentNumber}) generated. Invoice ₦${Number(res.invoice.amount).toLocaleString('en-NG')} issued for student payment.`
         );
         loadData();
       }
@@ -1288,7 +1288,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           </button>
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
-              {user?.role?.replace(/_/g, ' ')} Â· Institutional Management
+              {user?.role?.replace(/_/g, ' ')} · Institutional Management
             </span>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-0.5">
               EDOCASTI Governance &amp; Workflow Console
@@ -1324,7 +1324,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
         >
           <span>{feedback.text}</span>
           <button onClick={() => setFeedback(null)} className="font-bold cursor-pointer">
-            âœ•
+            ✕
           </button>
         </div>
       )}
@@ -1405,7 +1405,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                 <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
                   <span className="text-xs font-bold text-slate-500 uppercase">Total Revenue Settled</span>
                   <div className="text-2xl font-black text-emerald-900 dark:text-amber-400 mt-1 tabular-nums">
-                    â‚¦{Number(stats?.totalRevenue || payments.reduce((a, b) => a + b.amount, 0) || 100000).toLocaleString('en-NG')}
+                    ₦{Number(stats?.totalRevenue || payments.reduce((a, b) => a + b.amount, 0) || 100000).toLocaleString('en-NG')}
                   </div>
                   <span className="text-[11px] text-emerald-700 font-semibold">Verified via Remita</span>
                 </div>
@@ -1462,7 +1462,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                       label: 'Department',
                       value: deanDeptFilter,
                       onChange: setDeanDeptFilter,
-                      options: departments.map((d) => ({ value: d.id, label: `${d.code} Â· ${d.name}` })),
+                      options: departments.map((d) => ({ value: d.id, label: `${d.code} · ${d.name}` })),
                     },
                     {
                       key: 'level',
@@ -1550,7 +1550,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                         <th className="p-3">Course Title</th>
                         <th className="p-3">Department</th>
                         <th className="p-3 text-center">Units</th>
-                        <th className="p-3">Level Â· Semester</th>
+                        <th className="p-3">Level · Semester</th>
                         <th className="p-3">Assigned Lecturer</th>
                         <th className="p-3 text-right">Actions</th>
                       </tr>
@@ -1567,7 +1567,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                             <td className="p-3 text-slate-600 dark:text-slate-300">{dept?.code || crs.departmentId}</td>
                             <td className="p-3 text-center font-bold tabular-nums">{crs.creditUnits}</td>
                             <td className="p-3 text-slate-600 dark:text-slate-300">
-                              {crs.level} Â· {crs.semester}
+                              {crs.level} · {crs.semester}
                             </td>
                             <td className="p-3 text-slate-700 dark:text-slate-300">
                               {crs.lecturerName || 'Unassigned (Pending HOD)'}
@@ -1634,7 +1634,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                   <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase font-bold text-[11px]">
                     <tr>
                       <th className="p-3">Course</th>
-                      <th className="p-3">Level Â· Semester</th>
+                      <th className="p-3">Level · Semester</th>
                       <th className="p-3">Current Lecturer</th>
                       <th className="p-3">Assign To Lecturer</th>
                       <th className="p-3 text-right">Action</th>
@@ -1648,7 +1648,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                           <div className="font-semibold text-slate-900 dark:text-white">{crs.title}</div>
                         </td>
                         <td className="p-3 text-slate-600 dark:text-slate-300">
-                          {crs.level} Â· {crs.semester} ({crs.creditUnits}U)
+                          {crs.level} · {crs.semester} ({crs.creditUnits}U)
                         </td>
                         <td className="p-3">
                           <span
@@ -1768,7 +1768,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                       <tr>
                         <th className="p-3">Select</th>
                         <th className="p-3">Student</th>
-                        <th className="p-3">Level Â· Period</th>
+                        <th className="p-3">Level · Period</th>
                         <th className="p-3">Registered Course Details</th>
                         <th className="p-3 text-center">Credits</th>
                         <th className="p-3">Status</th>
@@ -1798,7 +1798,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                                   }
                                   className="h-4 w-4 rounded border-slate-300"
                                 />
-                              ) : <span className="text-slate-300">â€”</span>}
+                              ) : <span className="text-slate-300">—</span>}
                             </td>
                             <td className="p-3">
                               <div className="font-bold text-slate-900 dark:text-white">
@@ -1809,7 +1809,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                               </div>
                             </td>
                             <td className="p-3 text-slate-600 dark:text-slate-300">
-                              {reg.level} Â· {reg.session} ({reg.semester})
+                              {reg.level} · {reg.session} ({reg.semester})
                             </td>
                             <td className="p-3">
                               <button
@@ -1905,7 +1905,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                       label: 'Course',
                       value: examResCourseFilter,
                       onChange: setExamResCourseFilter,
-                      options: courses.map((c) => ({ value: c.id, label: `${c.code} Â· ${c.title}` })),
+                      options: courses.map((c) => ({ value: c.id, label: `${c.code} · ${c.title}` })),
                     },
                     {
                       key: 'status',
@@ -1975,7 +1975,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                                 </button>
                               ) : (
                                 <span className={`text-[11px] font-semibold ${r.status === 'PUBLISHED' ? 'text-emerald-700' : 'text-slate-500'}`}>
-                                  {r.status === 'PUBLISHED' ? 'Published' : 'Draft â€” not eligible'}
+                                  {r.status === 'PUBLISHED' ? 'Published' : 'Draft — not eligible'}
                                 </span>
                               )}
                             </td>
@@ -2020,7 +2020,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                       <option value="">-- Choose Student --</option>
                       {students.map((s) => (
                         <option key={s.id} value={s.id}>
-                          {s.fullName} ({s.matricNumber} Â· {s.level} Â· CGPA {Number(s.cgpa).toFixed(2)})
+                          {s.fullName} ({s.matricNumber} · {s.level} · CGPA {Number(s.cgpa).toFixed(2)})
                         </option>
                       ))}
                     </select>
@@ -2052,7 +2052,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
 
                   <div>
                     <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Processing Fee (â‚¦) *
+                      Processing Fee (₦) *
                     </label>
                     <input
                       type="number"
@@ -2134,7 +2134,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                         <th className="p-3">Type</th>
                         <th className="p-3">Student &amp; Matric</th>
                         <th className="p-3">Classification</th>
-                        <th className="p-3 text-right">Fee (â‚¦)</th>
+                        <th className="p-3 text-right">Fee (₦)</th>
                         <th className="p-3">Payment Gate</th>
                         <th className="p-3 text-right">Actions</th>
                       </tr>
@@ -2163,7 +2163,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                               {doc.classification} (CGPA {Number(doc.cgpa).toFixed(2)})
                             </td>
                             <td className="p-3 text-right font-mono font-bold tabular-nums">
-                              â‚¦{Number(doc.feeAmount).toLocaleString('en-NG')}
+                              ₦{Number(doc.feeAmount).toLocaleString('en-NG')}
                             </td>
                             <td className="p-3">
                               <span
@@ -3159,7 +3159,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                         <th className="p-3">Category</th>
                         <th className="p-3">Level</th>
                         <th className="p-3">Session</th>
-                        <th className="p-3 text-right">Amount (â‚¦)</th>
+                        <th className="p-3 text-right">Amount (₦)</th>
                         <th className="p-3 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -3174,7 +3174,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                             <td className="p-3">{f.level || 'All'}</td>
                             <td className="p-3">{f.session}</td>
                             <td className="p-3 text-right font-mono font-bold tabular-nums">
-                              â‚¦{Number(f.amount).toLocaleString('en-NG')}
+                              ₦{Number(f.amount).toLocaleString('en-NG')}
                             </td>
                             <td className="p-3 text-right whitespace-nowrap">
                               <button
@@ -3240,7 +3240,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                               </td>
                               <td className="p-3">{inv.title}</td>
                               <td className="p-3 text-right font-mono font-bold tabular-nums">
-                                â‚¦{Number(inv.amount).toLocaleString('en-NG')}
+                                ₦{Number(inv.amount).toLocaleString('en-NG')}
                               </td>
                               <td className="p-3">
                                 <span
@@ -3307,7 +3307,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                               </td>
                               <td className="p-3">{std?.fullName || p.studentId}</td>
                               <td className="p-3 font-black tabular-nums">
-                                â‚¦{Number(p.amount).toLocaleString('en-NG')}
+                                ₦{Number(p.amount).toLocaleString('en-NG')}
                               </td>
                               <td className="p-3">{p.channel}</td>
                               <td className="p-3 font-mono text-slate-500">{p.providerReference}</td>
@@ -3443,13 +3443,13 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                           <td className="p-3 text-slate-600 dark:text-slate-300 max-w-md truncate">
                             {secondary}{' '}
                             {item.role
-                              ? `Â· ${item.role}`
+                              ? `· ${item.role}`
                               : item.creditUnits
-                              ? `Â· ${item.creditUnits} Units`
+                              ? `· ${item.creditUnits} Units`
                               : item.amount !== undefined
-                              ? `Â· â‚¦${Number(item.amount).toLocaleString('en-NG')}`
+                              ? `· ₦${Number(item.amount).toLocaleString('en-NG')}`
                               : item.totalScore !== undefined
-                              ? `Â· ${item.totalScore} (${item.grade})`
+                              ? `· ${item.totalScore} (${item.grade})`
                               : ''}
                           </td>
                           <td className="p-3 text-right whitespace-nowrap space-x-1">
@@ -3678,7 +3678,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                   </div>
                   <div>
                     <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
-                      Default Official Transcript Fee (â‚¦)
+                      Default Official Transcript Fee (₦)
                     </label>
                     <input
                       type="number"
@@ -3689,7 +3689,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                   </div>
                   <div>
                     <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
-                      Default Final Certificate Fee (â‚¦)
+                      Default Final Certificate Fee (₦)
                     </label>
                     <input
                       type="number"
@@ -3876,12 +3876,12 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
             <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
               <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4 dark:border-slate-700">
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Exam Officer Â· Gate 1</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Exam Officer · Gate 1</p>
                   <h2 id="registration-review-title" className="mt-1 text-lg font-black text-slate-900 dark:text-white">Registered Course Review</h2>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{reviewStudent?.fullName || reviewRegistration.studentId}</p>
-                  <p className="text-xs text-slate-500">{reviewStudent?.matricNumber || 'Matric number unavailable'} Â· {reviewRegistration.level} Â· {reviewRegistration.session} Â· {reviewRegistration.semester}</p>
+                  <p className="text-xs text-slate-500">{reviewStudent?.matricNumber || 'Matric number unavailable'} · {reviewRegistration.level} · {reviewRegistration.session} · {reviewRegistration.semester}</p>
                 </div>
-                <button type="button" onClick={() => setReviewRegistration(null)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800" aria-label="Close course review">âœ•</button>
+                <button type="button" onClick={() => setReviewRegistration(null)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800" aria-label="Close course review">✕</button>
               </div>
 
               <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
@@ -3901,7 +3901,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                           <td className="p-3 font-semibold text-slate-900 dark:text-white">{course?.title || 'Course details unavailable'}</td>
                           <td className="p-3 text-slate-600 dark:text-slate-300">{course?.level || reviewRegistration.level}</td>
                           <td className="p-3 text-slate-600 dark:text-slate-300">{course?.semester || reviewRegistration.semester}</td>
-                          <td className="p-3 text-center font-bold tabular-nums">{course?.creditUnits ?? 'â€”'}</td>
+                          <td className="p-3 text-center font-bold tabular-nums">{course?.creditUnits ?? '—'}</td>
                           <td className="p-3 text-right whitespace-nowrap">
                             {reviewRegistration.status === 'SUBMITTED' && editingRegistrationCourseId === courseId ? (
                               <div className="flex min-w-[230px] items-center justify-end gap-2">
@@ -3926,7 +3926,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                                     })
                                     .map((item) => (
                                       <option key={item.id} value={item.id}>
-                                        {item.code} â€” {item.title} ({item.semester || 'Semester not set'})
+                                        {item.code} — {item.title} ({item.semester || 'Semester not set'})
                                       </option>
                                     ))}
                                 </select>
@@ -3989,7 +3989,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                 {editingProgId ? 'Edit Academic Programme' : 'Dean: Create New Programme'}
               </h3>
               <button onClick={() => setProgModalOpen(false)} className="text-slate-400 cursor-pointer">
-                âœ•
+                ✕
               </button>
             </div>
             <form onSubmit={handleSaveProgramme} className="space-y-3 text-xs">
@@ -4103,7 +4103,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                 {editingCourseId ? 'Edit Academic Course' : 'Dean: Create New Course'}
               </h3>
               <button onClick={() => setCourseModalOpen(false)} className="text-slate-400 cursor-pointer">
-                âœ•
+                ✕
               </button>
             </div>
             <form onSubmit={handleSaveCourse} className="space-y-3 text-xs">
@@ -4229,7 +4229,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                 {editingUserId ? 'Edit Institutional User' : 'Provision New Institutional Account'}
               </h3>
               <button onClick={() => setShowUserModal(false)} className="text-slate-400 cursor-pointer">
-                âœ•
+                ✕
               </button>
             </div>
             <form onSubmit={handleSaveUser} className="space-y-3 text-xs">
@@ -4317,7 +4317,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                 {editingFeeId ? 'Edit Fee Schedule Item' : 'Add Fee Schedule Item'}
               </h3>
               <button onClick={() => setFeeModalOpen(false)} className="text-slate-400 cursor-pointer">
-                âœ•
+                ✕
               </button>
             </div>
             <form onSubmit={handleSaveFee} className="space-y-3 text-xs">
@@ -4333,7 +4333,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-semibold mb-1">Amount (â‚¦) *</label>
+                  <label className="block font-semibold mb-1">Amount (₦) *</label>
                   <input
                     type="number"
                     required
@@ -4427,7 +4427,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
             <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="font-bold text-slate-900 dark:text-white text-sm">Issue Student Invoice</h3>
               <button onClick={() => setInvoiceModalOpen(false)} className="text-slate-400 cursor-pointer">
-                âœ•
+                ✕
               </button>
             </div>
             <form onSubmit={handleCreateInvoice} className="space-y-3 text-xs">
@@ -4460,7 +4460,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-semibold mb-1">Amount (â‚¦) *</label>
+                  <label className="block font-semibold mb-1">Amount (₦) *</label>
                   <input
                     type="number"
                     required
@@ -4505,7 +4505,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                 {crudMode === 'create' ? `Create New ${crudEntity}` : `Edit ${crudEntity} Record`}
               </h3>
               <button onClick={() => setCrudModalOpen(false)} className="text-slate-400 cursor-pointer">
-                âœ•
+                ✕
               </button>
             </div>
             <form onSubmit={handleGlobalCrudSave} className="space-y-3 text-xs max-h-[65vh] overflow-y-auto pr-1">
