@@ -161,6 +161,9 @@ try {
   await test('student cannot read another student academic record', async () => {
     assert.equal((await request('/students/student-b/academic-record', { userId: 'student-a-user' })).status, 403);
   });
+  await test('SUPER_ADMIN can read any student record across department and school scope', async () => {
+    assert.equal((await request('/students/student-b/academic-record', { userId: 'super-admin-a' })).status, 200);
+  });
   await test('Dean can read within assigned school', async () => {
     assert.equal((await request('/students/student-a/academic-record', { userId: 'dean-a' })).status, 200);
   });
