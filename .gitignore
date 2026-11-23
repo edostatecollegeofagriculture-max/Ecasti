@@ -1,0 +1,40 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Private local data and credentials
+.env.*
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Dependencies and generated output
+
+# Local backups and update archives
+*.backup-*
+*.zip
+
+
+# Historical backups and temporary review files
+_backup/
+EDOCASTI-backup-*/
+EDOCASTI-*-Update/
+EDOCASTI-*-Update-*/
+*.bak
+*.bak-*
+*.pre-enhance-*
+*.backup-*
+
+# Temporary extracted/review files
+chunk*.txt
+tail*.txt
+continued
+apiRouter_tail.txt
+_review_*.txt
+
