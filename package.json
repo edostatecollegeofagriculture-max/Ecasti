@@ -15,7 +15,8 @@
     "test:academic-result-evaluation": "tsx scripts/test-academic-result-evaluation.ts",
     "test:academic-progression-authorization": "tsx scripts/test-academic-progression-authorization.ts",
     "test:academic-progression-http-authorization": "tsx scripts/test-academic-progression-http-authorization.ts",
-    "test:academic-progression-api:temporary": "tsx scripts/test-academic-progression-api-temporary.ts"
+    "test:academic-progression-api:temporary": "tsx scripts/test-academic-progression-api-temporary.ts",
+    "test:academic-results:neon-temporary": "tsx scripts/test-academic-results-neon-temporary.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
