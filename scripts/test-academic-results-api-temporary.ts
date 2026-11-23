@@ -155,6 +155,16 @@ async function main() {
   };
 
   try {
+    await test('attempt ledger rejects unauthenticated reads', async () => {
+      const result = await api('/results/neon-attempts');
+      assert.equal(result.status, 401);
+    });
+
+    await test('attempt ledger denies the Student role', async () => {
+      const result = await api('/results/neon-attempts', { userId: studentUserId });
+      assert.equal(result.status, 403);
+    });
+
     await test('workflow endpoint rejects requests without authentication', async () => {
       const result = await api('/results/neon-attempts/missing/events', {
         method: 'POST', body: { eventType: 'VERIFIED', idempotencyKey: `unauth-${suffix}` },
