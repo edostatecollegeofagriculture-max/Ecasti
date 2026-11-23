@@ -82,13 +82,18 @@ function mapSummary(row: any): CurriculumMappingSummary {
 
 export async function listCurriculumMappings(filters: {
   programmeId?: string;
+  programmeIds?: string[];
   cohortSession?: string;
 } = {}): Promise<CurriculumMappingSummary[]> {
   const values: unknown[] = [];
   const where: string[] = [];
   if (filters.programmeId) {
     values.push(filters.programmeId);
-    where.push(`m.programme_id = $${values.length}`);
+    where.push(`m.programme_id = ${values.length}`);
+  } else if (filters.programmeIds) {
+    if (filters.programmeIds.length === 0) return [];
+    values.push(filters.programmeIds);
+    where.push(`m.programme_id = ANY(${values.length}::text[])`);
   }
   if (filters.cohortSession) {
     values.push(filters.cohortSession);
