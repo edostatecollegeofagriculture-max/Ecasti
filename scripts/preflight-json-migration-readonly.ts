@@ -210,6 +210,49 @@ function main(): void {
     unresolvedReferences: number;
   }> = [];
 
+  // Aggregate-only fallback-key diagnostics. Values are compared in memory and never emitted.
+  const alternateKeyCandidates = [
+    { source: 'applications', field: 'reviewedBy', target: 'users', candidateFields: ['email', 'fullName'] },
+    { source: 'payments', field: 'studentId', target: 'students', candidateFields: ['matricNumber', 'userId'] },
+    { source: 'payments', field: 'invoiceId', target: 'invoices', candidateFields: ['invoiceNumber'] },
+  ] as const;
+  const alternateKeyDiagnostics: Array<{
+    source: string;
+    field: string;
+    target: string;
+    candidateField: string;
+    sourceStringValues: number;
+    targetRowsWithCandidateValue: number;
+    matchedSourceValues: number;
+  }> = [];
+
+  for (const candidate of alternateKeyCandidates) {
+    const sourceRows = arrays[candidate.source] ?? [];
+    const targetRows = arrays[candidate.target] ?? [];
+    const sourceValues = sourceRows
+      .map((row) => row[candidate.field])
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+
+    for (const candidateField of candidate.candidateFields) {
+      const targetValues = new Set(
+        targetRows
+          .map((row) => row[candidateField])
+          .filter((value): value is string => typeof value === 'string' && value.trim().length > 0),
+      );
+      alternateKeyDiagnostics.push({
+        source: candidate.source,
+        field: candidate.field,
+        target: candidate.target,
+        candidateField,
+        sourceStringValues: sourceValues.length,
+        targetRowsWithCandidateValue: targetRows.filter(
+          (row) => typeof row[candidateField] === 'string' && String(row[candidateField]).trim().length > 0,
+        ).length,
+        matchedSourceValues: sourceValues.filter((value) => targetValues.has(value)).length,
+      });
+    }
+  }
+
   for (const relation of relations) {
     const sourceRows = arrays[relation.source];
     if (!sourceRows) continue;
@@ -302,6 +345,7 @@ function main(): void {
     mode: 'READ_ONLY_NO_NEON_CONNECTION',
     collections,
     referenceDiagnostics,
+    alternateKeyDiagnostics,
     findings,
     totals: {
       collectionsChecked: Object.keys(collections).length,
