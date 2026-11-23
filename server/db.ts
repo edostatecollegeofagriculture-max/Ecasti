@@ -8,6 +8,21 @@ const DB_FILE = process.env.EDOCASTI_DATA_FILE
   ? path.resolve(process.env.EDOCASTI_DATA_FILE)
   : path.resolve(process.cwd(), 'data', 'edocasti_db.json');
 const DATA_DIR = path.dirname(DB_FILE);
+const STAGING_DEMO_ONLY = process.env.EDOCASTI_STAGING_DEMO_ONLY === 'true';
+const STAGING_RENDER_SERVICE_ID = 'srv-dc2cgr142hec73feeqg0';
+const STAGING_INIT_MARKER = `${DB_FILE}.staging-demo-only-initialized`;
+const STAGING_QUICK_ACCESS_EMAILS = new Set([
+  'superadmin@edocasti.edu.ng',
+  'dean@edocasti.edu.ng',
+  'hod.agric@edocasti.edu.ng',
+  'examofficer@edocasti.edu.ng',
+  'lecturer.agric@edocasti.edu.ng',
+  'registrar@edocasti.edu.ng',
+  'bursar@edocasti.edu.ng',
+  'admissions@edocasti.edu.ng',
+  'student.agric@edocasti.edu.ng',
+  'applicant.jerry@gmail.com',
+]);
 
 export interface AuditLog {
   id: string;
@@ -488,17 +503,124 @@ export class DatabaseEngine {
   private state: DatabaseState;
 
   constructor() {
+    if (STAGING_DEMO_ONLY) {
+      const expectedDataFile = path.resolve(process.cwd(), 'data', 'edocasti_db.json');
+      if (
+        process.env.RENDER_SERVICE_ID !== STAGING_RENDER_SERVICE_ID ||
+        path.resolve(process.env.EDOCASTI_DATA_FILE || '') !== expectedDataFile
+      ) {
+        throw new Error('Staging demo-only mode is restricted to the dedicated Ecasti staging service and its isolated data file.');
+      }
+    }
     this.ensureDataDir();
     this.state = this.loadDatabase();
   }
 
-  private ensureDataDir() {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
+  private loadStagingDemoOnlyDatabase(): DatabaseState {
+    // Once initialized, preserve data created by staging E2E tests. The marker
+    // is written only after the first isolated demo-only reset succeeds.
+    if (fs.existsSync(STAGING_INIT_MARKER) && fs.existsSync(DB_FILE)) {
+      try {
+        return JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')) as DatabaseState;
+      } catch (err) {
+        console.error('Staging demo-only database could not be read; rebuilding the isolated demo baseline.', err);
+      }
     }
+
+    let existing: Partial<DatabaseState> = {};
+    if (fs.existsSync(DB_FILE)) {
+      try {
+        existing = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')) as Partial<DatabaseState>;
+      } catch {
+        // The dedicated staging file is disposable; rebuild from source fixtures.
+      }
+    }
+
+    const seed = this.generateSeedData();
+    const usersByEmail = new Map<string, User>();
+    for (const user of seed.users) {
+      const email = user.email.toLowerCase();
+      if (STAGING_QUICK_ACCESS_EMAILS.has(email)) usersByEmail.set(email, user);
+    }
+    if (Array.isArray(existing.users)) {
+      for (const user of existing.users) {
+        if (user && typeof user.email === 'string') {
+          const email = user.email.toLowerCase();
+          if (STAGING_QUICK_ACCESS_EMAILS.has(email)) usersByEmail.set(email, user);
+        }
+      }
+    }
+
+    const emptyPageContent: PageContent = {
+      portalBannerText: '',
+      portalBadgeText: '',
+      newsSectionKicker: '',
+      newsSectionHeading: '',
+      rectorName: '',
+      rectorTitle: '',
+      rectorInstitution: '',
+      rectorKicker: '',
+      rectorHeadline: '',
+      rectorParagraph1: '',
+      rectorParagraph2: '',
+      rectorCtaText: '',
+      rectorAvatarEmoji: '',
+      schoolsSectionKicker: '',
+      schoolsSectionHeading: '',
+      schoolsSectionSubheading: '',
+      calendarSectionKicker: '',
+      calendarSectionHeading: '',
+      calendarItems: [],
+      faqSectionKicker: '',
+      faqSectionHeading: '',
+      faqs: [],
+      footerBrandTitle: '',
+      footerBrandSubtitle: '',
+      footerDescription: '',
+      footerLocationHeading: '',
+      footerLocationAddress: '',
+      footerContactHeading: '',
+      sectionOrder: [],
+      hiddenSections: [],
+      customSections: [],
+    };
+
+    const state: DatabaseState = {
+      settings: existing.settings || seed.settings,
+      users: Array.from(usersByEmail.values()),
+      schools: [],
+      departments: [],
+      programmes: [],
+      courses: [],
+      applications: [],
+      students: [],
+      registrations: [],
+      results: [],
+      feeSchedules: [],
+      invoices: [],
+      payments: [],
+      attendance: [],
+      supportTickets: [],
+      auditLogs: [],
+      newsArticles: [],
+      feeCatalogItems: [],
+      programFeeSchedules: [],
+      programFeeScheduleItems: [],
+      studentFeeObligations: [],
+      studentPayments: [],
+      studentPaymentAllocations: [],
+      sliderSlides: [],
+      pageContent: emptyPageContent,
+      issuedDocuments: [],
+    };
+
+    this.saveState(state);
+    fs.writeFileSync(STAGING_INIT_MARKER, new Date().toISOString(), 'utf-8');
+    return state;
   }
 
   private loadDatabase(): DatabaseState {
+    if (STAGING_DEMO_ONLY) return this.loadStagingDemoOnlyDatabase();
     if (fs.existsSync(DB_FILE)) {
       try {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
