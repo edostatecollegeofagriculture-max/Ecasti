@@ -35,6 +35,27 @@ const mappingPreparers = [
   'REGISTRAR',
 ];
 
+function hasProgrammeScope(req: AuthenticatedRequest, programmeId: string): boolean {
+  const user = req.user;
+  if (!user) return false;
+  if (['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'].includes(user.role)) return true;
+
+  const state = db.getState();
+  const programme = state.programmes.find((item) => item.id === programmeId);
+  if (!programme) return false;
+
+  if (user.role === 'HOD') {
+    return Boolean(user.departmentId && user.departmentId === programme.departmentId);
+  }
+
+  if (user.role === 'DEAN') {
+    const department = state.departments.find((item) => item.id === programme.departmentId);
+    return Boolean(user.schoolId && department?.schoolId === user.schoolId);
+  }
+
+  return false;
+}
+
 function audit(
   req: AuthenticatedRequest,
   action: string,
@@ -114,6 +135,7 @@ academicCurriculumMappingApiRouter.post(
     const state = db.getState();
     const programme = state.programmes.find((item) => item.id === programmeId);
     if (!programme) return res.status(404).json({ success: false, message: 'Programme not found in the institutional catalogue.' });
+    if (!hasProgrammeScope(req, programmeId)) return res.status(403).json({ success: false, message: 'You do not have academic authority over this programme.' });
     if (programme.qualification !== 'ND') {
       return res.status(422).json({ success: false, message: 'This curriculum mapping workflow currently supports ND programmes only.' });
     }
@@ -148,6 +170,7 @@ academicCurriculumMappingApiRouter.post(
     try {
       const mapping = await getCurriculumMapping(req.params.mappingId);
       if (!mapping) return res.status(404).json({ success: false, message: 'Curriculum mapping not found.' });
+      if (!hasProgrammeScope(req, mapping.programmeId)) return res.status(403).json({ success: false, message: 'You do not have academic authority over this programme.' });
       if (mapping.status !== 'DRAFT') return res.status(409).json({ success: false, message: 'Courses can only be changed while a mapping is in DRAFT status.' });
 
       const state = db.getState();
@@ -190,6 +213,9 @@ academicCurriculumMappingApiRouter.delete(
   requireRoles(...mappingPreparers),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
+      const mapping = await getCurriculumMapping(req.params.mappingId);
+      if (!mapping) return res.status(404).json({ success: false, message: 'Curriculum mapping not found.' });
+      if (!hasProgrammeScope(req, mapping.programmeId)) return res.status(403).json({ success: false, message: 'You do not have academic authority over this programme.' });
       const result = await removeCurriculumCourse(req.params.mappingId, req.params.courseId);
       audit(req, 'CURRICULUM_MAPPING_COURSE_REMOVED', req.params.mappingId, {
         courseId: req.params.courseId,
@@ -207,6 +233,9 @@ academicCurriculumMappingApiRouter.post(
   requireRoles(...mappingPreparers),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
+      const mapping = await getCurriculumMapping(req.params.mappingId);
+      if (!mapping) return res.status(404).json({ success: false, message: 'Curriculum mapping not found.' });
+      if (!hasProgrammeScope(req, mapping.programmeId)) return res.status(403).json({ success: false, message: 'You do not have academic authority over this programme.' });
       const result = await submitCurriculumMapping(req.params.mappingId, req.user!.id);
       audit(req, 'CURRICULUM_MAPPING_SUBMITTED', req.params.mappingId);
       return res.json({ success: true, result });
