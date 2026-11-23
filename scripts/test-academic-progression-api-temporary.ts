@@ -158,10 +158,20 @@ async function main() {
          to_regclass('public.academic_curriculum_assignment_ledger') AS assignment_ledger,
          to_regclass('public.academic_student_curriculum_exceptions') AS exceptions,
          to_regclass('public.student_academic_progression') AS progression,
-         to_regclass('public.academic_progression_history') AS progression_history`,
+         to_regclass('public.academic_progression_history') AS progression_history,
+         to_regclass('public.academic_management_pass_approvals') AS management_pass_approvals`,
     );
     const schema = schemaCheck.rows[0];
     assert(schema && Object.values(schema).every(Boolean), 'Required migration 006-008 academic tables are missing on the temporary branch.');
+    const actorColumn = await neonPool.query(
+      `SELECT EXISTS (
+         SELECT 1 FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'academic_progression_history'
+            AND column_name = 'decided_by'
+       ) AS present`,
+    );
+    assert(actorColumn.rows[0]?.present === true, 'Migration 008 actor-attribution column is missing on the temporary branch.');
 
     const app = express();
     app.use(express.json());
