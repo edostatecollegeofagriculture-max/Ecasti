@@ -775,7 +775,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_validate_academic_curriculum_mapping_review
 AFTER INSERT ON academic_curriculum_mapping_reviews
@@ -814,7 +814,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE CONSTRAINT TRIGGER trg_require_academic_curriculum_mapping_review
 AFTER UPDATE ON academic_curriculum_mappings
@@ -867,7 +867,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_validate_academic_student_exception_review
 AFTER INSERT ON academic_student_curriculum_exception_reviews
@@ -899,7 +899,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE CONSTRAINT TRIGGER trg_require_academic_student_exception_review
 AFTER UPDATE ON academic_student_curriculum_exceptions
@@ -1951,7 +1951,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE CONSTRAINT TRIGGER trg_validate_academic_progression_history_target
 AFTER INSERT ON academic_progression_history
