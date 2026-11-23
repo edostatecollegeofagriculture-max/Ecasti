@@ -5,6 +5,7 @@ import { neonPool } from './neon';
 import { academicCurriculumMappingApiRouter } from './academicCurriculumMappingApiRouter';
 import { assignStudentCurriculum, getStudentCurriculumAssignment } from './academicCurriculumMappingService';
 import { listStudentCurriculumExceptions, reviewStudentCurriculumException, submitStudentCurriculumException } from './academicCurriculumExceptionService';
+import { initializeStudentProgression, advanceStudentProgression, approveExtensionYearThreeManagementPass } from './academicProgressionDecisionService';
 
 type RequiredCourseRow = {
   student_id: string;
@@ -462,6 +463,145 @@ academicProgressionApiRouter.post(
       const notFound = /not found/i.test(message);
       const conflict = /only a |cannot |no longer current|could not be excluded/i.test(message);
       return res.status(notFound ? 404 : conflict ? 409 : 400).json({ success: false, message });
+    }
+  }
+);
+
+
+/**
+ * Initializes an ND I progression record after a current curriculum assignment
+ * exists. The service writes the initial state and immutable history atomically.
+ */
+academicProgressionApiRouter.post(
+  '/students/:studentId/progression/initialize',
+  authenticateToken,
+  requireRoles('INSTITUTION_ADMIN', 'REGISTRAR'),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const studentId = String(req.params.studentId || '').trim();
+    const academicSession = typeof req.body?.academicSession === 'string' ? req.body.academicSession.trim() : '';
+    if (!studentId || !academicSession) {
+      return res.status(400).json({ success: false, message: 'Student ID and academic session are required.' });
+    }
+    const student = db.getState().students.find((item) => item.id === studentId);
+    if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
+    const programme = db.getState().programmes.find((item) => item.id === student.programmeId);
+    if (programme?.qualification !== 'ND') {
+      return res.status(422).json({ success: false, message: 'Progression currently supports National Diploma students only.' });
+    }
+    try {
+      const result = await initializeStudentProgression({
+        studentId, programmeId: student.programmeId, academicSession,
+      });
+      db.logAudit({
+        userId: req.user!.id, userEmail: req.user!.email,
+        action: result.created ? 'STUDENT_PROGRESSION_INITIALIZED' : 'STUDENT_PROGRESSION_ALREADY_INITIALIZED',
+        resource: 'STUDENT_ACADEMIC_PROGRESSION',
+        details: { studentId, academicSession, created: result.created },
+        ipAddress: req.ip,
+      });
+      return res.status(result.created ? 201 : 200).json({ success: true, ...result });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Progression could not be initialized.';
+      return res.status(/required|assignment|programme|snapshots/i.test(message) ? 409 : 503)
+        .json({ success: false, message });
+    }
+  }
+);
+
+/**
+ * Records one progression decision per academic session. Published results
+ * are read from the existing results store; course requirements come only
+ * from the immutable student snapshots in Neon.
+ */
+academicProgressionApiRouter.post(
+  '/students/:studentId/progression/advance',
+  authenticateToken,
+  requireRoles('INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const studentId = String(req.params.studentId || '').trim();
+    const academicSession = typeof req.body?.academicSession === 'string' ? req.body.academicSession.trim() : '';
+    if (!studentId || !academicSession) {
+      return res.status(400).json({ success: false, message: 'Student ID and academic session are required.' });
+    }
+    const student = db.getState().students.find((item) => item.id === studentId);
+    if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
+    try {
+      const snapshotResult = await neonPool.query<{ course_id: string }>(
+        `SELECT course_id
+           FROM student_academic_required_courses
+          WHERE student_id = $1 AND is_required = TRUE`,
+        [studentId]
+      );
+      if (!snapshotResult.rows.length) {
+        return res.status(409).json({ success: false, message: 'No effective required-course snapshots exist for this student.' });
+      }
+      const passedCourseIds: string[] = [];
+      const missingResultCourseIds: string[] = [];
+      for (const row of snapshotResult.rows) {
+        const courseResults = db.getState().results.filter(
+          (item) => item.studentId === studentId && item.courseId === row.course_id
+        );
+        const published = courseResults.filter((item) => item.status === 'PUBLISHED');
+        if (published.some((item) => Number(item.totalScore) >= PASS_MARK)) {
+          passedCourseIds.push(row.course_id);
+        } else if (published.length === 0) {
+          missingResultCourseIds.push(row.course_id);
+        }
+      }
+      const result = await advanceStudentProgression({
+        studentId, academicSession, passedCourseIds, missingResultCourseIds,
+        decidedBy: req.user!.id,
+      });
+      db.logAudit({
+        userId: req.user!.id, userEmail: req.user!.email,
+        action: 'STUDENT_PROGRESSION_DECISION_RECORDED',
+        resource: 'STUDENT_ACADEMIC_PROGRESSION',
+        details: { studentId, academicSession, fromStage: result.fromStage, toStage: result.toStage,
+          outstandingCourseCount: result.outstandingCourseIds.length, historyId: result.historyId },
+        ipAddress: req.ip,
+      });
+      return res.json({ success: true, progression: result });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Progression decision could not be recorded.';
+      const conflict = /not initialized|already|withdrawn|snapshot|course does not|session/i.test(message);
+      return res.status(conflict ? 409 : 503).json({ success: false, message });
+    }
+  }
+);
+
+/**
+ * This endpoint deliberately requires the authenticated account itself to
+ * have the RECT0R role; SUPER_ADMIN role bypasses are not accepted here.
+ */
+academicProgressionApiRouter.post(
+  '/students/:studentId/progression/management-pass',
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response) => {
+    if (req.user?.role !== 'RECTOR') {
+      return res.status(403).json({ success: false, message: 'Only the Rector may approve an Extension Year 3 management pass.' });
+    }
+    const studentId = String(req.params.studentId || '').trim();
+    const academicSession = typeof req.body?.academicSession === 'string' ? req.body.academicSession.trim() : '';
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+    if (!studentId || !academicSession || !reason) {
+      return res.status(400).json({ success: false, message: 'Student ID, academic session and approval reason are required.' });
+    }
+    try {
+      const result = await approveExtensionYearThreeManagementPass({
+        studentId, academicSession, rectorUserId: req.user.id, reason,
+      });
+      db.logAudit({
+        userId: req.user.id, userEmail: req.user.email,
+        action: 'STUDENT_EXTENSION_YEAR_THREE_MANAGEMENT_PASS_APPROVED',
+        resource: 'STUDENT_ACADEMIC_PROGRESSION',
+        details: { studentId, academicSession, historyId: result.historyId, reason },
+        ipAddress: req.ip,
+      });
+      return res.json({ success: true, progression: result });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Management pass could not be approved.';
+      return res.status(/not found|only to students|only be available/i.test(message) ? 409 : 503)
+        .json({ success: false, message });
     }
   }
 );
