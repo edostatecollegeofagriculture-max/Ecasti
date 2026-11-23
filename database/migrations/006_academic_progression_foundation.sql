@@ -718,6 +718,192 @@ CREATE TABLE academic_management_pass_approvals (
 
 
 -- ============================================================
+-- 10A. REVIEW EVENT / STATE CONSISTENCY
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION validate_academic_curriculum_mapping_review()
+RETURNS TRIGGER AS $
+DECLARE
+    mapping_status TEXT;
+    mapping_prepared_by TEXT;
+    mapping_submitted_at TIMESTAMPTZ;
+    mapping_approved_by TEXT;
+    mapping_approved_at TIMESTAMPTZ;
+    mapping_rejection_reason TEXT;
+BEGIN
+    SELECT status, prepared_by, submitted_at, approved_by, approved_at, rejection_reason
+      INTO mapping_status, mapping_prepared_by, mapping_submitted_at,
+           mapping_approved_by, mapping_approved_at, mapping_rejection_reason
+      FROM academic_curriculum_mappings
+     WHERE id = NEW.mapping_id
+     FOR SHARE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Curriculum review must reference an existing mapping';
+    END IF;
+
+    IF NEW.action = 'SUBMITTED' THEN
+        IF mapping_status <> 'SUBMITTED'
+           OR mapping_prepared_by IS DISTINCT FROM NEW.actor_user_id
+           OR mapping_submitted_at IS NULL
+        THEN
+            RAISE EXCEPTION 'SUBMITTED review event must match the mapping submission state and preparer';
+        END IF;
+    ELSIF NEW.action = 'APPROVED' THEN
+        IF mapping_status <> 'APPROVED'
+           OR mapping_approved_by IS DISTINCT FROM NEW.actor_user_id
+           OR mapping_approved_at IS NULL
+        THEN
+            RAISE EXCEPTION 'APPROVED review event must match the mapping approval state and reviewer';
+        END IF;
+    ELSIF NEW.action = 'REJECTED' THEN
+        IF mapping_status <> 'REJECTED'
+           OR mapping_rejection_reason IS DISTINCT FROM NEW.reason
+        THEN
+            RAISE EXCEPTION 'REJECTED review event must match the mapping rejection state and reason';
+        END IF;
+    ELSIF NEW.action = 'RETIRED' THEN
+        IF mapping_status <> 'RETIRED' THEN
+            RAISE EXCEPTION 'RETIRED review event must match a retired mapping';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_academic_curriculum_mapping_review
+AFTER INSERT ON academic_curriculum_mapping_reviews
+FOR EACH ROW
+EXECUTE FUNCTION validate_academic_curriculum_mapping_review();
+
+CREATE OR REPLACE FUNCTION require_academic_curriculum_mapping_review()
+RETURNS TRIGGER AS $
+DECLARE
+    matching_review BOOLEAN;
+BEGIN
+    IF NEW.status IS NOT DISTINCT FROM OLD.status THEN
+        RETURN NEW;
+    END IF;
+
+    SELECT EXISTS (
+        SELECT 1
+          FROM academic_curriculum_mapping_reviews r
+         WHERE r.mapping_id = NEW.id
+           AND r.action = NEW.status
+           AND (
+                (NEW.status = 'SUBMITTED' AND r.actor_user_id = NEW.prepared_by)
+                OR
+                (NEW.status = 'APPROVED' AND r.actor_user_id = NEW.approved_by)
+                OR
+                (NEW.status = 'REJECTED' AND r.reason IS NOT DISTINCT FROM NEW.rejection_reason)
+                OR
+                NEW.status = 'RETIRED'
+           )
+    )
+    INTO matching_review;
+
+    IF matching_review IS DISTINCT FROM TRUE THEN
+        RAISE EXCEPTION 'Every curriculum mapping status transition requires a matching review event in the same transaction';
+    END IF;
+
+    RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER trg_require_academic_curriculum_mapping_review
+AFTER UPDATE ON academic_curriculum_mappings
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+EXECUTE FUNCTION require_academic_curriculum_mapping_review();
+
+
+CREATE OR REPLACE FUNCTION validate_academic_student_exception_review()
+RETURNS TRIGGER AS $
+DECLARE
+    exception_status TEXT;
+    exception_submitted_by TEXT;
+    exception_submitted_at TIMESTAMPTZ;
+    exception_reviewed_by TEXT;
+    exception_reviewed_at TIMESTAMPTZ;
+    exception_review_reason TEXT;
+    exception_reason TEXT;
+BEGIN
+    SELECT status, submitted_by, submitted_at, reviewed_by, reviewed_at,
+           review_reason, reason
+      INTO exception_status, exception_submitted_by, exception_submitted_at,
+           exception_reviewed_by, exception_reviewed_at, exception_review_reason,
+           exception_reason
+      FROM academic_student_curriculum_exceptions
+     WHERE id = NEW.exception_id
+     FOR SHARE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Exception review must reference an existing student exception';
+    END IF;
+
+    IF NEW.action = 'SUBMITTED' THEN
+        IF exception_status <> 'SUBMITTED'
+           OR exception_submitted_by IS DISTINCT FROM NEW.actor_user_id
+           OR exception_submitted_at IS NULL
+           OR exception_reason IS DISTINCT FROM NEW.reason
+        THEN
+            RAISE EXCEPTION 'SUBMITTED exception review must match the submitted exception and submitter';
+        END IF;
+    ELSIF NEW.action IN ('APPROVED', 'REJECTED') THEN
+        IF exception_status IS DISTINCT FROM NEW.action
+           OR exception_reviewed_by IS DISTINCT FROM NEW.actor_user_id
+           OR exception_reviewed_at IS NULL
+           OR exception_review_reason IS DISTINCT FROM NEW.reason
+        THEN
+            RAISE EXCEPTION 'Exception decision review must match the exception state, reviewer and reason';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_academic_student_exception_review
+AFTER INSERT ON academic_student_curriculum_exception_reviews
+FOR EACH ROW
+EXECUTE FUNCTION validate_academic_student_exception_review();
+
+CREATE OR REPLACE FUNCTION require_academic_student_exception_review()
+RETURNS TRIGGER AS $
+DECLARE
+    matching_review BOOLEAN;
+BEGIN
+    IF NEW.status IS NOT DISTINCT FROM OLD.status THEN
+        RETURN NEW;
+    END IF;
+
+    SELECT EXISTS (
+        SELECT 1
+          FROM academic_student_curriculum_exception_reviews r
+         WHERE r.exception_id = NEW.id
+           AND r.action = NEW.status
+           AND r.actor_user_id = NEW.reviewed_by
+           AND r.reason IS NOT DISTINCT FROM NEW.review_reason
+    )
+    INTO matching_review;
+
+    IF matching_review IS DISTINCT FROM TRUE THEN
+        RAISE EXCEPTION 'Every student exception decision requires a matching review event in the same transaction';
+    END IF;
+
+    RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER trg_require_academic_student_exception_review
+AFTER UPDATE ON academic_student_curriculum_exceptions
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+EXECUTE FUNCTION require_academic_student_exception_review();
+
+
+-- ============================================================
 -- 11. IMMUTABILITY AND APPEND-ONLY PROTECTIONS
 -- ============================================================
 
@@ -1707,9 +1893,12 @@ EXECUTE FUNCTION require_academic_progression_history();
 
 
 CREATE OR REPLACE FUNCTION validate_academic_progression_history_target()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS $
 DECLARE
     progression_matches BOOLEAN;
+    previous_stage TEXT;
+    previous_status TEXT;
+    previous_history_exists BOOLEAN;
 BEGIN
     SELECT EXISTS (
         SELECT 1
@@ -1727,9 +1916,37 @@ BEGIN
             'Progression history must match the final progression state in the same transaction';
     END IF;
 
+    SELECT h.to_stage, h.to_status
+      INTO previous_stage, previous_status
+      FROM academic_progression_history h
+     WHERE h.student_id = NEW.student_id
+       AND h.id <> NEW.id
+     ORDER BY h.created_at DESC, h.id DESC
+     LIMIT 1;
+
+    previous_history_exists := FOUND;
+
+    IF previous_history_exists THEN
+        IF NEW.decision_type = 'INITIAL_RECORD'
+           OR NEW.from_stage IS DISTINCT FROM previous_stage
+           OR NEW.from_status IS DISTINCT FROM previous_status
+        THEN
+            RAISE EXCEPTION
+                'Progression history must continue from the latest recorded state; INITIAL_RECORD is only valid as the first entry';
+        END IF;
+    ELSE
+        IF NEW.decision_type <> 'INITIAL_RECORD'
+           OR NEW.from_stage IS NOT NULL
+           OR NEW.from_status IS NOT NULL
+        THEN
+            RAISE EXCEPTION
+                'The first progression history entry must be an INITIAL_RECORD with no prior stage or status';
+        END IF;
+    END IF;
+
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$ LANGUAGE plpgsql;
 
 CREATE CONSTRAINT TRIGGER trg_validate_academic_progression_history_target
 AFTER INSERT ON academic_progression_history
