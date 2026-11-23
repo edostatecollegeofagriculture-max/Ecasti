@@ -24,6 +24,21 @@ type CourseStatus = 'PASSED' | 'FAILED' | 'MISSING_RESULT' | 'UNPUBLISHED_RESULT
 
 const PASS_MARK = 40;
 
+// Progression must never use the legacy JSON result store as an authority.
+// Keep this hard-disabled until published attempts, invalidations and source
+// freshness are implemented and verified in Neon with integration coverage.
+const AUTHORITATIVE_RESULT_SOURCE_READY = false;
+
+function requireAuthoritativeResultSource(res: Response): boolean {
+  if (AUTHORITATIVE_RESULT_SOURCE_READY) return true;
+  res.status(503).json({
+    success: false,
+    code: 'AUTHORITATIVE_RESULT_SOURCE_UNAVAILABLE',
+    message: 'Academic eligibility and progression are temporarily unavailable until published results and their freshness are verified from the authoritative Neon result source.',
+  });
+  return false;
+}
+
 export const academicProgressionApiRouter = Router();
 academicProgressionApiRouter.use('/curriculum', academicCurriculumMappingApiRouter);
 
@@ -48,6 +63,7 @@ academicProgressionApiRouter.get(
       });
     }
 
+    if (!requireAuthoritativeResultSource(res)) return;
     const state = db.getState();
     const student = state.students.find((item) => item.id === studentId);
 
@@ -481,6 +497,7 @@ academicProgressionApiRouter.post(
     if (!studentId || !academicSession) {
       return res.status(400).json({ success: false, message: 'Student ID and academic session are required.' });
     }
+    if (!requireAuthoritativeResultSource(res)) return;
     const student = db.getState().students.find((item) => item.id === studentId);
     if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
     const studentProgramme = db.getState().programmes.find((item) => item.id === student.programmeId);
@@ -549,6 +566,7 @@ academicProgressionApiRouter.post(
     if (!studentId || !academicSession || !reason) {
       return res.status(400).json({ success: false, message: 'Student ID, academic session and approval reason are required.' });
     }
+    if (!requireAuthoritativeResultSource(res)) return;
     const student = db.getState().students.find((item) => item.id === studentId);
     if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
     const studentProgramme = db.getState().programmes.find((item) => item.id === student.programmeId);
