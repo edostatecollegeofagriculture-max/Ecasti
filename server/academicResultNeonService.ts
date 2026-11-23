@@ -256,6 +256,105 @@ export async function appendAcademicResultEvent(input: {
 }
 
 /**
+ * Lists immutable Neon attempts with their latest workflow event. This is an
+ * operational read for migration/reconciliation and does not claim that the
+ * legacy source has been fully synchronized.
+ */
+export async function listAcademicResultAttempts(filters: AcademicResultFilters = {}) {
+  const values: unknown[] = [];
+  const conditions: string[] = [];
+  if (filters.studentId) {
+    values.push(requiredText(filters.studentId, 'Student ID'));
+    conditions.push(`a.student_id = ${values.length}`);
+  }
+  if (filters.courseId) {
+    values.push(requiredText(filters.courseId, 'Course ID'));
+    conditions.push(`a.course_id = ${values.length}`);
+  }
+  if (filters.academicSession) {
+    values.push(requiredText(filters.academicSession, 'Academic session', 40));
+    conditions.push(`a.academic_session = $ ${values.length}`.replace('$ ', '
+ * complete and no older than 24 hours. This function is intentionally not
+ * wired into progression routes until reconciliation and integration tests
+ * prove the source is authoritative.
+ */
+export async function listAuthoritativePublishedAcademicResults(
+  filters: AcademicResultFilters = {}
+) {
+  const freshness = await getAcademicResultSourceFreshness();
+  if (!freshness.isFresh || !freshness.sourceWatermark) {
+    throw new Error('AUTHORITATIVE_RESULT_SOURCE_UNAVAILABLE');
+  }
+
+  const values: unknown[] = [];
+  const conditions: string[] = [];
+  if (filters.studentId) {
+    values.push(requiredText(filters.studentId, 'Student ID'));
+    conditions.push(`student_id = $${values.length}`);
+  }
+  if (filters.courseId) {
+    values.push(requiredText(filters.courseId, 'Course ID'));
+    conditions.push(`course_id = $${values.length}`);
+  }
+  if (filters.academicSession) {
+    values.push(requiredText(filters.academicSession, 'Academic session', 40));
+    conditions.push(`academic_session = $${values.length}`);
+  }
+  if (filters.semester) {
+    if (filters.semester !== 'First Semester' && filters.semester !== 'Second Semester') {
+      throw new Error('Semester is invalid.');
+    }
+    values.push(filters.semester);
+    conditions.push(`semester = $${values.length}`);
+  }
+
+  const result = await neonPool.query(
+    `SELECT result_attempt_id, legacy_result_id, student_id, course_id,
+            academic_session, semester, attempt_number, ca_score,
+            exam_score, total_score, grade, grade_point, published_at
+       FROM academic_authoritative_published_results
+       ${conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''}
+      ORDER BY student_id, course_id, academic_session, semester, attempt_number`,
+    values
+  );
+  return { freshness, results: result.rows };
+}
+));
+  }
+  if (filters.semester) {
+    if (filters.semester !== 'First Semester' && filters.semester !== 'Second Semester') {
+      throw new Error('Semester is invalid.');
+    }
+    values.push(filters.semester);
+    conditions.push(`a.semester = ${values.length}`);
+  }
+
+  const result = await neonPool.query(
+    `SELECT a.id AS result_attempt_id, a.legacy_result_id, a.student_id,
+            a.course_id, a.academic_session, a.semester, a.attempt_number,
+            a.ca_score, a.exam_score, a.total_score, a.grade, a.grade_point,
+            a.entered_by, a.created_at,
+            latest.event_type AS latest_event_type,
+            latest.actor_user_id AS latest_event_actor_user_id,
+            latest.reason AS latest_event_reason,
+            latest.created_at AS latest_event_at
+       FROM academic_result_attempts a
+       LEFT JOIN LATERAL (
+         SELECT e.event_type, e.actor_user_id, e.reason, e.created_at
+           FROM academic_result_events e
+          WHERE e.result_attempt_id = a.id
+          ORDER BY e.event_sequence DESC
+          LIMIT 1
+       ) latest ON TRUE
+       ${conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''}
+      ORDER BY a.student_id, a.course_id, a.academic_session,
+               a.semester, a.attempt_number`,
+    values
+  );
+  return result.rows;
+}
+
+/**
  * Returns published attempts only when the configured source watermark is
  * complete and no older than 24 hours. This function is intentionally not
  * wired into progression routes until reconciliation and integration tests
