@@ -418,13 +418,14 @@ async function main() {
       assert.equal(yearThree.payload.progression.toStage, 'EXTENSION_3');
     });
 
-    await test('actual management-pass API rejects non-Rector and SUPER_ADMIN actors', async () => {
+    let superAdminId = '';
+    await test('actual management-pass API rejects non-Rector actors but permits SUPER_ADMIN delegation', async () => {
       const registrar = await api(`/students/${studentOneId}/progression/management-pass`, {
         method: 'POST', userId: registrarId,
         body: { academicSession: `TEST-API-2030-${suffix}`, reason: 'Synthetic test.' },
       });
       assert.equal(registrar.status, 403);
-      const superAdminId = `TEST-API-SUPER-${suffix}`;
+      superAdminId = `TEST-API-SUPER-${suffix}`;
       db.getState().users.push({
         id: superAdminId, email: `${superAdminId}@integration.invalid`, passwordHash: 'unused',
         fullName: 'Synthetic Super Admin', role: 'SUPER_ADMIN', isActive: true, isLocked: false,
@@ -434,17 +435,18 @@ async function main() {
         method: 'POST', userId: superAdminId,
         body: { academicSession: `TEST-API-2030-${suffix}`, reason: 'Synthetic test.' },
       });
-      assert.equal(superAdmin.status, 403);
+      assert.equal(superAdmin.status, 200, JSON.stringify(superAdmin.payload));
+      assert.equal(superAdmin.payload.progression.status, 'GRADUATED');
     });
 
-    await test('actual management-pass API records Rector approval at Extension Year 3', async () => {
-      const result = await api(`/students/${studentOneId}/progression/management-pass`, {
-        method: 'POST', userId: rectorId,
-        body: { academicSession: `TEST-API-2030-${suffix}`, reason: 'Synthetic Rector-approved API integration test.' },
-      });
-      assert.equal(result.status, 200, JSON.stringify(result.payload));
-      assert.equal(result.payload.progression.status, 'GRADUATED');
-      assert.equal(result.payload.progression.decisionType, 'MANAGEMENT_APPROVED_PASS');
+    await test('actual management-pass API records SUPER_ADMIN as the acting approver', async () => {
+      const history = await neonPool!.query(
+        `SELECT decided_by, approved_by FROM academic_progression_history
+          WHERE student_id = $1 AND decision_type = 'MANAGEMENT_APPROVED_PASS'`,
+        [studentOneId],
+      );
+      assert.equal(history.rows[0]?.decided_by, superAdminId);
+      assert.equal(history.rows[0]?.approved_by, superAdminId);
     });
 
     await test('actual progression API initializes and normally graduates a fully passed student', async () => {
