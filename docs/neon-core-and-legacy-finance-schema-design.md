@@ -172,3 +172,17 @@ npm run apply:core-schema:temporary
 The local `.env` must already point to the designated temporary branch; do not paste its contents into chat or a command. If the host guard fails, stop: the temporary branch may have expired or its endpoint may have changed. Do not weaken the guard or substitute a production connection string. If the script says any migration-010 table already exists, stop and inspect schema state rather than rerunning the migration.
 
 The installer has been committed but has **not** been run from this environment because no database connection is available here. Its runtime result must be reported after the user runs it locally. This is still not a data import or production cutover.
+
+
+## Temporary Neon schema installation result and read-only verification
+
+The operator ran `npm run apply:core-schema:temporary` locally and reported:
+- all 9 expected migration-010 tables created;
+- all 18 expected named constraints found;
+- no application records imported or inspected.
+
+A separate catalog-only verifier is now available as `npm run verify:core-schema:temporary:readonly`. It checks the approved temporary endpoint guard, database/schema identity, all 9 tables, all 18 named constraints, all 14 expected indexes, and column metadata for each table. It does not select application rows or perform writes.
+
+The JSON migration preflight remains the dry-run source-data diagnostic. Its previously reported school and legacy-payment relationship blockers have not been resolved. The reviewer display-attribution finding is not a stable-user-ID mapping and must remain a nullable reviewer FK with the original display snapshot preserved.
+
+**Importer gate remains BLOCKED.** Do not implement or run a record importer for departments/students while authoritative school identities are missing, or for legacy payments while student/invoice references and finance reconciliation remain unresolved. The existing local preflight may be rerun for aggregate counts/checksums and reference diagnostics, but its output is not authorization to repair or import records. No production operation, application cutover, deployment, merge, or JSON retirement is authorized by this schema verification work.
