@@ -6,6 +6,7 @@ import { academicCurriculumMappingApiRouter } from './academicCurriculumMappingA
 import { assignStudentCurriculum, getStudentCurriculumAssignment } from './academicCurriculumMappingService';
 import { listStudentCurriculumExceptions, reviewStudentCurriculumException, submitStudentCurriculumException } from './academicCurriculumExceptionService';
 import { initializeStudentProgression, advanceStudentProgression, approveExtensionYearThreeManagementPass } from './academicProgressionDecisionService';
+import { evaluateCourseResults } from './academicResultEvaluation';
 
 type RequiredCourseRow = {
   student_id: string;
@@ -120,39 +121,9 @@ academicProgressionApiRouter.get(
 
       const courses = requiredCourses.map((course) => {
         const courseResults = state.results.filter(
-          (result) =>
-            result.studentId === studentId &&
-            result.courseId === course.course_id
+          (result) => result.studentId === studentId && result.courseId === course.course_id
         );
-
-        const publishedResults = courseResults
-          .filter((result) => result.status === 'PUBLISHED')
-          .sort((a, b) => {
-            const sessionOrder = b.session.localeCompare(a.session);
-            return sessionOrder || b.semester.localeCompare(a.semester);
-          });
-
-        const passingResult = publishedResults.find(
-          (result) => Number(result.totalScore) >= PASS_MARK
-        );
-
-        let status: CourseStatus;
-        let publishedScore: number | undefined;
-        let publishedGrade: string | undefined;
-
-        if (passingResult) {
-          status = 'PASSED';
-          publishedScore = Number(passingResult.totalScore);
-          publishedGrade = passingResult.grade;
-        } else if (publishedResults.length > 0) {
-          status = 'FAILED';
-          publishedScore = Number(publishedResults[0].totalScore);
-          publishedGrade = publishedResults[0].grade;
-        } else {
-          status = courseResults.length > 0
-            ? 'UNPUBLISHED_RESULT'
-            : 'MISSING_RESULT';
-        }
+        const evaluation = evaluateCourseResults(courseResults, PASS_MARK);
 
         return {
           courseId: course.course_id,
@@ -161,9 +132,9 @@ academicProgressionApiRouter.get(
           level: course.course_level_snapshot,
           semester: course.semester_snapshot,
           creditUnits: Number(course.credit_units_snapshot),
-          status,
-          ...(publishedScore === undefined ? {} : { publishedScore }),
-          ...(publishedGrade === undefined ? {} : { publishedGrade }),
+          status: evaluation.status,
+          ...(evaluation.publishedScore === undefined ? {} : { publishedScore: evaluation.publishedScore }),
+          ...(evaluation.publishedGrade === undefined ? {} : { publishedGrade: evaluation.publishedGrade }),
         };
       });
 
@@ -542,10 +513,9 @@ academicProgressionApiRouter.post(
         const courseResults = db.getState().results.filter(
           (item) => item.studentId === studentId && item.courseId === row.course_id
         );
-        const published = courseResults.filter((item) => item.status === 'PUBLISHED');
-        if (published.some((item) => Number(item.totalScore) >= PASS_MARK)) {
-          passedCourseIds.push(row.course_id);
-        } else if (published.length === 0) {
+        const evaluation = evaluateCourseResults(courseResults, PASS_MARK);
+        if (evaluation.status === 'PASSED') passedCourseIds.push(row.course_id);
+        if (evaluation.status === 'MISSING_RESULT' || evaluation.status === 'UNPUBLISHED_RESULT') {
           missingResultCourseIds.push(row.course_id);
         }
       }
@@ -601,10 +571,12 @@ academicProgressionApiRouter.post(
       const missingResultCourseIds: string[] = [];
       for (const row of requiredResult.rows) {
         const courseResults = studentResults.filter((item) => item.courseId === row.course_id);
-        const published = courseResults.filter((item) => item.status === 'PUBLISHED');
-        if (!published.some((item) => Number(item.totalScore) >= PASS_MARK)) {
+        const evaluation = evaluateCourseResults(courseResults, PASS_MARK);
+        if (evaluation.status !== 'PASSED') {
           outstandingCourseIds.push(row.course_id);
-          if (published.length === 0) missingResultCourseIds.push(row.course_id);
+          if (evaluation.status === 'MISSING_RESULT' || evaluation.status === 'UNPUBLISHED_RESULT') {
+            missingResultCourseIds.push(row.course_id);
+          }
         }
       }
       if (!outstandingCourseIds.length) {
