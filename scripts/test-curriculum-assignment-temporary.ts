@@ -113,9 +113,9 @@ async function main() {
 
     const snapshot = await getStudentCurriculumAssignment(studentId);
     assert(snapshot.assignment?.mapping_id === mapping.id, 'Read method returned the wrong mapping.');
-    assert(snapshot.courses.length === 3, 'Read method did not return exactly two course snapshots.');
+    assert(snapshot.courses.length === 3, 'Read method did not return all three course snapshots.');
     assert(snapshot.ledger?.status === 'ASSIGNED', 'Read method did not return ASSIGNED ledger state.');
-    check('Assignment read returns matching mapping, two snapshots, and ASSIGNED ledger');
+    check('Assignment read returns matching mapping, all course snapshots, and ASSIGNED ledger');
 
     const repeated = await assignStudentCurriculum({
       studentId, programmeId, cohortSession: cohort, assignedBy: preparer,
@@ -246,11 +246,13 @@ async function main() {
     // Progression: ND I always advances, even with no passed courses.
     const initialProgression = await initializeStudentProgression({ studentId, programmeId, academicSession: 'TEST-SESSION-2025', decidedBy: preparer });
     assert(initialProgression.created && initialProgression.progression.current_stage === 'ND_I', 'Initial progression record was not created at ND_I.');
-    check('Progression initializes at ND I with an initial history event');
+    const initialHistory = await neonPool.query('SELECT decided_by FROM academic_progression_history WHERE student_id = $1 AND decision_type = \'INITIAL_RECORD\'', [studentId]);
+    assert(initialHistory.rows[0]?.decided_by === preparer, 'Initial progression history did not record its authenticated decision actor.');
+    check('Progression initializes at ND I with an initial history event and actor attribution');
 
     const ndOneDecision = await advanceStudentProgression({
       studentId, academicSession: 'TEST-SESSION-2026', passedCourseIds: [],
-      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag], decidedBy: preparer,
+      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag, 'TEST-COURSE-C-' + tag], decidedBy: preparer,
     });
     assert(ndOneDecision.toStage === 'ND_II' && ndOneDecision.progressionStatus === 'ACTIVE', 'ND I student did not advance to ND II with outstanding courses.');
     assert(ndOneDecision.outstandingCourseIds.length === 1 && ndOneDecision.outstandingCourseIds[0] === `TEST-COURSE-B-${tag}`, 'ND I history must list only outstanding ND I requirements, not future ND II courses.');
@@ -281,6 +283,8 @@ async function main() {
       reason: 'Synthetic test: Rector-approved management pass.',
     });
     assert(managementPass.status === 'GRADUATED' && managementPass.decisionType === 'MANAGEMENT_APPROVED_PASS', 'Extension Year 3 management pass did not graduate the synthetic student.');
+    const managementHistory = await neonPool.query('SELECT decided_by, approved_by FROM academic_progression_history WHERE id = $1', [managementPass.historyId]);
+    assert(managementHistory.rows[0]?.decided_by === 'TEST-RECTOR' && managementHistory.rows[0]?.approved_by === 'TEST-RECTOR', 'Management-pass history did not record the Rector as both actor and approver.');
     check('Extension Year 3 management pass records Rector approval and immutable history');
 
     // A second synthetic student proves normal graduation is blocked until all
