@@ -30,6 +30,7 @@ CREATE INDEX idx_academic_result_attempt_lookup
 
 CREATE TABLE academic_result_events (
     id TEXT PRIMARY KEY,
+    event_sequence BIGINT GENERATED ALWAYS AS IDENTITY UNIQUE,
     result_attempt_id TEXT NOT NULL
         REFERENCES academic_result_attempts(id) ON DELETE RESTRICT,
     event_type TEXT NOT NULL CHECK (event_type IN (
@@ -49,6 +50,47 @@ CREATE TABLE academic_result_events (
 
 CREATE INDEX idx_academic_result_events_attempt
     ON academic_result_events (result_attempt_id, created_at DESC, id);
+
+
+-- Enforce a valid per-attempt event sequence. Publication is reachable only
+-- after submission, verification and approval; invalidation/cancellation are
+-- terminal and require a new separately identified attempt for correction.
+CREATE OR REPLACE FUNCTION validate_academic_result_event_transition()
+RETURNS TRIGGER AS $
+DECLARE
+    previous_event TEXT;
+BEGIN
+    SELECT e.event_type
+      INTO previous_event
+      FROM academic_result_events e
+     WHERE e.result_attempt_id = NEW.result_attempt_id
+     ORDER BY e.event_sequence DESC
+     LIMIT 1;
+
+    IF NOT FOUND THEN
+        IF NEW.event_type <> 'SUBMITTED' THEN
+            RAISE EXCEPTION 'The first academic result event must be SUBMITTED';
+        END IF;
+        RETURN NEW;
+    END IF;
+
+    IF NOT (
+        (previous_event = 'SUBMITTED' AND NEW.event_type = 'VERIFIED')
+        OR (previous_event = 'VERIFIED' AND NEW.event_type = 'APPROVED')
+        OR (previous_event = 'APPROVED' AND NEW.event_type = 'PUBLISHED')
+        OR (previous_event = 'PUBLISHED' AND NEW.event_type IN ('INVALIDATED', 'CANCELLED'))
+    ) THEN
+        RAISE EXCEPTION 'Invalid academic result event transition: % to %',
+            previous_event, NEW.event_type;
+    END IF;
+
+    RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_academic_result_event_transition
+BEFORE INSERT ON academic_result_events
+FOR EACH ROW EXECUTE FUNCTION validate_academic_result_event_transition();
 
 -- Event history is append-only. Corrections are represented by new events,
 -- never by rewriting or deleting a publication/invalidation record.
@@ -158,7 +200,7 @@ WITH latest_attempt_event AS (
         e.event_type,
         e.created_at AS event_at
     FROM academic_result_events e
-    ORDER BY e.result_attempt_id, e.created_at DESC, e.id DESC
+    ORDER BY e.result_attempt_id, e.event_sequence DESC
 )
 SELECT
     a.id AS result_attempt_id,
