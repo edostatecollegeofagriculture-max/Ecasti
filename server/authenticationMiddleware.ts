@@ -9,6 +9,8 @@ export interface AuthPrincipal {
   role: string;
   isActive: boolean;
   isLocked: boolean;
+  departmentId?: string;
+  schoolId?: string;
 }
 
 export type UserLookup = (userId: string) => AuthPrincipal | undefined;
