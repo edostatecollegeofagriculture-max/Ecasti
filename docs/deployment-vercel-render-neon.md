@@ -44,3 +44,12 @@ The Blueprint sets `autoDeploy: false` deliberately. Deployments should be promo
 The existing TypeScript application still initializes `server/db.ts` and several core API routes read/write the local JSON store. Some fee-management and academic-progression modules already use Neon, but the whole application has not yet been harmonized. Do not point live traffic at this build as a completed Neon migration.
 
 The Render health endpoint currently reports process health. It is not a complete readiness check for every required database table or business workflow.
+
+
+## Existing Render service observed during deployment review
+
+The institution's existing Render service is named **Ecasti**. The deployment log supplied during review shows it building branch `main` at commit `6b327b73e63cc9cd86186a553d757ad996fae37c`. That build ran `npm install && npm run build` and completed the Vite build successfully. This does not verify that the API process started, that Neon was reachable, or that the application is ready for production.
+
+Do not create a second production service simply to apply this Blueprint. Review the existing Ecasti service's Settings and connect it to the reviewed release branch only after the migration acceptance criteria pass. The repository's `render.yaml` is a Blueprint specification; it does not retroactively change an existing manually configured Render service.
+
+The Vercel account/workspace URL supplied for this project is `https://vercel.com/edostatecollegeofagriculture-max`. The Vercel project must be confirmed to use this repository and a reviewed release branch, with `VITE_API_BASE_URL` set to the Render API URL. Do not configure database credentials or JWT secrets in Vercel.
