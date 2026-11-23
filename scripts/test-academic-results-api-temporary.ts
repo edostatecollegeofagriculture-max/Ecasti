@@ -222,6 +222,11 @@ async function main() {
       });
       assert.equal(result.status, 200, JSON.stringify(result.payload));
       assert.equal(result.payload.created, false);
+      const publishedAuditEntries = db.getState().auditLogs.filter(
+        (entry: any) => entry.action === 'ACADEMIC_RESULT_PUBLISHED'
+          && entry.details?.resultAttemptId === passingAttemptId,
+      );
+      assert.equal(publishedAuditEntries.length, 1, 'An idempotent retry must not duplicate the audit entry.');
     });
 
     await test('same idempotency key cannot be reused by SUPER_ADMIN for another actor', async () => {
