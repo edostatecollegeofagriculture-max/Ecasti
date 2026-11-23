@@ -399,7 +399,23 @@ export async function assignStudentCurriculum(input: AssignStudentCurriculumInpu
         [studentId, programmeId, cohortSession]
       );
       if (existingLedger.rows[0]) {
-        if (existingLedger.rows[0].status !== 'ASSIGNED' || existingLedger.rows[0].mapping_id !== existing.mapping_id) {
+        const currentLedger = existingLedger.rows[0];
+        if (currentLedger.status === 'REVIEW_REQUIRED' || currentLedger.status === 'FAILED') {
+          await client.query(
+            `UPDATE academic_curriculum_assignment_ledger
+                SET status = 'PENDING',
+                    mapping_id = NULL,
+                    attempt_count = attempt_count + 1,
+                    last_attempt_at = NOW(),
+                    assigned_at = NULL,
+                    review_reason = NULL,
+                    error_code = NULL,
+                    updated_at = NOW()
+              WHERE id = $1`,
+            [currentLedger.id]
+          );
+        }
+        if (currentLedger.status !== 'ASSIGNED' || currentLedger.mapping_id !== existing.mapping_id) {
           await client.query(
             `UPDATE academic_curriculum_assignment_ledger
                 SET status = 'ASSIGNED', mapping_id = $2,
@@ -407,7 +423,7 @@ export async function assignStudentCurriculum(input: AssignStudentCurriculumInpu
                     review_reason = NULL, error_code = NULL,
                     updated_at = NOW()
               WHERE id = $1`,
-            [existingLedger.rows[0].id, existing.mapping_id, existing.assigned_at]
+            [currentLedger.id, existing.mapping_id, existing.assigned_at]
           );
         }
       } else {
@@ -537,18 +553,34 @@ export async function assignStudentCurriculum(input: AssignStudentCurriculumInpu
     }
 
     if (ledger) {
+      const retryingLedger = ledger.status === 'REVIEW_REQUIRED' || ledger.status === 'FAILED';
+      if (retryingLedger) {
+        await client.query(
+          `UPDATE academic_curriculum_assignment_ledger
+              SET status = 'PENDING',
+                  mapping_id = NULL,
+                  attempt_count = attempt_count + 1,
+                  last_attempt_at = NOW(),
+                  assigned_at = NULL,
+                  review_reason = NULL,
+                  error_code = NULL,
+                  updated_at = NOW()
+            WHERE id = $1`,
+          [ledger.id]
+        );
+      }
       await client.query(
         `UPDATE academic_curriculum_assignment_ledger
             SET status = 'ASSIGNED',
                 mapping_id = $2,
-                attempt_count = attempt_count + 1,
+                attempt_count = attempt_count + CASE WHEN $3 THEN 0 ELSE 1 END,
                 last_attempt_at = NOW(),
                 assigned_at = NOW(),
                 review_reason = NULL,
                 error_code = NULL,
                 updated_at = NOW()
           WHERE id = $1`,
-        [ledger.id, mappingId]
+        [ledger.id, mappingId, retryingLedger]
       );
     } else {
       await client.query(
