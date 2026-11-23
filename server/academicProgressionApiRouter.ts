@@ -7,6 +7,7 @@ import { assignStudentCurriculum, getStudentCurriculumAssignment } from './acade
 import { listStudentCurriculumExceptions, reviewStudentCurriculumException, submitStudentCurriculumException } from './academicCurriculumExceptionService';
 import { initializeStudentProgression, advanceStudentProgression, approveExtensionYearThreeManagementPass } from './academicProgressionDecisionService';
 import { evaluateCourseResults } from './academicResultEvaluation';
+import { canApproveExtensionYearThreeManagementPass, canReadStudentAcademicRecord, canSubmitOwnStudentException } from './academicProgressionAuthorization';
 
 type RequiredCourseRow = {
   student_id: string;
@@ -192,21 +193,6 @@ academicProgressionApiRouter.get(
 );
 
 
-function canReadStudentAcademicRecord(req: AuthenticatedRequest, student: {
-  userId: string;
-  departmentId: string;
-  schoolId: string;
-}): boolean {
-  const user = req.user;
-  if (!user) return false;
-  if (['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'].includes(user.role)) return true;
-  if (user.role === 'DEAN') return Boolean(user.schoolId && user.schoolId === student.schoolId);
-  if (user.role === 'HOD' || user.role === 'EXAM_OFFICER') {
-    return Boolean(user.departmentId && user.departmentId === student.departmentId);
-  }
-  if (user.role === 'STUDENT') return user.id === student.userId;
-  return false;
-}
 
 /**
  * Assigns the current approved ND curriculum to a student and creates
@@ -340,7 +326,7 @@ academicProgressionApiRouter.post(
     const studentId = String(req.params.studentId || '').trim();
     const student = db.getState().students.find((item) => item.id === studentId);
     if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
-    if (req.user!.role === 'STUDENT' && req.user!.id !== student.userId) {
+    if (!canSubmitOwnStudentException(req.user, student)) {
       return res.status(403).json({ success: false, message: 'Students may submit exceptions only for their own academic record.' });
     }
     const programme = db.getState().programmes.find((item) => item.id === student.programmeId);
