@@ -231,9 +231,9 @@ export async function submitCurriculumMapping(mappingIdInput: string, actorIdInp
     if (mapping.rows[0].status !== 'DRAFT') throw new Error('Only a DRAFT mapping can be submitted.');
     if (mapping.rows[0].prepared_by !== actorId) throw new Error('Only the mapping preparer may submit this draft.');
     const count = await client.query(
-      'SELECT COUNT(*)::int AS count,
+      `SELECT COUNT(*)::int AS count,
               COUNT(*) FILTER (WHERE is_compulsory_snapshot = TRUE)::int AS compulsory_count
-         FROM academic_curriculum_mapping_courses WHERE mapping_id = $1',
+         FROM academic_curriculum_mapping_courses WHERE mapping_id = $1`,
       [mappingId]
     );
     if (Number(count.rows[0].count) < 1 || Number(count.rows[0].compulsory_count) < 1) throw new Error('Add at least one course, including at least one compulsory course, before submitting the mapping.');
