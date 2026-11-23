@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Navbar } from './components/Navbar';
@@ -6,14 +6,15 @@ import { Breadcrumbs } from './components/Breadcrumbs';
 import { PersonaSwitcherModal } from './components/PersonaSwitcherModal';
 import { LoginModal } from './components/LoginModal';
 import { PrintSlipModal } from './components/PrintSlipModal';
-import { PublicPortal } from './views/PublicPortal';
-import { AdmissionsPortal } from './views/AdmissionsPortal';
-import { StudentPortal } from './views/StudentPortal';
-import { LecturerPortal } from './views/LecturerPortal';
-import { AdminPortal } from './views/AdminPortal';
-import { PageBuilder } from './components/PageBuilder';
 import { SchoolLogo } from './components/SchoolLogo';
 import { KeyRound } from 'lucide-react';
+
+const PublicPortal = lazy(() => import('./views/PublicPortal').then((module) => ({ default: module.PublicPortal })));
+const AdmissionsPortal = lazy(() => import('./views/AdmissionsPortal').then((module) => ({ default: module.AdmissionsPortal })));
+const StudentPortal = lazy(() => import('./views/StudentPortal').then((module) => ({ default: module.StudentPortal })));
+const LecturerPortal = lazy(() => import('./views/LecturerPortal').then((module) => ({ default: module.LecturerPortal })));
+const AdminPortal = lazy(() => import('./views/AdminPortal').then((module) => ({ default: module.AdminPortal })));
+const PageBuilder = lazy(() => import('./components/PageBuilder').then((module) => ({ default: module.PageBuilder })));
 
 type PrintModalState = {
   isOpen: boolean;
@@ -114,6 +115,13 @@ const MainApp: React.FC = () => {
       )}
 
       <main className="relative z-10 flex-1">
+        <Suspense
+          fallback={
+            <div className="flex min-h-[40vh] items-center justify-center text-sm text-slate-600 dark:text-slate-300" role="status">
+              Loading portal...
+            </div>
+          }
+        >
         {activeTab === 'public' && (
           <PublicPortal
             onGoToAdmissions={() => handleNavigate('admissions', 'form')}
@@ -149,6 +157,7 @@ const MainApp: React.FC = () => {
             onOpenLoginModal={() => setIsLoginModalOpen(true)}
           />
         )}
+        </Suspense>
       </main>
 
       <div className="fixed bottom-5 right-5 z-40 no-print">
