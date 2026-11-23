@@ -3,8 +3,9 @@
 ## Scope
 
 Review of the academic progression and curriculum routes mounted under
-`/api/v1/academic-progression`. This is a source-level review; it is not a
-substitute for HTTP integration tests against a disposable test environment.
+`/api/v1/academic-progression`. This review combines source-level inspection with an isolated HTTP middleware
+integration harness. The harness uses synthetic in-memory identities and does
+not mount the Neon-backed router or access institutional records.
 
 ## Authentication behavior
 
@@ -61,21 +62,28 @@ department, or own-record checks.
 
 ## Remaining verification before production
 
-HTTP-level tests still need to exercise:
+The HTTP middleware harness now exercises missing, invalid, expired, and
+deleted-user tokens (401); deactivated and locked accounts (403); role guards;
+student own-record boundaries; Dean school scope; HOD and Exam Officer
+department scope; Registry review role policy; the shared SUPER_ADMIN bypass;
+and the exact Rector-only management-pass guard.
 
-1. Missing/invalid token returns 401; inactive/locked account returns 403.
-2. Student A cannot read Student B's assignment or exception list.
-3. DEAN/HOD/EXAM_OFFICER cannot read outside their school/department.
-4. Non-Registrar cannot review an exception.
-5. SUPER_ADMIN behavior matches the institution's approved global-bypass
-   policy on each route.
-6. SUPER_ADMIN and all non-RECTOR roles receive 403 for management-pass;
-   a Rector may proceed only for an Extension Year 3 student.
-7. Missing and unpublished results never count as passed.
-8. A progression record whose programme differs from its effective snapshots
-   cannot advance or receive a management pass.
-9. The result store and Neon snapshot store refer to the same student and
-   programme at decision time.
+The following still require full integration testing against a disposable
+application/database environment:
+
+1. Mount the actual academic progression router and verify the assignment and
+   exception endpoints return the expected responses for cross-student and
+   out-of-scope requests.
+2. Verify the actual exception-review route with each relevant role and its
+   persisted review outcome.
+3. Verify the actual management-pass endpoint only succeeds for an eligible
+   Extension Year 3 student, and fails for all other progression stages.
+4. Verify missing and unpublished results never count as passed in API
+   decisions.
+5. Verify a progression record whose programme differs from its effective
+   snapshots cannot advance or receive a management pass.
+6. Verify the result store and Neon snapshot store refer to the same student
+   and programme at decision time.
 
 No production data was read or changed during this source review. The review
 does not authorize production migrations, database writes, deployment, or PR
@@ -92,7 +100,17 @@ global SUPER_ADMIN role bypass are exercised by:
 npm run test:academic-progression-authorization
 ```
 
-These are policy/unit tests called by the route and authentication middleware.
-They are not full HTTP integration tests: they do not create signed tokens,
-start Express, or prove 401/403 responses at the network boundary. Those
-integration tests remain a separate pre-production requirement.
+The HTTP integration command is:
+
+```powershell
+npm run test:academic-progression-http-authorization
+```
+
+It starts a short-lived Express server on an ephemeral loopback port, creates
+signed test tokens, and injects synthetic users through the same authentication
+middleware factory used by the application. It does not import the JSON
+database, load .env credentials, connect to Neon, or write persistent records.
+The HTTP routes are a test harness around the production authentication and
+authorization middleware/predicates; they are not the full Neon-backed
+academic router. Full route/database integration remains a pre-production
+requirement.
