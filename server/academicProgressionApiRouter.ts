@@ -288,7 +288,10 @@ academicProgressionApiRouter.post(
         success: true,
         assignment: result,
       });
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && /already has a curriculum assignment|existing student assignment|no compulsory course snapshots/i.test(error.message)) {
+        return res.status(409).json({ success: false, message: error.message });
+      }
       return res.status(503).json({
         success: false,
         message: 'Curriculum assignment could not be completed. No partial assignment was committed; verify the temporary database and review the assignment constraints.',
