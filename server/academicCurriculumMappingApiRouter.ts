@@ -249,7 +249,7 @@ academicCurriculumMappingApiRouter.post(
 academicCurriculumMappingApiRouter.post(
   '/mappings/:mappingId/review',
   authenticateToken,
-  requireRoles('REGISTRAR'),
+  requireRoles('REGISTRAR', 'SUPER_ADMIN'),
   async (req: AuthenticatedRequest, res: Response) => {
     const decision = req.body?.decision;
     const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : undefined;
