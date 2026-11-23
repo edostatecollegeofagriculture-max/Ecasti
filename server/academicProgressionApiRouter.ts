@@ -274,7 +274,7 @@ academicProgressionApiRouter.get(
     }
     const student = db.getState().students.find((item) => item.id === studentId);
     if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
-    if (!canReadStudentAcademicRecord(req, student)) {
+    if (!canReadStudentAcademicRecord(req.user!, student)) {
       return res.status(403).json({ success: false, message: 'You do not have access to this student academic record.' });
     }
 
@@ -306,7 +306,7 @@ academicProgressionApiRouter.get(
     const studentId = String(req.params.studentId || '').trim();
     const student = db.getState().students.find((item) => item.id === studentId);
     if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
-    if (!canReadStudentAcademicRecord(req, student)) {
+    if (!canReadStudentAcademicRecord(req.user!, student)) {
       return res.status(403).json({ success: false, message: 'You do not have access to this student academic record.' });
     }
     try {
@@ -538,7 +538,8 @@ academicProgressionApiRouter.post(
   '/students/:studentId/progression/management-pass',
   authenticateToken,
   async (req: AuthenticatedRequest, res: Response) => {
-    if (!canApproveExtensionYearThreeManagementPass(req.user)) {
+    const rector = req.user;
+    if (!rector || !canApproveExtensionYearThreeManagementPass(rector)) {
       return res.status(403).json({ success: false, message: 'Only the Rector may approve an Extension Year 3 management pass.' });
     }
     const studentId = String(req.params.studentId || '').trim();
@@ -579,11 +580,11 @@ academicProgressionApiRouter.post(
         return res.status(409).json({ success: false, message: 'All effective required courses have published passing results; use normal academic clearance instead.' });
       }
       const result = await approveExtensionYearThreeManagementPass({
-        studentId, academicSession, rectorUserId: req.user.id, reason,
+        studentId, academicSession, rectorUserId: rector.id, reason,
         outstandingCourseIds, missingResultCourseIds,
       });
       db.logAudit({
-        userId: req.user.id, userEmail: req.user.email,
+        userId: rector.id, userEmail: rector.email,
         action: 'STUDENT_EXTENSION_YEAR_THREE_MANAGEMENT_PASS_APPROVED',
         resource: 'STUDENT_ACADEMIC_PROGRESSION',
         details: { studentId, academicSession, historyId: result.historyId, reason },
