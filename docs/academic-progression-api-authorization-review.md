@@ -80,3 +80,19 @@ HTTP-level tests still need to exercise:
 No production data was read or changed during this source review. The review
 does not authorize production migrations, database writes, deployment, or PR
 merge.
+
+## Automated authorization policy tests
+
+The shared authorization predicates now live in
+`server/academicProgressionAuthorization.ts`. The academic-record scope checks,
+student exception ownership rule, exact Rector-only management-pass rule, and
+global SUPER_ADMIN role bypass are exercised by:
+
+```powershell
+npm run test:academic-progression-authorization
+```
+
+These are policy/unit tests called by the route and authentication middleware.
+They are not full HTTP integration tests: they do not create signed tokens,
+start Express, or prove 401/403 responses at the network boundary. Those
+integration tests remain a separate pre-production requirement.
