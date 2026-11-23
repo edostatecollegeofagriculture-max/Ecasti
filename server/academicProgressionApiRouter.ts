@@ -272,7 +272,7 @@ academicProgressionApiRouter.post(
       db.logAudit({
         userId: req.user!.id,
         userEmail: req.user!.email,
-        action: result.status === 'ASSIGNED' ? 'STUDENT_CURRICULUM_ASSIGNED' : 'STUDENT_CURRICULUM_ASSIGNMENT_REVIEW_REQUIRED',
+        action: result.status === 'REVIEW_REQUIRED' ? 'STUDENT_CURRICULUM_ASSIGNMENT_REVIEW_REQUIRED' : 'STUDENT_CURRICULUM_ASSIGNED',
         resource: 'STUDENT_ACADEMIC_CURRICULUM',
         details: {
           studentId: student.id,
@@ -318,6 +318,9 @@ academicProgressionApiRouter.get(
 
     try {
       const result = await getStudentCurriculumAssignment(studentId);
+      if (req.user!.role === 'STUDENT') {
+        return res.json({ success: true, assignment: result.assignment, courses: result.courses ?? [] });
+      }
       return res.json({ success: true, ...result });
     } catch {
       return res.status(503).json({
