@@ -251,7 +251,9 @@ async function main(): Promise<void> {
       const valid =
         definition.includes('unique') &&
         definition.includes('(programme_id, cohort_session)') &&
-        definition.includes('where') &&\n        definition.includes('is_current') &&\n        !definition.includes('is_current = false');
+        definition.includes('where') &&
+        definition.includes('is_current') &&
+        !definition.includes('is_current = false');
       add(
         valid ? 'PASS' : 'FAIL',
         'Current mapping uniqueness',
