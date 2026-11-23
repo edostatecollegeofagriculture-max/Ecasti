@@ -1,4 +1,4 @@
-﻿import { Router, Response } from 'express';
+import { Router, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import {
   db,
@@ -27,6 +27,7 @@ import { activateAdmissionFeeObligations, listRetryableAdmissionFeeActivations }
 
 import { evaluateNdGraduationEligibility } from './academicProgressionService';
 import { academicProgressionApiRouter } from './academicProgressionApiRouter';
+import { listAcademicResultAttempts } from './academicResultNeonService';
 
 export const apiRouter = Router();
 apiRouter.use('/academic-progression', academicProgressionApiRouter);
@@ -2198,6 +2199,65 @@ apiRouter.get('/results', authenticateToken, (req: AuthenticatedRequest, res: Re
 
   return res.json({ success: true, results: list });
 });
+
+apiRouter.get(
+  '/results/neon-attempts',
+  authenticateToken,
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'HOD', 'EXAM_OFFICER', 'REGISTRAR'),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const state = db.getState();
+      const filters = {
+        studentId: typeof req.query.studentId === 'string' ? req.query.studentId : undefined,
+        courseId: typeof req.query.courseId === 'string' ? req.query.courseId : undefined,
+        academicSession: typeof req.query.session === 'string' ? req.query.session : undefined,
+        semester: typeof req.query.semester === 'string'
+          && ['First Semester', 'Second Semester'].includes(req.query.semester)
+          ? req.query.semester as 'First Semester' | 'Second Semester'
+          : undefined,
+      };
+      const attempts = await listAcademicResultAttempts(filters);
+      const assignedCourseIds = req.user!.role === 'LECTURER'
+        ? new Set(state.courses.filter((course) => course.lecturerId === req.user!.id).map((course) => course.id))
+        : null;
+      const results = attempts
+        .filter((attempt) => !assignedCourseIds || assignedCourseIds.has(String(attempt.course_id)))
+        .filter((attempt) => !req.query.status || attempt.latest_event_type === req.query.status)
+        .map((attempt) => {
+          const student = state.students.find((item) => item.id === attempt.student_id);
+          const user = student ? state.users.find((item) => item.id === student.userId) : undefined;
+          return {
+            id: attempt.result_attempt_id,
+            legacyResultId: attempt.legacy_result_id,
+            courseId: attempt.course_id,
+            studentId: attempt.student_id,
+            matricNumber: student?.matricNumber || '',
+            studentName: user?.fullName || 'Student',
+            session: attempt.academic_session,
+            semester: attempt.semester,
+            attemptNumber: attempt.attempt_number,
+            caScore: Number(attempt.ca_score),
+            examScore: Number(attempt.exam_score),
+            totalScore: Number(attempt.total_score),
+            grade: attempt.grade,
+            gradePoint: Number(attempt.grade_point),
+            status: attempt.latest_event_type,
+            submittedBy: attempt.entered_by,
+            latestEvent: {
+              actorUserId: attempt.latest_event_actor_user_id,
+              reason: attempt.latest_event_reason,
+              at: attempt.latest_event_at,
+            },
+            createdAt: attempt.created_at,
+          };
+        });
+      return res.json({ success: true, results, source: 'NEON_ATTEMPT_LEDGER' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to read Neon result attempts.';
+      return res.status(503).json({ success: false, message });
+    }
+  }
+);
 
 apiRouter.get('/results/my-results', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
   const state = db.getState();
