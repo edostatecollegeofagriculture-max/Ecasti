@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { apiRouter } from './server/apiRouter';
 import { feeApiRouter } from './server/feeApiRouter';
+import { neonPool } from './server/neon';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,12 +53,23 @@ async function startServer() {
   app.use('/api/v1/fees', feeApiRouter);
 
   // Health check endpoint
-  app.get('/api/health', (_req, res) => {
-    res.json({
-      status: 'UP',
-      service: 'EDOCASTI School Portal Backend',
-      timestamp: new Date().toISOString(),
-    });
+  app.get('/api/health', async (_req, res) => {
+    try {
+      await neonPool.query('SELECT 1');
+      return res.status(200).json({
+        status: 'UP',
+        database: 'CONNECTED',
+        service: 'EDOCASTI School Portal API',
+        timestamp: new Date().toISOString(),
+      });
+    } catch {
+      return res.status(503).json({
+        status: 'DEGRADED',
+        database: 'UNAVAILABLE',
+        service: 'EDOCASTI School Portal API',
+        timestamp: new Date().toISOString(),
+      });
+    }
   });
 
   // Local development serves the Vite app. In production, Vercel serves
