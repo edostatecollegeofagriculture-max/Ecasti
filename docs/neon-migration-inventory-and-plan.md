@@ -104,3 +104,20 @@ Important semantics:
 - Result events and attempts cannot be deleted or truncated.
 - The published-results view includes attempts whose latest event remains `PUBLISHED`; consumers must also require a complete, sufficiently fresh `academic_result_source_sync` record.
 - This schema is a foundation only. It does not migrate the JSON results, implement the event-writing API, prove reconciliation, or authorize enabling the progression endpoints. The hard fail-closed guard remains in place.
+
+
+## Result service and temporary integration test
+
+The feature branch now includes `server/academicResultNeonService.ts`. It provides transactional attempt creation, idempotent submission/event writes, row-locking for event transitions, source freshness inspection, and a published-results reader that rejects an incomplete or older-than-24-hour freshness marker. It is not yet connected to student-facing or progression routes.
+
+A synthetic integration test is available as:
+
+```powershell
+npm run test:academic-results:neon-temporary
+```
+
+The test refuses to query the database unless `.env` points to the previously identified disposable branch host `ep-blue-mud-bdm6m3i0-pooler.c-8.us-east-2.aws.neon.tech`, database `neondb`, and the operator types `TEMPORARY`. It also verifies that migration 009 is installed. It creates synthetic `TEST-RESULT-` rows and intentionally leaves them in the temporary database because result records and events are append-only. It checks idempotency, workflow sequencing, retention of an earlier published pass beside a later failed attempt, stale-source fail-closed behavior, explicit invalidation, and deletion protection.
+
+Before running it, confirm in Neon that the disposable branch still exists and is not production. The temporary branch previously had an expiry configured; if it has expired, stop and create a new disposable branch from the correct schema baseline. Do not change the script's host guard to a production hostname. Apply migrations 006, 007, 008, and 009 in order to the disposable branch only. Do not run the test with production credentials.
+
+The test has not been executed by the assistant. A passing test is required before wiring the service into result routes. Even after it passes, the application-wide JSON-to-Neon migration and production data reconciliation remain separate release gates.
