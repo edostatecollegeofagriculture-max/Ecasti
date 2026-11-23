@@ -38,10 +38,12 @@ export async function initializeStudentProgression(input: {
   studentId: string;
   programmeId: string;
   academicSession: string;
+  decidedBy: string;
 }) {
   const studentId = required(input.studentId, 'Student ID');
   const programmeId = required(input.programmeId, 'Programme ID');
   const academicSession = required(input.academicSession, 'Academic session');
+  const decidedBy = required(input.decidedBy, 'Decision maker');
 
   return transaction(async (client) => {
     await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`progression:${studentId}`]);
@@ -78,11 +80,11 @@ export async function initializeStudentProgression(input: {
       `INSERT INTO academic_progression_history
          (id, student_id, programme_id, from_stage, to_stage, from_status, to_status,
           academic_session, extension_year, decision_type, outstanding_course_ids,
-          missing_result_course_ids, reason, idempotency_key)
+          missing_result_course_ids, reason, decided_by, idempotency_key)
        VALUES ($1, $2, $3, NULL, 'ND_I', NULL, 'ACTIVE', $4, 0, 'INITIAL_RECORD',
                '[]'::jsonb, '[]'::jsonb, 'Initial ND academic progression record',
-               $5)`,
-      [historyId, studentId, programmeId, academicSession, `progression-initial:${studentId}`]
+               $5, $6)`,
+      [historyId, studentId, programmeId, academicSession, decidedBy, `progression-initial:${studentId}`]
     );
     return {
       created: true,
@@ -119,7 +121,7 @@ export async function advanceStudentProgression(input: {
     if (current.current_session === academicSession) throw new Error('A progression decision has already been recorded for this academic session.');
 
     const snapshotResult = await client.query(
-      `SELECT course_id FROM student_academic_required_courses
+      `SELECT course_id, course_level_snapshot FROM student_academic_required_courses
         WHERE student_id = $1 AND is_required = TRUE
         ORDER BY course_level_snapshot, semester_snapshot, course_code_snapshot`,
       [studentId]
@@ -133,8 +135,14 @@ export async function advanceStudentProgression(input: {
       if (!requiredIds.includes(courseId)) throw new Error('A missing-result course does not belong to the student required-course snapshots.');
     }
 
-    const outstanding = requiredIds.filter((courseId: string) => !passed.has(courseId));
     const fromStage = current.current_stage as Stage;
+    // ND I history tracks only ND I courses; ND II and later decisions evaluate every effective requirement.
+    const evaluatedIds = fromStage === 'ND_I'
+      ? snapshotResult.rows
+          .filter((row: { course_level_snapshot: string }) => row.course_level_snapshot === 'ND I')
+          .map((row: { course_id: string }) => String(row.course_id))
+      : requiredIds;
+    const outstanding = evaluatedIds.filter((courseId: string) => !passed.has(courseId));
     const fromStatus = current.progression_status as Status;
     let toStage: Stage = fromStage;
     let toStatus: Status = fromStatus;
@@ -176,17 +184,17 @@ export async function advanceStudentProgression(input: {
       `INSERT INTO academic_progression_history
          (id, student_id, programme_id, from_stage, to_stage, from_status, to_status,
           academic_session, extension_year, decision_type, outstanding_course_ids,
-          missing_result_course_ids, reason, approved_by, idempotency_key)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12::jsonb,$13,NULL,$14)`,
+          missing_result_course_ids, reason, decided_by, approved_by, idempotency_key)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12::jsonb,$13,$14,NULL,$15)`,
       [historyId, studentId, current.programme_id, fromStage, toStage, fromStatus, toStatus,
        academicSession, extensionYear, decisionType, JSON.stringify(outstanding),
        JSON.stringify([...missing].filter((courseId) => outstanding.includes(courseId))),
        fromStage === 'ND_I'
-         ? 'ND I to ND II progression; outstanding courses remain required.'
+         ? 'ND I to ND II progression; outstanding ND I courses remain required.'
          : outstanding.length === 0
            ? 'All effective ND I and ND II required courses have published passing results.'
            : 'Outstanding required courses carried forward into the extension pathway.',
-       key]
+       decidedBy, key]
     );
     await client.query(
       `UPDATE student_academic_progression
@@ -235,9 +243,9 @@ export async function approveExtensionYearThreeManagementPass(input: {
       `INSERT INTO academic_progression_history
          (id, student_id, programme_id, from_stage, to_stage, from_status, to_status,
           academic_session, extension_year, decision_type, outstanding_course_ids,
-          missing_result_course_ids, reason, approved_by, idempotency_key)
+          missing_result_course_ids, reason, decided_by, approved_by, idempotency_key)
        VALUES ($1,$2,$3,'EXTENSION_3','GRADUATED','EXTENSION','GRADUATED',
-               $4,3,'MANAGEMENT_APPROVED_PASS','[]'::jsonb,'[]'::jsonb,$5,$6,$7)`,
+               $4,3,'MANAGEMENT_APPROVED_PASS','[]'::jsonb,'[]'::jsonb,$5,$6,$6,$7)`,
       [historyId, studentId, current.programme_id, academicSession, reason, rectorUserId, key]
     );
     await client.query(
