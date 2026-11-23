@@ -62,3 +62,37 @@ It must not emit raw IDs or any record values. A human operator should compare t
 The first importer must not be implemented against the current dataset until the five findings have documented resolutions. The next migration design review should also inspect the actual Neon DDL and service-layer identity semantics before mapping source IDs to target keys.
 
 No JSON records were changed, no Neon data was written, and no production deployment or cutover was performed during this review.
+
+
+## Additional schema review: Neon target is not yet a complete mirror
+
+The migration directory was inspected on this branch. The existing DDL does **not** define core relational tables for `schools`, `departments`, `users`, `programmes`, `courses`, `students`, `applications`, legacy `invoices`, or legacy `payments`.
+
+The existing fee schema (`001_fee_management_schema.sql`) defines a separate itemized fee subsystem:
+- `fee_catalog`
+- `program_fee_schedule`
+- `program_fee_schedule_items`
+- `student_fee_obligations`
+- `student_payments`
+- `student_payment_allocations`
+
+Its comments explicitly state that user, student, and programme IDs are stored as TEXT without external foreign keys while those core entities remain in JSON. Internal fee-table relationships are constrained. This means the current Neon schema cannot be used to validate the missing core school/user/student references.
+
+The legacy JSON `PaymentTransaction` model contains an invoice ID, student ID, payment reference, provider reference, channel, payment status, paid timestamp, and optional verifier. The Neon `student_payments` table instead models a manual fee payment with a receipt number, idempotency key, student ID, amount, method, recording user, recorded timestamp, notes, and session; allocations are linked to fee obligations. The legacy `invoices` collection has no corresponding invoice table in the inspected fee DDL.
+
+**Therefore, legacy `payments` must not be bulk-copied into `student_payments`, and legacy `invoices` must not be treated as fee obligations.** They represent different workflows and their fields and lifecycle semantics do not match.
+
+## Improved local diagnostic
+
+The read-only preflight now includes a `referenceDiagnostics` section. For each configured relationship it reports only:
+- source and target collection names and aggregate record counts;
+- whether the target collection is empty;
+- field value type counts (string, null, missing, other);
+- empty-string count;
+- matched and unresolved reference counts.
+
+It emits no IDs or row values and still opens no Neon connection. Re-run it locally after pulling the latest feature branch. Use the aggregate results to determine whether the empty school collection and payment references reflect incomplete source data, different identity namespaces, or an incorrect relationship assumption. Do not use the report to guess or rewrite identifiers.
+
+## Schema readiness conclusion
+
+The current Neon migrations provide fee-management and academic-progression ledgers, not an app-wide relational replacement for the JSON store. The next schema-design step must specify core identity and academic catalogue tables, plus a deliberate legacy-invoice/payment-history model, before an importer can be safely designed. This is a schema gap in addition to the unresolved source references above.
