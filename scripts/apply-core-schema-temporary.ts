@@ -73,9 +73,9 @@ try {
   );
 
   const answer = await confirmation.question(
-    'Verified temporary Neon target. This will create the empty migration 010 schema only; it will not import JSON data. Type APPLY-010-TEMPORARY to continue: ',
+    'Verified temporary Neon target. This will create the empty migration 010 schema only; it will not import JSON data. Type TEMPORARY to continue: ',
   );
-  assert.equal(answer.trim(), 'APPLY-010-TEMPORARY', 'Confirmation not provided. No schema changes were made.');
+  assert.equal(answer.trim(), 'TEMPORARY', 'Confirmation not provided. No schema changes were made.');
 
   const migration = await readFile(
     resolve(process.cwd(), 'database/migrations/010_core_entities_and_legacy_finance.sql'),
