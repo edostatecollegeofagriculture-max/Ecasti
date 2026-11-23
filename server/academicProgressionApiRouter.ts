@@ -491,6 +491,7 @@ academicProgressionApiRouter.post(
     try {
       const result = await initializeStudentProgression({
         studentId, programmeId: student.programmeId, academicSession,
+        decidedBy: req.user!.id,
       });
       db.logAudit({
         userId: req.user!.id, userEmail: req.user!.email,
