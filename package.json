@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "audit:migration006": "tsx scripts/audit-migration-006.ts"
+    "audit:migration006": "tsx scripts/audit-migration-006.ts",
+    "test:curriculum-assignment:temporary": "tsx scripts/test-curriculum-assignment-temporary.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
