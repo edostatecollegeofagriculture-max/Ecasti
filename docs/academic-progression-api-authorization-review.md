@@ -39,7 +39,7 @@ initialization, progression-advance, and Registry-review routes. This is
 consistent with the application's existing global-administrator convention,
 but it is a broad privilege and should be an explicit institutional policy
 decision. The Rector management-pass endpoint deliberately does not use
-`requireRoles`; it checks for the exact RECT0R role and denies SUPER_ADMIN.
+`requireRoles`; it checks for the exact RECTOR role and denies SUPER_ADMIN.
 
 Programme-scoped curriculum mapping endpoints additionally apply programme
 scope checks. Student assignment and exception reads apply school,
