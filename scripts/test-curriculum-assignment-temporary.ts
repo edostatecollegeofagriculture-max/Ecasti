@@ -280,7 +280,7 @@ async function main() {
     assert(graduateAssignment.status === 'ASSIGNED', 'Second synthetic student curriculum assignment failed.');
     await initializeStudentProgression({ studentId: graduateStudentId, programmeId, academicSession: 'TEST-GRAD-2025' });
     const graduateSnapshot = await getStudentCurriculumAssignment(graduateStudentId);
-    const allGraduateCourseIds = graduateSnapshot.courses.map((course: any) => String(course.course_id));
+    const allGraduateCourseIds = graduateSnapshot.courses.map((course: any) => String(course.courseId));
     const graduateNdOne = await advanceStudentProgression({
       studentId: graduateStudentId, academicSession: 'TEST-GRAD-2026', passedCourseIds: allGraduateCourseIds,
       missingResultCourseIds: [], decidedBy: preparer,
