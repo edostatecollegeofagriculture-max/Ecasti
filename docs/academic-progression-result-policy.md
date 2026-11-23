@@ -24,3 +24,6 @@ npm run test:academic-result-evaluation
 ```
 
 These tests cover missing, unpublished, failed, exactly-at-pass-mark, invalid-score, earlier-pass/later-fail, and latest-failure cases. They do not replace API-level authorization tests or isolated Neon workflow tests.
+The completed full academic API integration suite also exercised the shared
+evaluator through eligibility, progression advancement, and Rector management
+pass endpoints and reported 25 PASS, 0 FAIL on the disposable Neon branch.
