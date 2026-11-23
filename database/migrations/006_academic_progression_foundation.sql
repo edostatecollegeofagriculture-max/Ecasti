@@ -1925,7 +1925,7 @@ BEGIN
       INTO previous_stage, previous_status
       FROM academic_progression_history h
      WHERE h.student_id = NEW.student_id
-       AND h.id <> NEW.id
+       AND h.history_sequence < NEW.history_sequence
      ORDER BY h.history_sequence DESC
      LIMIT 1;
 
