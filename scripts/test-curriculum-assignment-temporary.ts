@@ -260,7 +260,7 @@ async function main() {
 
     const ndTwoDecision = await advanceStudentProgression({
       studentId, academicSession: 'TEST-SESSION-2027', passedCourseIds: [],
-      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag], decidedBy: preparer,
+      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag, 'TEST-COURSE-C-' + tag], decidedBy: preparer,
     });
     assert(ndTwoDecision.toStage === 'EXTENSION_1' && ndTwoDecision.progressionStatus === 'EXTENSION', 'ND II student with outstanding requirements did not enter Extension Year 1.');
     assert(ndTwoDecision.outstandingCourseIds.length === 3, 'ND II decision must evaluate all effective ND I and ND II requirements.');
@@ -268,12 +268,12 @@ async function main() {
 
     const extensionTwo = await advanceStudentProgression({
       studentId, academicSession: 'TEST-SESSION-2028', passedCourseIds: [],
-      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag], decidedBy: preparer,
+      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag, 'TEST-COURSE-C-' + tag], decidedBy: preparer,
     });
     assert(extensionTwo.toStage === 'EXTENSION_2', 'Extension Year 1 did not advance to Extension Year 2.');
     const extensionThree = await advanceStudentProgression({
       studentId, academicSession: 'TEST-SESSION-2029', passedCourseIds: [],
-      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag], decidedBy: preparer,
+      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag, 'TEST-COURSE-C-' + tag], decidedBy: preparer,
     });
     assert(extensionThree.toStage === 'EXTENSION_3', 'Extension Year 2 did not advance to Extension Year 3.');
     check('Extension progression advances sequentially through Extension Years 2 and 3');
