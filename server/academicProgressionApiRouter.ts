@@ -497,6 +497,10 @@ academicProgressionApiRouter.post(
     }
     const student = db.getState().students.find((item) => item.id === studentId);
     if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
+    const studentProgramme = db.getState().programmes.find((item) => item.id === student.programmeId);
+    if (studentProgramme?.qualification !== 'ND') {
+      return res.status(422).json({ success: false, message: 'Progression currently supports National Diploma students only.' });
+    }
     try {
       const snapshotResult = await neonPool.query<{ course_id: string }>(
         `SELECT course_id
@@ -556,6 +560,12 @@ academicProgressionApiRouter.post(
     const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
     if (!studentId || !academicSession || !reason) {
       return res.status(400).json({ success: false, message: 'Student ID, academic session and approval reason are required.' });
+    }
+    const student = db.getState().students.find((item) => item.id === studentId);
+    if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
+    const studentProgramme = db.getState().programmes.find((item) => item.id === student.programmeId);
+    if (studentProgramme?.qualification !== 'ND') {
+      return res.status(422).json({ success: false, message: 'Management pass currently supports National Diploma students only.' });
     }
     try {
       const requiredResult = await neonPool.query<{ course_id: string }>(
