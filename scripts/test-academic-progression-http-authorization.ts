@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
-import express, { Request } from 'express';
+import express from 'express';
+import type { Request } from 'express';
 import jwt from 'jsonwebtoken';
 import type { AddressInfo } from 'node:net';
 import {
-  AuthPrincipal,
   createAuthenticateToken,
   requireRoles,
 } from '../server/authenticationMiddleware';
+import type { AuthPrincipal } from '../server/authenticationMiddleware';
 import {
   canApproveExtensionYearThreeManagementPass,
   canReadStudentAcademicRecord,
@@ -94,7 +95,7 @@ await new Promise<void>((resolve, reject) => {
 const address = server.address() as AddressInfo;
 const baseUrl = `http://127.0.0.1:${address.port}`;
 
-function tokenFor(userId: string, expiresIn: string | number = '5m'): string {
+function tokenFor(userId: string, expiresIn: number = 300): string {
   return jwt.sign({ sub: userId }, TEST_SECRET, { expiresIn });
 }
 
