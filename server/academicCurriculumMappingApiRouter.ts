@@ -38,13 +38,13 @@ const mappingPreparers = [
 function hasProgrammeScope(req: AuthenticatedRequest, programmeId: string): boolean {
   const user = req.user;
   if (!user) return false;
-  if (['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'].includes(user.role)) return true;
+  if (['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'].includes(user.role)) return true;
 
   const state = db.getState();
   const programme = state.programmes.find((item) => item.id === programmeId);
   if (!programme) return false;
 
-  if (user.role === 'HOD') {
+  if (user.role === 'HOD' || user.role === 'EXAM_OFFICER') {
     return Boolean(user.departmentId && user.departmentId === programme.departmentId);
   }
 
@@ -54,6 +54,23 @@ function hasProgrammeScope(req: AuthenticatedRequest, programmeId: string): bool
   }
 
   return false;
+}
+
+function readableProgrammeIds(req: AuthenticatedRequest): string[] | null {
+  const user = req.user;
+  if (!user) return [];
+  if (['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'].includes(user.role)) return null;
+  const state = db.getState();
+  if (user.role === 'HOD' || user.role === 'EXAM_OFFICER') {
+    if (!user.departmentId) return [];
+    return state.programmes.filter((programme) => programme.departmentId === user.departmentId).map((programme) => programme.id);
+  }
+  if (user.role === 'DEAN') {
+    if (!user.schoolId) return [];
+    const departmentIds = new Set(state.departments.filter((department) => department.schoolId === user.schoolId).map((department) => department.id));
+    return state.programmes.filter((programme) => departmentIds.has(programme.departmentId)).map((programme) => programme.id);
+  }
+  return [];
 }
 
 function audit(
@@ -91,6 +108,13 @@ academicCurriculumMappingApiRouter.get(
     try {
       const programmeId = typeof req.query.programmeId === 'string' ? req.query.programmeId.trim() : undefined;
       const cohortSession = typeof req.query.cohortSession === 'string' ? req.query.cohortSession.trim() : undefined;
+      const scopedIds = readableProgrammeIds(req);
+      if (scopedIds !== null) {
+        if (programmeId && !scopedIds.includes(programmeId)) return res.status(403).json({ success: false, message: 'You do not have read access to this programme.' });
+        if (scopedIds.length === 0) return res.json({ success: true, mappings: [] });
+        const mappings = await listCurriculumMappings({ programmeId, programmeIds: programmeId ? undefined : scopedIds, cohortSession });
+        return res.json({ success: true, mappings });
+      }
       const mappings = await listCurriculumMappings({ programmeId, cohortSession });
       return res.json({ success: true, mappings });
     } catch {
@@ -110,6 +134,7 @@ academicCurriculumMappingApiRouter.get(
     try {
       const mapping = await getCurriculumMapping(req.params.mappingId);
       if (!mapping) return res.status(404).json({ success: false, message: 'Curriculum mapping not found.' });
+      if (!hasProgrammeScope(req, mapping.programmeId)) return res.status(403).json({ success: false, message: 'You do not have read access to this programme.' });
       return res.json({ success: true, mapping });
     } catch {
       return res.status(503).json({
