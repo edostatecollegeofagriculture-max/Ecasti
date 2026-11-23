@@ -11,6 +11,7 @@ import {
   reviewCurriculumMapping,
   submitCurriculumMapping,
 } from '../server/academicCurriculumMappingService';
+import { reviewStudentCurriculumException, submitStudentCurriculumException } from '../server/academicCurriculumExceptionService';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -156,6 +157,81 @@ async function main() {
     assert(failedLedger.rows[0]?.status === 'REVIEW_REQUIRED', 'FAILED ledger did not transition to REVIEW_REQUIRED.');
     assert(Number(failedLedger.rows[0]?.attempt_count) === 5, 'FAILED retry should increment attempt_count exactly once.');
     check('FAILED ledger safely transitions through PENDING to REVIEW_REQUIRED with one attempt increment');
+
+    // Student-specific ADD_COURSE and EXCLUDE_COURSE exceptions.
+    const addException = await submitStudentCurriculumException({
+      studentId,
+      courseId: `TEST-COURSE-ADD-${tag}`,
+      action: 'ADD_COURSE',
+      courseCode: 'TST201',
+      courseTitle: 'Synthetic Exception Added Course',
+      level: 'ND II',
+      semester: 'First Semester',
+      creditUnits: 2,
+      submittedBy: preparer,
+      reason: 'Synthetic test: additional compulsory course.',
+    });
+    let selfReviewRejected = false;
+    try {
+      await reviewStudentCurriculumException(addException.id, preparer, 'APPROVE');
+    } catch (error) {
+      selfReviewRejected = String(error).includes('submitter cannot review');
+    }
+    assert(selfReviewRejected, 'Exception submitter was allowed to review their own request.');
+    const addApproval = await reviewStudentCurriculumException(addException.id, reviewer, 'APPROVE');
+    assert(addApproval.status === 'APPROVED', 'ADD_COURSE exception was not approved.');
+    const addedSnapshot = await neonPool.query(
+      'SELECT is_required, mapping_course_id, exception_id FROM student_academic_required_courses WHERE student_id = $1 AND course_id = $2',
+      [studentId, `TEST-COURSE-ADD-${tag}`]
+    );
+    assert(addedSnapshot.rows[0]?.is_required === true && addedSnapshot.rows[0]?.mapping_course_id === null && addedSnapshot.rows[0]?.exception_id === addException.id,
+      'Approved ADD_COURSE exception did not create the correct required-course snapshot.');
+    check('ADD_COURSE exception requires independent approval and adds a student-only required-course snapshot');
+
+    const excludeException = await submitStudentCurriculumException({
+      studentId,
+      courseId: `TEST-COURSE-A-${tag}`,
+      action: 'EXCLUDE_COURSE',
+      courseCode: 'TST101',
+      courseTitle: 'Synthetic Required Course A',
+      level: 'ND I',
+      semester: 'First Semester',
+      creditUnits: 2,
+      submittedBy: preparer,
+      reason: 'Synthetic test: exclude mapped requirement.',
+    });
+    const excludeApproval = await reviewStudentCurriculumException(excludeException.id, reviewer, 'APPROVE');
+    assert(excludeApproval.status === 'APPROVED', 'EXCLUDE_COURSE exception was not approved.');
+    const excludedSnapshot = await neonPool.query(
+      'SELECT is_required, mapping_course_id, exception_id FROM student_academic_required_courses WHERE student_id = $1 AND course_id = $2',
+      [studentId, `TEST-COURSE-A-${tag}`]
+    );
+    assert(excludedSnapshot.rows[0]?.is_required === false && Boolean(excludedSnapshot.rows[0]?.mapping_course_id) && excludedSnapshot.rows[0]?.exception_id === excludeException.id,
+      'Approved EXCLUDE_COURSE exception did not retain and mark the mapped snapshot as not required.');
+    check('EXCLUDE_COURSE exception preserves the mapped snapshot and marks it not required');
+
+    const rejectException = await submitStudentCurriculumException({
+      studentId,
+      courseId: `TEST-COURSE-B-${tag}`,
+      action: 'EXCLUDE_COURSE',
+      courseCode: 'TST102',
+      courseTitle: 'Synthetic Required Course B',
+      level: 'ND I',
+      semester: 'Second Semester',
+      creditUnits: 3,
+      submittedBy: preparer,
+      reason: 'Synthetic test: rejection path.',
+    });
+    const rejected = await reviewStudentCurriculumException(rejectException.id, reviewer, 'REJECT', 'Synthetic test rejection.');
+    assert(rejected.status === 'REJECTED', 'Exception rejection did not persist REJECTED state.');
+    const unchangedSnapshot = await neonPool.query(
+      'SELECT is_required, exception_id FROM student_academic_required_courses WHERE student_id = $1 AND course_id = $2',
+      [studentId, `TEST-COURSE-B-${tag}`]
+    );
+    assert(unchangedSnapshot.rows[0]?.is_required === true && unchangedSnapshot.rows[0]?.exception_id === null,
+      'Rejected EXCLUDE_COURSE exception changed the effective course requirement.');
+    check('Rejected exception leaves the student required-course snapshot unchanged');
+
 
     console.log(`\\nRESULT: ${passed.length} PASS, 0 FAIL`);
     console.log('All records use TEST-prefixed synthetic identifiers. This temporary branch can be discarded after review.');
