@@ -280,7 +280,9 @@ export async function reviewCurriculumMapping(
     if (mapping.prepared_by === reviewerId) throw new Error('The preparer cannot review their own curriculum mapping.');
 
     const courseCount = await client.query(
-      'SELECT COUNT(*)::int AS count FROM academic_curriculum_mapping_courses WHERE mapping_id = $1',
+      'SELECT COUNT(*)::int AS count,
+              COUNT(*) FILTER (WHERE is_compulsory_snapshot = TRUE)::int AS compulsory_count
+         FROM academic_curriculum_mapping_courses WHERE mapping_id = $1',
       [mappingId]
     );
     if (Number(courseCount.rows[0].count) < 1 || Number(courseCount.rows[0].compulsory_count) < 1) throw new Error('A curriculum mapping must contain at least one course, including at least one compulsory course.');
