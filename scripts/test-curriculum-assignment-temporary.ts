@@ -12,6 +12,7 @@ import {
   submitCurriculumMapping,
 } from '../server/academicCurriculumMappingService';
 import { reviewStudentCurriculumException, submitStudentCurriculumException } from '../server/academicCurriculumExceptionService';
+import { initializeStudentProgression, advanceStudentProgression, approveExtensionYearThreeManagementPass } from '../server/academicProgressionDecisionService';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -233,6 +234,64 @@ async function main() {
     check('Rejected exception leaves the student required-course snapshot unchanged');
 
 
+    // Progression: ND I always advances, even with no passed courses.
+    const initialProgression = await initializeStudentProgression({ studentId, programmeId, academicSession: 'TEST-SESSION-2025' });
+    assert(initialProgression.created && initialProgression.progression.current_stage === 'ND_I', 'Initial progression record was not created at ND_I.');
+    check('Progression initializes at ND I with an initial history event');
+
+    const ndOneDecision = await advanceStudentProgression({
+      studentId, academicSession: 'TEST-SESSION-2026', passedCourseIds: [],
+      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag], decidedBy: preparer,
+    });
+    assert(ndOneDecision.toStage === 'ND_II' && ndOneDecision.progressionStatus === 'ACTIVE', 'ND I student did not advance to ND II with outstanding courses.');
+    assert(ndOneDecision.outstandingCourseIds.length === 2, 'ND I outstanding required courses were not retained in progression history.');
+    check('Every ND I student advances to ND II despite outstanding compulsory courses');
+
+    const ndTwoDecision = await advanceStudentProgression({
+      studentId, academicSession: 'TEST-SESSION-2027', passedCourseIds: [],
+      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag], decidedBy: preparer,
+    });
+    assert(ndTwoDecision.toStage === 'EXTENSION_1' && ndTwoDecision.progressionStatus === 'EXTENSION', 'ND II student with outstanding requirements did not enter Extension Year 1.');
+    check('ND II students with outstanding ND I or ND II requirements enter Extension Year 1');
+
+    const extensionTwo = await advanceStudentProgression({
+      studentId, academicSession: 'TEST-SESSION-2028', passedCourseIds: [],
+      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag], decidedBy: preparer,
+    });
+    assert(extensionTwo.toStage === 'EXTENSION_2', 'Extension Year 1 did not advance to Extension Year 2.');
+    const extensionThree = await advanceStudentProgression({
+      studentId, academicSession: 'TEST-SESSION-2029', passedCourseIds: [],
+      missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag], decidedBy: preparer,
+    });
+    assert(extensionThree.toStage === 'EXTENSION_3', 'Extension Year 2 did not advance to Extension Year 3.');
+    check('Extension progression advances sequentially through Extension Years 2 and 3');
+
+    const managementPass = await approveExtensionYearThreeManagementPass({
+      studentId, academicSession: 'TEST-SESSION-2030', rectorUserId: 'TEST-RECTOR',
+      reason: 'Synthetic test: Rector-approved management pass.',
+    });
+    assert(managementPass.status === 'GRADUATED' && managementPass.decisionType === 'MANAGEMENT_APPROVED_PASS', 'Extension Year 3 management pass did not graduate the synthetic student.');
+    check('Extension Year 3 management pass records Rector approval and immutable history');
+
+    // A second synthetic student proves normal graduation is blocked until all
+    // effective ND I and ND II required-course snapshots have passing results.
+    const graduateStudentId = 'TEST-GRADUATE-' + tag;
+    const graduateAssignment = await assignStudentCurriculum({ studentId: graduateStudentId, programmeId, cohortSession: cohort, assignedBy: preparer });
+    assert(graduateAssignment.status === 'ASSIGNED', 'Second synthetic student curriculum assignment failed.');
+    await initializeStudentProgression({ studentId: graduateStudentId, programmeId, academicSession: 'TEST-GRAD-2025' });
+    const graduateSnapshot = await getStudentCurriculumAssignment(graduateStudentId);
+    const allGraduateCourseIds = graduateSnapshot.courses.map((course: any) => String(course.course_id));
+    const graduateNdOne = await advanceStudentProgression({
+      studentId: graduateStudentId, academicSession: 'TEST-GRAD-2026', passedCourseIds: allGraduateCourseIds,
+      missingResultCourseIds: [], decidedBy: preparer,
+    });
+    assert(graduateNdOne.toStage === 'ND_II', 'ND I did not advance to ND II after all courses were passed.');
+    const graduateNdTwo = await advanceStudentProgression({
+      studentId: graduateStudentId, academicSession: 'TEST-GRAD-2027', passedCourseIds: allGraduateCourseIds,
+      missingResultCourseIds: [], decidedBy: preparer,
+    });
+    assert(graduateNdTwo.toStage === 'GRADUATED', 'Student with all ND I and ND II requirements passed did not graduate.');
+    check('Normal graduation occurs only after all effective ND I and ND II requirements are passed');
     console.log(`\\nRESULT: ${passed.length} PASS, 0 FAIL`);
     console.log('All records use TEST-prefixed synthetic identifiers. This temporary branch can be discarded after review.');
   } finally {
