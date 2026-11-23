@@ -59,6 +59,10 @@ app.get('/staff/registrar', authenticate, requireRoles('REGISTRAR'), (_req, res)
   res.status(200).json({ success: true });
 });
 
+app.post('/registry/exception-review', authenticate, requireRoles('REGISTRAR', 'SUPER_ADMIN'), (_req, res) => {
+  res.status(200).json({ success: true });
+});
+
 app.get(
   '/students/:studentId/academic-record',
   authenticate,
@@ -123,6 +127,9 @@ try {
   await test('invalid bearer token returns HTTP 401', async () => {
     assert.equal((await request('/staff/registrar', { rawToken: 'not-a-valid-token' })).status, 401);
   });
+  await test('token for a deleted user returns HTTP 401', async () => {
+    assert.equal((await request('/staff/registrar', { rawToken: tokenFor('deleted-user') })).status, 401);
+  });
   await test('expired bearer token returns HTTP 401', async () => {
     assert.equal((await request('/staff/registrar', { rawToken: tokenFor('registrar-a', -1) })).status, 401);
   });
@@ -137,6 +144,15 @@ try {
   });
   await test('Registrar with route permission receives HTTP 200', async () => {
     assert.equal((await request('/staff/registrar', { userId: 'registrar-a' })).status, 200);
+  });
+  await test('non-Registrar cannot review an exception', async () => {
+    assert.equal((await request('/registry/exception-review', { method: 'POST', userId: 'hod-a' })).status, 403);
+  });
+  await test('Registrar can pass the exception-review role guard', async () => {
+    assert.equal((await request('/registry/exception-review', { method: 'POST', userId: 'registrar-a' })).status, 200);
+  });
+  await test('SUPER_ADMIN global bypass is applied by shared role middleware', async () => {
+    assert.equal((await request('/registry/exception-review', { method: 'POST', userId: 'super-admin-a' })).status, 200);
   });
   await test('student can read own academic record', async () => {
     assert.equal((await request('/students/student-a/academic-record', { userId: 'student-a-user' })).status, 200);
