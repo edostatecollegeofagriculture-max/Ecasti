@@ -48,7 +48,7 @@ export async function initializeStudentProgression(input: {
   return transaction(async (client) => {
     await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`progression:${studentId}`]);
     const existing = await client.query(
-      'SELECT current_stage, progression_status, current_session, extension_year FROM student_academic_progression WHERE student_id = $1 FOR UPDATE',
+      'SELECT programme_id, current_stage, progression_status, current_session, extension_year FROM student_academic_progression WHERE student_id = $1 FOR UPDATE',
       [studentId]
     );
     if (existing.rows[0]) {
