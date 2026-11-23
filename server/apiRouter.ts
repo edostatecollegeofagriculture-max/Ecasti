@@ -2309,14 +2309,26 @@ apiRouter.post(
         idempotencyKey: idempotencyKey.trim(),
         reason: typeof reason === 'string' ? reason.trim() : undefined,
       });
-      db.logAudit({
-        userId: req.user!.id,
-        userEmail: req.user!.email,
-        action: `ACADEMIC_RESULT_${eventType}`,
-        resource: 'ACADEMIC_RESULT_ATTEMPT',
-        details: { resultAttemptId, eventId: outcome.event.id, created: outcome.created },
-        ipAddress: req.ip,
-      });
+      // The Neon event is already committed. Audit only newly created events;
+      // an audit-file failure must not turn a committed workflow action into a
+      // misleading HTTP conflict that encourages an unsafe second action.
+      if (outcome.created) {
+        try {
+          db.logAudit({
+            userId: req.user!.id,
+            userEmail: req.user!.email,
+            action: `ACADEMIC_RESULT_${eventType}`,
+            resource: 'ACADEMIC_RESULT_ATTEMPT',
+            details: { resultAttemptId, eventId: outcome.event.id },
+            ipAddress: req.ip,
+          });
+        } catch (auditError) {
+          console.error('Failed to write audit log for committed academic result event.', {
+            eventId: outcome.event.id,
+            error: auditError instanceof Error ? auditError.message : 'Unknown audit error',
+          });
+        }
+      }
       return res.status(outcome.created ? 201 : 200).json({
         success: true,
         created: outcome.created,
