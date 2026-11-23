@@ -502,6 +502,10 @@ function computeGradeAndPoints(total: number): { grade: string; gradePoint: numb
 export class DatabaseEngine {
   private state: DatabaseState;
 
+  private ensureDataDir(): void {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+
   constructor() {
     if (STAGING_DEMO_ONLY) {
       const expectedDataFile = path.resolve(process.cwd(), 'data', 'edocasti_db.json');
