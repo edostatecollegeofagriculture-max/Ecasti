@@ -68,22 +68,27 @@ student own-record boundaries; Dean school scope; HOD and Exam Officer
 department scope; Registry review role policy; the shared SUPER_ADMIN bypass;
 and the exact Rector-only management-pass guard.
 
-The following still require full integration testing against a disposable
-application/database environment:
+The following isolated verification has now been completed on the disposable
+Neon branch using synthetic test identities and records:
 
-1. Mount the actual academic progression router and verify the assignment and
-   exception endpoints return the expected responses for cross-student and
-   out-of-scope requests.
-2. Verify the actual exception-review route with each relevant role and its
-   persisted review outcome.
-3. Verify the actual management-pass endpoint only succeeds for an eligible
-   Extension Year 3 student, and fails for all other progression stages.
-4. Verify missing and unpublished results never count as passed in API
-   decisions.
-5. Verify a progression record whose programme differs from its effective
-   snapshots cannot advance or receive a management pass.
-6. Verify the result store and Neon snapshot store refer to the same student
-   and programme at decision time.
+- The actual academic progression router and nested curriculum mapping router
+  were mounted in an ephemeral Express server.
+- The full API integration suite reported **25 PASS, 0 FAIL**, covering
+  authentication, scoped curriculum mapping, assignment idempotency and
+  cross-student access, exception submission/review, eligibility result
+  states, progression through Extension Years 1–3, Rector-only management
+  pass, and normal graduation.
+- The separate curriculum assignment service workflow suite reported
+  **17 PASS, 0 FAIL**.
+- The separate HTTP authorization middleware suite reported **20 PASS,
+  0 FAIL**, and authorization predicate tests reported **13 PASS, 0 FAIL**.
+- Result evaluation tests reported **7 PASS, 0 FAIL**.
+
+These tests close the isolated route and workflow verification items above.
+They do not prove production identity-provider behavior, production
+configuration, or operational synchronization between the local result store
+and Neon requirement snapshots. The latter remains a production-readiness
+dependency and must be verified operationally before rollout.
 
 No production data was read or changed during this source review. The review
 does not authorize production migrations, database writes, deployment, or PR
@@ -147,8 +152,10 @@ Isolation safeguards:
 - Neon test rows are intentionally retained on the disposable branch for
   review; discard the temporary branch after reviewing the test output.
 
-The harness checks that the required migration tables exist before making
-API requests. It does not run migrations, access production, merge the pull
-request, or deploy the application. Full testing of production authentication
-provider behavior, external integrations, and deployment configuration
-remains outside this isolated harness.
+The harness checks that the required migration tables and the Migration 008
+actor-attribution column exist before making API requests. The completed run
+reported **25 PASS, 0 FAIL**. It does not run migrations, access production,
+merge the pull request, or deploy the application. Production authentication
+provider behavior, external integrations, deployment configuration, and
+operational synchronization of the local result store with Neon snapshots
+remain outside this isolated harness.
