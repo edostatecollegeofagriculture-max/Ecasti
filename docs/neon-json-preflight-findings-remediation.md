@@ -96,3 +96,18 @@ It emits no IDs or row values and still opens no Neon connection. Re-run it loca
 ## Schema readiness conclusion
 
 The current Neon migrations provide fee-management and academic-progression ledgers, not an app-wide relational replacement for the JSON store. The next schema-design step must specify core identity and academic catalogue tables, plus a deliberate legacy-invoice/payment-history model, before an importer can be safely designed. This is a schema gap in addition to the unresolved source references above.
+
+## Follow-up code inspection: school seed repair gap
+
+The `DatabaseEngine.loadDatabase()` implementation in `server/db.ts` was inspected without constructing the database engine or opening the JSON store. Its existing-file repair path can append missing seeded departments, programmes, and users under specific conditions, but it does not restore missing school rows. The seed generator defines school records, but that generator is not used to backfill `parsed.schools` in the existing-file path.
+
+This is a plausible code-level explanation for how an existing JSON file could retain departments whose parent school collection is empty. It is not proof of how this particular file became incomplete. Do not invoke the database engine as a diagnostic: its constructor may write to the JSON file. Any future repair should be a separately reviewed, explicit migration with an approved school catalogue and stable IDs, not an incidental startup side effect.
+
+## Alternate-key diagnostic
+
+The local preflight has been extended to compare unresolved values in memory against a limited set of plausible alternate target fields:
+- application reviewer reference against user email and full name;
+- payment student reference against student matriculation number and linked user ID;
+- payment invoice reference against invoice number.
+
+The report emits only aggregate match counts and candidate field names. It does not emit source values, IDs, names, emails, payment data, or checksums beyond the existing collection summary. A match is a diagnostic lead, not permission to remap: each candidate must be validated against the approved identity and financial rules before any import.
