@@ -10,7 +10,7 @@ const databaseUrl = process.env.DATABASE_URL;
 assert(databaseUrl, 'DATABASE_URL is missing. Configure the disposable Neon branch in .env.');
 const parsed = new URL(databaseUrl);
 assert(
-  parsed.hostname === EXPECTED_TEMPORARY_HOST && parsed.pathname.replace(/^\\//, '') === 'neondb',
+  parsed.hostname === EXPECTED_TEMPORARY_HOST && parsed.pathname === '/neondb',
   'STOP: DATABASE_URL is not the confirmed temporary Neon branch. No database query or write was attempted.',
 );
 
@@ -158,7 +158,7 @@ async function main() {
     );
   });
 
-  console.log(`\\n${passed} PASS, 0 FAIL. Synthetic rows remain in the temporary branch by design.`);
+  console.log(`\n${passed} PASS, 0 FAIL. Synthetic rows remain in the temporary branch by design.`);
 }
 
 try {
