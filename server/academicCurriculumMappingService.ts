@@ -478,18 +478,33 @@ export async function assignStudentCurriculum(input: AssignStudentCurriculumInpu
         throw new Error('The assignment ledger indicates completion but no student assignment exists. Registry review is required.');
       }
       if (ledger) {
+        if (ledger.status === 'FAILED') {
+          await client.query(
+            `UPDATE academic_curriculum_assignment_ledger
+                SET status = 'PENDING',
+                    mapping_id = NULL,
+                    attempt_count = attempt_count + 1,
+                    last_attempt_at = NOW(),
+                    assigned_at = NULL,
+                    review_reason = NULL,
+                    error_code = NULL,
+                    updated_at = NOW()
+              WHERE id = $1`,
+            [ledger.id]
+          );
+        }
         await client.query(
           `UPDATE academic_curriculum_assignment_ledger
               SET status = 'REVIEW_REQUIRED',
                   mapping_id = NULL,
-                  attempt_count = attempt_count + 1,
+                  attempt_count = attempt_count + CASE WHEN $3 THEN 0 ELSE 1 END,
                   last_attempt_at = NOW(),
                   assigned_at = NULL,
                   review_reason = $2,
                   error_code = NULL,
                   updated_at = NOW()
             WHERE id = $1`,
-          [ledger.id, reviewReason]
+          [ledger.id, reviewReason, ledger.status === 'FAILED']
         );
       } else {
         await client.query(
