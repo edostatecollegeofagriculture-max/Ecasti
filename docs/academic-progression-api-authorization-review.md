@@ -29,22 +29,30 @@ not mount the Neon-backed router or access institutional records.
 | `POST /curriculum-exceptions/:id/review` | REGISTRAR, SUPER_ADMIN | Independent Registry review |
 | `POST /students/:id/progression/initialize` | INSTITUTION_ADMIN, REGISTRAR | ND student; current assignment/programme must match |
 | `POST /students/:id/progression/advance` | INSTITUTION_ADMIN, REGISTRAR, RECTOR | ND student; progression programme must match required-course snapshots |
-| `POST /students/:id/progression/management-pass` | RECTOR only | Explicit role equality check; SUPER_ADMIN is not accepted |
+| `POST /students/:id/progression/management-pass` | RECTOR, SUPER_ADMIN | SUPER_ADMIN may act on behalf of the Rector; the authenticated SUPER_ADMIN account is recorded as the actual approver |
 
 ## SUPER_ADMIN behavior
 
 The shared `requireRoles` middleware grants SUPER_ADMIN a global bypass for
 routes that use it, even when SUPER_ADMIN is not repeated in that route's
-allowed-role list. This currently permits SUPER_ADMIN to use assignment,
-initialization, progression-advance, and Registry-review routes. This is
-consistent with the application's existing global-administrator convention,
-but it is a broad privilege and should be an explicit institutional policy
-decision. The Rector management-pass endpoint deliberately does not use
-`requireRoles`; it checks for the exact RECTOR role and denies SUPER_ADMIN.
+allowed-role list. The academic record-scope and exception-submission
+predicates also grant SUPER_ADMIN institution-wide authority. This implements
+the approved institutional policy that SUPER_ADMIN can perform academic
+functions and act on behalf of any user, without student, school, or department
+scope restrictions.
 
-Programme-scoped curriculum mapping endpoints additionally apply programme
-scope checks. Student assignment and exception reads apply school,
-department, or own-record checks.
+The Extension Year 3 management-pass endpoint is a deliberate exception to
+the generic middleware shape because it requires explicit actor attribution.
+Both RECTOR and SUPER_ADMIN may approve. When SUPER_ADMIN performs the action,
+the immutable progression history and management-pass approval record store
+the SUPER_ADMIN account ID as the actual approver; the application audit log
+also records the actor role and that the action was performed on behalf of the
+Rector. The supplied reason remains mandatory.
+
+Ordinary Student, Dean, HOD, and Exam Officer access remains limited to their
+own record, school, or department unless the authenticated actor is
+SUPER_ADMIN. This is intentional under the approved global-administrator
+policy.
 
 ## Corrections made in this review
 
@@ -66,7 +74,7 @@ The HTTP middleware harness now exercises missing, invalid, expired, and
 deleted-user tokens (401); deactivated and locked accounts (403); role guards;
 student own-record boundaries; Dean school scope; HOD and Exam Officer
 department scope; Registry review role policy; the shared SUPER_ADMIN bypass;
-and the exact Rector-only management-pass guard.
+and the Rector-or-SUPER_ADMIN management-pass guard.
 
 The following isolated verification has now been completed on the disposable
 Neon branch using synthetic test identities and records:
@@ -98,7 +106,7 @@ merge.
 
 The shared authorization predicates now live in
 `server/academicProgressionAuthorization.ts`. The academic-record scope checks,
-student exception ownership rule, exact Rector-only management-pass rule, and
+student exception ownership rule, Rector-or-SUPER_ADMIN management-pass rule, and
 global SUPER_ADMIN role bypass are exercised by:
 
 ```powershell
@@ -134,7 +142,7 @@ including the nested curriculum mapping router. It exercises the HTTP
 endpoints for curriculum mapping preparation/review, student assignment and
 read scope, student exception submission/review, snapshot eligibility,
 progression initialization and advancement, normal graduation, and the
-Rector-only Extension Year 3 management pass.
+Rector/SUPER_ADMIN Extension Year 3 management pass.
 
 Isolation safeguards:
 
