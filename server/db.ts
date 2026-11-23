@@ -505,15 +505,26 @@ export class DatabaseEngine {
   constructor() {
     if (STAGING_DEMO_ONLY) {
       const expectedDataFile = path.resolve(process.cwd(), 'data', 'edocasti_db.json');
-      if (
-        process.env.RENDER_SERVICE_ID !== STAGING_RENDER_SERVICE_ID ||
-        path.resolve(process.env.EDOCASTI_DATA_FILE || '') !== expectedDataFile
-      ) {
+      const serviceGuardPassed = process.env.RENDER_SERVICE_ID === STAGING_RENDER_SERVICE_ID;
+      const dataFileGuardPassed = path.resolve(process.env.EDOCASTI_DATA_FILE || '') === expectedDataFile;
+      console.log('[EDOCASTI] staging guard checks', {
+        serviceGuardPassed,
+        dataFileGuardPassed,
+        dataFileConfigured: Boolean(process.env.EDOCASTI_DATA_FILE),
+      });
+      if (!serviceGuardPassed || !dataFileGuardPassed) {
         throw new Error('Staging demo-only mode is restricted to the dedicated Ecasti staging service and its isolated data file.');
       }
     }
     this.ensureDataDir();
-    this.state = this.loadDatabase();
+    try {
+      this.state = this.loadDatabase();
+    } catch (err) {
+      if (STAGING_DEMO_ONLY) {
+        console.error('[EDOCASTI] staging-only database initialization failed:', err instanceof Error ? err.message : 'unknown error');
+      }
+      throw err;
+    }
   }
 
   private loadStagingDemoOnlyDatabase(): DatabaseState {
