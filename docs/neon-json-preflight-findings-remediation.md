@@ -111,3 +111,19 @@ The local preflight has been extended to compare unresolved values in memory aga
 - payment invoice reference against invoice number.
 
 The report emits only aggregate match counts and candidate field names. It does not emit source values, IDs, names, emails, payment data, or checksums beyond the existing collection summary. A match is a diagnostic lead, not permission to remap: each candidate must be validated against the approved identity and financial rules before any import.
+
+## Follow-up workflow inspection: reviewer identity semantics
+
+The admissions decision route in `server/apiRouter.ts` assigns `reviewedBy` as a display string composed from the authenticated user's full name and role, rather than the user's stable `User.id`. The earlier exact comparisons against user ID, email, and full name therefore do not test the actual stored format. This explains why those candidate checks returned no matches without establishing that the reviewer is an unknown person. The stable reviewer identity is separately available in the authenticated request and audit log (`userId`), but the application record itself currently stores only the display string. For historical migration, preserve the display string as historical attribution; do not parse it into a user foreign key unless an unambiguous, reviewed mapping is available. A future schema should store a nullable reviewer user ID alongside the historical display snapshot.
+
+## Follow-up workflow inspection: legacy payment semantics
+
+The legacy `/finance/pay` route in `server/apiRouter.ts` looks up an invoice by its ID, then creates a payment using that invoice's own ID and student ID. In that code path, the two references are assigned directly from the selected invoice, so a newly created transaction should have internally consistent invoice/student references. The route then marks the transaction `VERIFIED`, sets the invoice to fully paid, and creates a provider-style reference without an evident call to an external payment gateway in this handler. Treat this as legacy application behavior, not evidence of independently verified gateway settlement. Before migration, payment history must retain its original status and be reviewed against authoritative gateway/bank reconciliation records; never upgrade status merely because the JSON row says `VERIFIED`.
+
+The separate Neon `recordFeePayment` service is a manual staff-recorded payment workflow: it requires an existing student ID, an idempotency key, and outstanding fee obligations, then records the payment and allocations in one database transaction. It does not represent the same legacy invoice/gateway workflow. These two payment models must remain distinct in the target design unless an approved finance-domain mapping explicitly reconciles them.
+
+## Consequences for current findings
+
+- The reviewer finding is a **display-attribution versus foreign-key mismatch**, not a confirmed missing reviewer account. The existing report's exact alternate-key checks are insufficient for this field's documented format.
+- The payment findings remain unresolved. The legacy payment route's normal creation path ties both references to an invoice, so the observed mismatch suggests missing/replaced invoice or student records, data created by another path/version, or source inconsistency. Aggregate diagnostics cannot distinguish these cases.
+- Do not import legacy `VERIFIED` payment rows as verified Neon fee payments without independent reconciliation. Preserve legacy payment history separately from the itemized fee-payment ledger.
