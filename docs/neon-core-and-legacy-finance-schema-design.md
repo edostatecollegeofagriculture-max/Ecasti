@@ -124,3 +124,9 @@ This proposal does not:
 - Change historical payment verification statuses.
 - Enable the authoritative academic result source.
 - Execute SQL, import data, deploy services, merge the pull request, or retire the JSON store.
+
+## Implementation status: additive migration 010 drafted
+
+The proposal is now represented by `database/migrations/010_core_entities_and_legacy_finance.sql` on the feature branch. It creates empty tables for schools, users, departments, programmes, courses, admission applications, students, legacy invoices, and legacy payment transactions. It preserves the existing text IDs and source timestamp strings, uses restrictive foreign keys, stores reviewer display attribution separately from the nullable reviewer user ID, and enforces invoice/student pairing for legacy payments with a composite foreign key.
+
+**Not executed or validated against Neon yet.** This is an additive DDL file only; it does not seed schools, import JSON rows, update existing records, or alter the existing fee-management tables. Before applying it to the temporary Neon branch, run a SQL syntax/schema review and verify PostgreSQL compatibility, then apply only to the temporary branch and inspect the resulting empty-table schema. Do not run against production. The current source-data blockers remain import blockers even after the tables exist.
