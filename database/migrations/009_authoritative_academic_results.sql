@@ -56,7 +56,7 @@ CREATE INDEX idx_academic_result_events_attempt
 -- after submission, verification and approval; invalidation/cancellation are
 -- terminal and require a new separately identified attempt for correction.
 CREATE OR REPLACE FUNCTION validate_academic_result_event_transition()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 DECLARE
     previous_event TEXT;
 BEGIN
@@ -86,7 +86,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_validate_academic_result_event_transition
 BEFORE INSERT ON academic_result_events
