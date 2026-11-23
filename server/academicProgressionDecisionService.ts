@@ -52,6 +52,9 @@ export async function initializeStudentProgression(input: {
       [studentId]
     );
     if (existing.rows[0]) {
+      if (existing.rows[0].programme_id !== programmeId) {
+        throw new Error('The existing progression programme does not match the student programme.');
+      }
       return { created: false, progression: existing.rows[0] };
     }
 
@@ -121,13 +124,16 @@ export async function advanceStudentProgression(input: {
     if (current.current_session === academicSession) throw new Error('A progression decision has already been recorded for this academic session.');
 
     const snapshotResult = await client.query(
-      `SELECT course_id, course_level_snapshot FROM student_academic_required_courses
+      `SELECT course_id, course_level_snapshot, programme_id FROM student_academic_required_courses
         WHERE student_id = $1 AND is_required = TRUE
         ORDER BY course_level_snapshot, semester_snapshot, course_code_snapshot`,
       [studentId]
     );
     const requiredIds = snapshotResult.rows.map((row: { course_id: string }) => String(row.course_id));
     if (!requiredIds.length) throw new Error('No effective required-course snapshots exist for this student.');
+    if (snapshotResult.rows.some((row: { programme_id: string }) => row.programme_id !== current.programme_id)) {
+      throw new Error('The progression programme does not match the student required-course snapshots.');
+    }
     for (const courseId of passed) {
       if (!requiredIds.includes(courseId)) throw new Error('A passed course does not belong to the student required-course snapshots.');
     }
@@ -246,12 +252,15 @@ export async function approveExtensionYearThreeManagementPass(input: {
     }
 
     const requiredResult = await client.query(
-      `SELECT course_id FROM student_academic_required_courses
+      `SELECT course_id, programme_id FROM student_academic_required_courses
         WHERE student_id = $1 AND is_required = TRUE`,
       [studentId]
     );
     const requiredIds = new Set(requiredResult.rows.map((row: { course_id: string }) => String(row.course_id)));
     if (!requiredIds.size) throw new Error('No effective required-course snapshots exist for this student.');
+    if (requiredResult.rows.some((row: { programme_id: string }) => row.programme_id !== current.programme_id)) {
+      throw new Error('The progression programme does not match the student required-course snapshots.');
+    }
     if (outstandingCourseIds.some((courseId) => !requiredIds.has(courseId))) {
       throw new Error('An outstanding course does not belong to the student required-course snapshots.');
     }
