@@ -588,8 +588,31 @@ academicProgressionApiRouter.post(
       return res.status(400).json({ success: false, message: 'Student ID, academic session and approval reason are required.' });
     }
     try {
+      const requiredResult = await neonPool.query<{ course_id: string }>(
+        `SELECT course_id FROM student_academic_required_courses
+          WHERE student_id = $1 AND is_required = TRUE`,
+        [studentId]
+      );
+      if (!requiredResult.rows.length) {
+        return res.status(409).json({ success: false, message: 'No effective required-course snapshots exist for this student.' });
+      }
+      const studentResults = db.getState().results.filter((item) => item.studentId === studentId);
+      const outstandingCourseIds: string[] = [];
+      const missingResultCourseIds: string[] = [];
+      for (const row of requiredResult.rows) {
+        const courseResults = studentResults.filter((item) => item.courseId === row.course_id);
+        const published = courseResults.filter((item) => item.status === 'PUBLISHED');
+        if (!published.some((item) => Number(item.totalScore) >= PASS_MARK)) {
+          outstandingCourseIds.push(row.course_id);
+          if (published.length === 0) missingResultCourseIds.push(row.course_id);
+        }
+      }
+      if (!outstandingCourseIds.length) {
+        return res.status(409).json({ success: false, message: 'All effective required courses have published passing results; use normal academic clearance instead.' });
+      }
       const result = await approveExtensionYearThreeManagementPass({
         studentId, academicSession, rectorUserId: req.user.id, reason,
+        outstandingCourseIds, missingResultCourseIds,
       });
       db.logAudit({
         userId: req.user.id, userEmail: req.user.email,
