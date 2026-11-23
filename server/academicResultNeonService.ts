@@ -225,7 +225,7 @@ export async function appendAcademicResultEvent(input: {
 
   return inTransaction(async (client) => {
     const existing = await client.query(
-      `SELECT id, result_attempt_id, event_type, actor_user_id, created_at
+      `SELECT id, result_attempt_id, event_type, actor_user_id, reason, created_at
          FROM academic_result_events
         WHERE idempotency_key = $1`,
       [idempotencyKey]
