@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { db } from './db';
 import { AuthenticatedRequest, authenticateToken, requireRoles } from './authMiddleware';
 import { neonPool } from './neon';
+import { academicCurriculumMappingApiRouter } from './academicCurriculumMappingApiRouter';
 
 type RequiredCourseRow = {
   student_id: string;
@@ -19,6 +20,7 @@ type CourseStatus = 'PASSED' | 'FAILED' | 'MISSING_RESULT' | 'UNPUBLISHED_RESULT
 const PASS_MARK = 40;
 
 export const academicProgressionApiRouter = Router();
+academicProgressionApiRouter.use('/curriculum', academicCurriculumMappingApiRouter);
 
 /**
  * Read-only ND eligibility preview based on the student's assigned
