@@ -130,3 +130,20 @@ This proposal does not:
 The proposal is now represented by `database/migrations/010_core_entities_and_legacy_finance.sql` on the feature branch. It creates empty tables for schools, users, departments, programmes, courses, admission applications, students, legacy invoices, and legacy payment transactions. It preserves the existing text IDs and source timestamp strings, uses restrictive foreign keys, stores reviewer display attribution separately from the nullable reviewer user ID, and enforces invoice/student pairing for legacy payments with a composite foreign key.
 
 **Not executed or validated against Neon yet.** This is an additive DDL file only; it does not seed schools, import JSON rows, update existing records, or alter the existing fee-management tables. Before applying it to the temporary Neon branch, run a SQL syntax/schema review and verify PostgreSQL compatibility, then apply only to the temporary branch and inspect the resulting empty-table schema. Do not run against production. The current source-data blockers remain import blockers even after the tables exist.
+
+## Static review of migration 010
+
+Reviewed against the source TypeScript interfaces and migrations 001, 006, and 009.
+
+- The creation order is valid for the declared relationships: the initial tables are created first, then the circular leadership/user references are attached after both sides exist.
+- Department, programme, course, application, student, invoice, and payment relationships use restrictive foreign keys. The composite legacy payment foreign key prevents a payment from pairing an invoice with a different student.
+- The legacy invoice/payment tables remain separate from the newer fee-obligation/payment-allocation model. No inference is made that a legacy `VERIFIED` status proves external settlement.
+- Existing IDs and historical timestamp values are represented as TEXT to avoid coercive transformations during a later import. JSON array fields are represented as JSONB and will require explicit shape validation in the importer.
+- Historical `reviewedBy` display text is not coerced into a user foreign key; the schema has separate nullable reviewer identity and display-snapshot columns.
+- The migration intentionally does not add speculative uniqueness on legacy invoice numbers/payment references, or amount reconciliation checks, because the source has not been reconciled. Those constraints need aggregate/source validation first.
+
+### Execution and validation status
+
+This was a static source/schema review only. No PostgreSQL parser, temporary Neon connection, SQL execution, table inspection, or application integration test was available in this session. Migration 010 is a one-time versioned migration: although table/index creation uses `IF NOT EXISTS`, its named `ALTER TABLE ... ADD CONSTRAINT` statements are not designed for re-execution after a partial/manual application. Apply it once, transactionally, to the temporary Neon branch only after confirming migration 010 has not already been applied. If it fails, inspect the transaction outcome before retrying; do not edit the production database.
+
+Before any JSON import, still resolve the empty schools source and the unmatched legacy payment student/invoice references. A successful schema install does not clear those blockers.
