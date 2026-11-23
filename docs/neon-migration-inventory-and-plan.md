@@ -25,6 +25,12 @@ This document records the source-level persistence inventory for the current fea
 
 The route-level source counts are static references, not runtime traffic counts. They are useful for scoping but are not a substitute for endpoint-by-endpoint tests.
 
+## Immediate academic-result safety gate
+
+The current progression API has an explicit hard-disabled guard on all three result-dependent operations: read-only snapshot eligibility, progression advancement, and Extension Year 3 management-pass approval. These endpoints return HTTP 503 with `AUTHORITATIVE_RESULT_SOURCE_UNAVAILABLE` until the Neon result source is implemented and verified. This prevents stale JSON-backed results from being represented as authoritative or used to graduate/advance a student.
+
+The gate is intentionally a source-code constant, not an environment toggle. Do not enable it by setting a Render variable. It may only be removed in a reviewed code change after the Neon result schema, append-only publication/invalidation workflow, freshness watermark, migration/reconciliation tooling, and endpoint integration tests are complete.
+
 ## Required migration sequence
 
 ### Phase 1 — Platform foundation
