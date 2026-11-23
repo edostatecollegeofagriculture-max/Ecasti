@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { Pool } from 'pg';
 import { createInterface } from 'node:readline/promises';
-import { stdin, stdout } from 'node:process';
+import process, { stdin, stdout } from 'node:process';
 
 const EXPECTED_TABLES = [
   'academic_curriculum_mappings',
@@ -167,12 +167,7 @@ async function main(): Promise<void> {
   });
 
   try {
-    const identity = await pool.query<{
-      database_name: string;
-      database_user: string;
-      server_version: string;
-      server_address: string | null;
-    }>(`
+    const identity = await pool.query(`
       SELECT
         current_database() AS database_name,
         current_user AS database_user,
@@ -187,7 +182,7 @@ async function main(): Promise<void> {
     console.log(`PostgreSQL: ${db.server_version}`);
     console.log(`Server address: ${db.server_address ?? 'not exposed by provider'}`);
 
-    const tableResult = await pool.query<{ table_name: string }>(
+    const tableResult = await pool.query(
       `
         SELECT table_name
         FROM information_schema.tables
@@ -207,14 +202,7 @@ async function main(): Promise<void> {
         : `Missing tables: ${missingTables.join(', ')}`,
     );
 
-    const constraintResult = await pool.query<{
-      constraint_name: string;
-      table_name: string;
-      constraint_type: string;
-      is_validated: boolean;
-      is_deferrable: boolean;
-      initially_deferred: boolean;
-    }>(`
+    const constraintResult = await pool.query(`
       SELECT
         con.conname AS constraint_name,
         cls.relname AS table_name,
@@ -239,7 +227,7 @@ async function main(): Promise<void> {
         : `Unvalidated constraints: ${unvalidated.map((row) => `${row.table_name}.${row.constraint_name}`).join(', ')}`,
     );
 
-    const indexResult = await pool.query<{ index_name: string; index_definition: string }>(`
+    const indexResult = await pool.query(`
       SELECT indexname AS index_name, indexdef AS index_definition
       FROM pg_indexes
       WHERE schemaname = 'public'
@@ -275,14 +263,7 @@ async function main(): Promise<void> {
       add('FAIL', 'Current mapping uniqueness', 'Required partial unique index is missing.');
     }
 
-    const triggerResult = await pool.query<{
-      trigger_name: string;
-      table_name: string;
-      enabled_state: string;
-      is_deferrable: boolean;
-      initially_deferred: boolean;
-      trigger_definition: string;
-    }>(`
+    const triggerResult = await pool.query(`
       SELECT
         trig.tgname AS trigger_name,
         cls.relname AS table_name,
@@ -329,7 +310,7 @@ async function main(): Promise<void> {
         : `Incorrect or missing deferred triggers: ${deferredProblems.join(', ')}`,
     );
 
-    const functionResult = await pool.query<{ function_name: string; definition: string }>(`
+    const functionResult = await pool.query(`
       SELECT
         proc.proname AS function_name,
         pg_get_functiondef(proc.oid) AS definition
