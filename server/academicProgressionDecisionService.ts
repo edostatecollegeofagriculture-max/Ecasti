@@ -219,11 +219,19 @@ export async function approveExtensionYearThreeManagementPass(input: {
   academicSession: string;
   rectorUserId: string;
   reason: string;
+  outstandingCourseIds: string[];
+  missingResultCourseIds: string[];
 }) {
   const studentId = required(input.studentId, 'Student ID');
   const academicSession = required(input.academicSession, 'Academic session');
   const rectorUserId = required(input.rectorUserId, 'Rector ID');
   const reason = required(input.reason, 'Management-pass reason');
+  const outstandingCourseIds = [...new Set(input.outstandingCourseIds.map((value) => required(value, 'Outstanding course ID')))];
+  const missingResultCourseIds = [...new Set(input.missingResultCourseIds.map((value) => required(value, 'Missing-result course ID')))];
+  if (!outstandingCourseIds.length) throw new Error('Management pass is available only when required courses remain outstanding.');
+  if (missingResultCourseIds.some((courseId) => !outstandingCourseIds.includes(courseId))) {
+    throw new Error('Missing-result courses must also be listed as outstanding.');
+  }
 
   return transaction(async (client) => {
     await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`progression:${studentId}`]);
@@ -237,6 +245,17 @@ export async function approveExtensionYearThreeManagementPass(input: {
       throw new Error('Management pass is available only to students currently in Extension Year 3.');
     }
 
+    const requiredResult = await client.query(
+      `SELECT course_id FROM student_academic_required_courses
+        WHERE student_id = $1 AND is_required = TRUE`,
+      [studentId]
+    );
+    const requiredIds = new Set(requiredResult.rows.map((row: { course_id: string }) => String(row.course_id)));
+    if (!requiredIds.size) throw new Error('No effective required-course snapshots exist for this student.');
+    if (outstandingCourseIds.some((courseId) => !requiredIds.has(courseId))) {
+      throw new Error('An outstanding course does not belong to the student required-course snapshots.');
+    }
+
     const historyId = id('progression-history');
     const key = `management-pass:${studentId}`;
     await client.query(
@@ -245,8 +264,10 @@ export async function approveExtensionYearThreeManagementPass(input: {
           academic_session, extension_year, decision_type, outstanding_course_ids,
           missing_result_course_ids, reason, decided_by, approved_by, idempotency_key)
        VALUES ($1,$2,$3,'EXTENSION_3','GRADUATED','EXTENSION','GRADUATED',
-               $4,3,'MANAGEMENT_APPROVED_PASS','[]'::jsonb,'[]'::jsonb,$5,$6,$6,$7)`,
-      [historyId, studentId, current.programme_id, academicSession, reason, rectorUserId, key]
+               $4,3,'MANAGEMENT_APPROVED_PASS',$5::jsonb,$6::jsonb,$7,$8,$8,$9)`,
+      [historyId, studentId, current.programme_id, academicSession,
+       JSON.stringify(outstandingCourseIds), JSON.stringify(missingResultCourseIds),
+       reason, rectorUserId, key]
     );
     await client.query(
       `UPDATE student_academic_progression
