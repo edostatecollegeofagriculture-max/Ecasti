@@ -13,7 +13,8 @@
     "audit:migration006": "tsx scripts/audit-migration-006.ts",
     "test:curriculum-assignment:temporary": "tsx scripts/test-curriculum-assignment-temporary.ts",
     "test:academic-result-evaluation": "tsx scripts/test-academic-result-evaluation.ts",
-    "test:academic-progression-authorization": "tsx scripts/test-academic-progression-authorization.ts"
+    "test:academic-progression-authorization": "tsx scripts/test-academic-progression-authorization.ts",
+    "test:academic-progression-http-authorization": "tsx scripts/test-academic-progression-http-authorization.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
