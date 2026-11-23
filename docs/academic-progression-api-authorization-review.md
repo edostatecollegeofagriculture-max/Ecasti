@@ -136,7 +136,7 @@ Isolation safeguards:
 - It refuses to run unless `DATABASE_URL` points to the specifically
   confirmed disposable Neon branch `edocasti-migration006-test` and the
   operator types `TEMPORARY`.
-- It writes only uniquely tagged `TEST-API-` synthetic rows to that branch.
+- Student, programme, cohort, and course identifiers are uniquely tagged `TEST-API-`. Service-generated mapping, assignment, exception, and history IDs are linked only to those synthetic records on that branch.
 - It points the application's JSON database at a newly created OS temporary
   fixture containing synthetic test users, students, programme, department,
   courses, and results. The normal `data/edocasti_db.json` is not opened,
