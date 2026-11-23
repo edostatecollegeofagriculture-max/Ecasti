@@ -54,9 +54,10 @@ test('only Registry and institutional administrators can submit on behalf of stu
   }
   assert.equal(canSubmitOwnStudentException(actor('rector-a', 'RECTOR'), student), false);
 });
-test('Rector alone may approve Extension Year 3 management pass', () => {
+test('Rector and SUPER_ADMIN may approve Extension Year 3 management pass', () => {
   assert.equal(canApproveExtensionYearThreeManagementPass(actor('rector-a', 'RECTOR')), true);
-  for (const role of ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'DEAN', 'HOD', 'STUDENT']) {
+  assert.equal(canApproveExtensionYearThreeManagementPass(actor('admin-a', 'SUPER_ADMIN')), true);
+  for (const role of ['INSTITUTION_ADMIN', 'REGISTRAR', 'DEAN', 'HOD', 'STUDENT']) {
     assert.equal(canApproveExtensionYearThreeManagementPass(actor('other-a', role)), false);
   }
 });
