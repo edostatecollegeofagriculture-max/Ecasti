@@ -197,25 +197,97 @@ function main(): void {
     { source: 'studentPaymentAllocations', field: 'feeCatalogItemId', target: 'feeCatalogItems' },
   ];
 
+  const referenceDiagnostics: Array<{
+    source: string;
+    field: string;
+    target: string;
+    sourceRecords: number;
+    targetRecords: number;
+    targetCollectionEmpty: boolean;
+    fieldTypes: { string: number; null: number; missing: number; other: number };
+    emptyStrings: number;
+    matchedReferences: number;
+    unresolvedReferences: number;
+  }> = [];
+
   for (const relation of relations) {
     const sourceRows = arrays[relation.source];
-    const targetIds = idSets.get(relation.target);
-    if (!sourceRows || !targetIds) continue;
-    let orphanCount = 0;
+    if (!sourceRows) continue;
+
+    const targetRows = arrays[relation.target] ?? [];
+    const targetIds = idSets.get(relation.target) ?? new Set<string>();
+    const fieldTypes = { string: 0, null: 0, missing: 0, other: 0 };
+    let emptyStrings = 0;
+    let matchedReferences = 0;
+    let unresolvedReferences = 0;
+
     for (const row of sourceRows) {
       const raw = row[relation.field];
-      const values = relation.many ? (Array.isArray(raw) ? raw : []) : [raw];
-      if (relation.many && raw !== undefined && !Array.isArray(raw)) orphanCount++;
-      for (const value of values) {
-        if (value === undefined || value === null || value === '') continue;
-        if (typeof value !== 'string' || !targetIds.has(value)) orphanCount++;
+
+      if (raw === undefined) {
+        fieldTypes.missing++;
+        continue;
+      }
+      if (raw === null) {
+        fieldTypes.null++;
+        continue;
+      }
+      if (relation.many) {
+        if (!Array.isArray(raw)) {
+          fieldTypes.other++;
+          unresolvedReferences++;
+          continue;
+        }
+        for (const value of raw) {
+          if (value === null || value === undefined || value === '') {
+            if (value === '') emptyStrings++;
+            continue;
+          }
+          if (typeof value !== 'string') {
+            fieldTypes.other++;
+            unresolvedReferences++;
+          } else {
+            fieldTypes.string++;
+            if (targetIds.has(value)) matchedReferences++;
+            else unresolvedReferences++;
+          }
+        }
+        continue;
+      }
+
+      if (typeof raw !== 'string') {
+        fieldTypes.other++;
+        unresolvedReferences++;
+      } else {
+        fieldTypes.string++;
+        if (!raw.trim()) {
+          emptyStrings++;
+        } else if (targetIds.has(raw)) {
+          matchedReferences++;
+        } else {
+          unresolvedReferences++;
+        }
       }
     }
-    if (orphanCount) {
+
+    referenceDiagnostics.push({
+      source: relation.source,
+      field: relation.field,
+      target: relation.target,
+      sourceRecords: sourceRows.length,
+      targetRecords: targetRows.length,
+      targetCollectionEmpty: targetRows.length === 0,
+      fieldTypes,
+      emptyStrings,
+      matchedReferences,
+      unresolvedReferences,
+    });
+
+    if (unresolvedReferences) {
       findings.push({
         severity: 'BLOCKED',
         collection: relation.source,
-        issue: `${orphanCount} orphan/invalid reference(s) in ${relation.field} -> ${relation.target}. Confirm this mapping against the approved schema before import.`,
+        issue: `${unresolvedReferences} orphan/invalid reference(s) in ${relation.field} -> ${relation.target}. Confirm this mapping against the approved schema before import.`,
       });
     }
   }
