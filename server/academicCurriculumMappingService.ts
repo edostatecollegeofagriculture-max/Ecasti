@@ -245,9 +245,9 @@ export async function submitCurriculumMapping(mappingIdInput: string, actorIdInp
     );
     await client.query(
       `INSERT INTO academic_curriculum_mapping_reviews
-         (id, mapping_id, action, actor_user_id)
-       VALUES ($1, $2, 'SUBMITTED', $3)`,
-      [newId('mapping-review'), mappingId, actorId]
+         (id, mapping_id, action, actor_user_id, reason)
+       VALUES ($1, $2, 'SUBMITTED', $3, $4)`,
+      [newId('mapping-review'), mappingId, actorId, 'Submitted for Registrar review']
     );
     return { mappingId, status: 'SUBMITTED' as const };
   });
