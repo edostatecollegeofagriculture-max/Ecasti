@@ -727,7 +727,7 @@ CREATE TABLE academic_management_pass_approvals (
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION validate_academic_curriculum_mapping_review()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 DECLARE
     mapping_status TEXT;
     mapping_prepared_by TEXT;
@@ -783,7 +783,7 @@ FOR EACH ROW
 EXECUTE FUNCTION validate_academic_curriculum_mapping_review();
 
 CREATE OR REPLACE FUNCTION require_academic_curriculum_mapping_review()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 DECLARE
     matching_review BOOLEAN;
 BEGIN
@@ -824,7 +824,7 @@ EXECUTE FUNCTION require_academic_curriculum_mapping_review();
 
 
 CREATE OR REPLACE FUNCTION validate_academic_student_exception_review()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 DECLARE
     exception_status TEXT;
     exception_submitted_by TEXT;
@@ -875,7 +875,7 @@ FOR EACH ROW
 EXECUTE FUNCTION validate_academic_student_exception_review();
 
 CREATE OR REPLACE FUNCTION require_academic_student_exception_review()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 DECLARE
     matching_review BOOLEAN;
 BEGIN
@@ -1898,7 +1898,7 @@ EXECUTE FUNCTION require_academic_progression_history();
 
 
 CREATE OR REPLACE FUNCTION validate_academic_progression_history_target()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 DECLARE
     progression_matches BOOLEAN;
     previous_stage TEXT;
