@@ -223,14 +223,14 @@ export async function advanceStudentProgression(input: {
 export async function approveExtensionYearThreeManagementPass(input: {
   studentId: string;
   academicSession: string;
-  rectorUserId: string;
+  approverUserId: string;
   reason: string;
   outstandingCourseIds: string[];
   missingResultCourseIds: string[];
 }) {
   const studentId = required(input.studentId, 'Student ID');
   const academicSession = required(input.academicSession, 'Academic session');
-  const rectorUserId = required(input.rectorUserId, 'Rector ID');
+  const approverUserId = required(input.approverUserId, 'Approver ID');
   const reason = required(input.reason, 'Management-pass reason');
   const outstandingCourseIds = [...new Set(input.outstandingCourseIds.map((value) => required(value, 'Outstanding course ID')))];
   const missingResultCourseIds = [...new Set(input.missingResultCourseIds.map((value) => required(value, 'Missing-result course ID')))];
@@ -276,7 +276,7 @@ export async function approveExtensionYearThreeManagementPass(input: {
                $4,3,'MANAGEMENT_APPROVED_PASS',$5::jsonb,$6::jsonb,$7,$8,$8,$9)`,
       [historyId, studentId, current.programme_id, academicSession,
        JSON.stringify(outstandingCourseIds), JSON.stringify(missingResultCourseIds),
-       reason, rectorUserId, key]
+       reason, approverUserId, key]
     );
     await client.query(
       `UPDATE student_academic_progression
@@ -289,7 +289,7 @@ export async function approveExtensionYearThreeManagementPass(input: {
       `INSERT INTO academic_management_pass_approvals
          (id, student_id, extension_year, approved_by, approval_reason, history_id)
        VALUES ($1,$2,3,$3,$4,$5)`,
-      [id('management-pass-approval'), studentId, rectorUserId, reason, historyId]
+      [id('management-pass-approval'), studentId, approverUserId, reason, historyId]
     );
     return { studentId, status: 'GRADUATED' as const, decisionType: 'MANAGEMENT_APPROVED_PASS' as const, historyId };
   });
