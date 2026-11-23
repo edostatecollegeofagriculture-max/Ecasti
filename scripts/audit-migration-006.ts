@@ -406,12 +406,12 @@ async function main(): Promise<void> {
     add(
       'WARN',
       'Authorization boundary',
-      'Database metadata cannot prove authenticated user roles. Backend authorization and API/service workflows require a separate code review.',
+      'A metadata-only audit cannot prove authenticated user roles or route scope. See the separate source review and authorization policy, HTTP, and full API integration tests.',
     );
     add(
       'WARN',
       'Runtime workflow tests',
-      'This audit does not create sample records or execute write-path tests. Transactional workflows still need isolated test cases.',
+      'This metadata-only audit does not create sample records or execute write paths. Separate disposable Neon service and full API integration suites provide transactional workflow coverage.',
     );
 
     const passed = findings.filter((finding) => finding.severity === 'PASS').length;
