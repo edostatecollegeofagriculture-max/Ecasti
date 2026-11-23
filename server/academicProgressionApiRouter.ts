@@ -531,16 +531,17 @@ academicProgressionApiRouter.post(
 );
 
 /**
- * This endpoint deliberately requires the authenticated account itself to
- * have the RECTOR role; SUPER_ADMIN role bypasses are not accepted here.
+ * The Rector may approve an Extension Year 3 management pass. SUPER_ADMIN
+ * may also perform the action on the Rector's behalf; the authenticated
+ * actor's own ID is recorded as the approver in immutable history.
  */
 academicProgressionApiRouter.post(
   '/students/:studentId/progression/management-pass',
   authenticateToken,
   async (req: AuthenticatedRequest, res: Response) => {
-    const rector = req.user;
-    if (!rector || !canApproveExtensionYearThreeManagementPass(rector)) {
-      return res.status(403).json({ success: false, message: 'Only the Rector may approve an Extension Year 3 management pass.' });
+    const actor = req.user;
+    if (!actor || !canApproveExtensionYearThreeManagementPass(actor)) {
+      return res.status(403).json({ success: false, message: 'Only the Rector or SUPER_ADMIN may approve an Extension Year 3 management pass.' });
     }
     const studentId = String(req.params.studentId || '').trim();
     const academicSession = typeof req.body?.academicSession === 'string' ? req.body.academicSession.trim() : '';
@@ -580,14 +581,14 @@ academicProgressionApiRouter.post(
         return res.status(409).json({ success: false, message: 'All effective required courses have published passing results; use normal academic clearance instead.' });
       }
       const result = await approveExtensionYearThreeManagementPass({
-        studentId, academicSession, rectorUserId: rector.id, reason,
+        studentId, academicSession, approverUserId: actor.id, reason,
         outstandingCourseIds, missingResultCourseIds,
       });
       db.logAudit({
-        userId: rector.id, userEmail: rector.email,
+        userId: actor.id, userEmail: actor.email,
         action: 'STUDENT_EXTENSION_YEAR_THREE_MANAGEMENT_PASS_APPROVED',
         resource: 'STUDENT_ACADEMIC_PROGRESSION',
-        details: { studentId, academicSession, historyId: result.historyId, reason },
+        details: { studentId, academicSession, historyId: result.historyId, reason, actorRole: actor.role, actingOnBehalfOf: actor.role === 'SUPER_ADMIN' ? 'RECTOR' : undefined },
         ipAddress: req.ip,
       });
       return res.json({ success: true, progression: result });
