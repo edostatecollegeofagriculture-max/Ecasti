@@ -90,6 +90,15 @@ async function main() {
       creditUnits: 3,
       compulsory: true,
     });
+    await addCurriculumCourse(mapping.id, {
+      courseId: `TEST-COURSE-C-${tag}`,
+      courseCode: 'TST201',
+      courseTitle: 'Synthetic Required ND II Course C',
+      level: 'ND II',
+      semester: 'First Semester',
+      creditUnits: 2,
+      compulsory: true,
+    });
     await submitCurriculumMapping(mapping.id, preparer);
     const approval = await reviewCurriculumMapping(mapping.id, reviewer, 'APPROVE');
     assert(approval.status === 'APPROVED' && approval.isCurrent, 'Synthetic mapping was not approved as current.');
@@ -99,12 +108,12 @@ async function main() {
       studentId, programmeId, cohortSession: cohort, assignedBy: preparer,
     });
     assert(assigned.status === 'ASSIGNED', 'REVIEW_REQUIRED student did not assign after mapping approval.');
-    assert(assigned.requiredCourseCount === 2, 'Assignment did not copy both compulsory course snapshots.');
+    assert(assigned.requiredCourseCount === 3, 'Assignment did not copy both compulsory course snapshots.');
     check('REVIEW_REQUIRED ledger retries to ASSIGNED when a current mapping becomes available');
 
     const snapshot = await getStudentCurriculumAssignment(studentId);
     assert(snapshot.assignment?.mapping_id === mapping.id, 'Read method returned the wrong mapping.');
-    assert(snapshot.courses.length === 2, 'Read method did not return exactly two course snapshots.');
+    assert(snapshot.courses.length === 3, 'Read method did not return exactly two course snapshots.');
     assert(snapshot.ledger?.status === 'ASSIGNED', 'Read method did not return ASSIGNED ledger state.');
     check('Assignment read returns matching mapping, two snapshots, and ASSIGNED ledger');
 
@@ -120,7 +129,7 @@ async function main() {
          (SELECT COUNT(*)::int FROM academic_curriculum_assignment_ledger WHERE student_id = $1) AS ledger_rows`,
       [studentId]
     );
-    assert(counts.rows[0].assignments === 1 && counts.rows[0].courses === 2 && counts.rows[0].ledger_rows === 1,
+    assert(counts.rows[0].assignments === 1 && counts.rows[0].courses === 3 && counts.rows[0].ledger_rows === 1,
       'Repeat assignment duplicated assignment, course snapshots, or ledger rows.');
     check('Repeated assignment creates no duplicate assignment, snapshots, or ledger');
 
@@ -235,7 +244,7 @@ async function main() {
 
 
     // Progression: ND I always advances, even with no passed courses.
-    const initialProgression = await initializeStudentProgression({ studentId, programmeId, academicSession: 'TEST-SESSION-2025' });
+    const initialProgression = await initializeStudentProgression({ studentId, programmeId, academicSession: 'TEST-SESSION-2025', decidedBy: preparer });
     assert(initialProgression.created && initialProgression.progression.current_stage === 'ND_I', 'Initial progression record was not created at ND_I.');
     check('Progression initializes at ND I with an initial history event');
 
@@ -244,7 +253,7 @@ async function main() {
       missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag], decidedBy: preparer,
     });
     assert(ndOneDecision.toStage === 'ND_II' && ndOneDecision.progressionStatus === 'ACTIVE', 'ND I student did not advance to ND II with outstanding courses.');
-    assert(ndOneDecision.outstandingCourseIds.length === 2, 'ND I outstanding required courses were not retained in progression history.');
+    assert(ndOneDecision.outstandingCourseIds.length === 1 && ndOneDecision.outstandingCourseIds[0] === `TEST-COURSE-B-${tag}`, 'ND I history must list only outstanding ND I requirements, not future ND II courses.');
     check('Every ND I student advances to ND II despite outstanding compulsory courses');
 
     const ndTwoDecision = await advanceStudentProgression({
@@ -252,6 +261,7 @@ async function main() {
       missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-ADD-' + tag], decidedBy: preparer,
     });
     assert(ndTwoDecision.toStage === 'EXTENSION_1' && ndTwoDecision.progressionStatus === 'EXTENSION', 'ND II student with outstanding requirements did not enter Extension Year 1.');
+    assert(ndTwoDecision.outstandingCourseIds.length === 3, 'ND II decision must evaluate all effective ND I and ND II requirements.');
     check('ND II students with outstanding ND I or ND II requirements enter Extension Year 1');
 
     const extensionTwo = await advanceStudentProgression({
@@ -278,19 +288,27 @@ async function main() {
     const graduateStudentId = 'TEST-GRADUATE-' + tag;
     const graduateAssignment = await assignStudentCurriculum({ studentId: graduateStudentId, programmeId, cohortSession: cohort, assignedBy: preparer });
     assert(graduateAssignment.status === 'ASSIGNED', 'Second synthetic student curriculum assignment failed.');
-    await initializeStudentProgression({ studentId: graduateStudentId, programmeId, academicSession: 'TEST-GRAD-2025' });
+    await initializeStudentProgression({ studentId: graduateStudentId, programmeId, academicSession: 'TEST-GRAD-2025', decidedBy: preparer });
     const graduateSnapshot = await getStudentCurriculumAssignment(graduateStudentId);
     const allGraduateCourseIds = graduateSnapshot.courses.map((course: any) => String(course.courseId));
+    const ndOneCourseIds = graduateSnapshot.courses
+      .filter((course: any) => course.level === 'ND I')
+      .map((course: any) => String(course.courseId));
     const graduateNdOne = await advanceStudentProgression({
-      studentId: graduateStudentId, academicSession: 'TEST-GRAD-2026', passedCourseIds: allGraduateCourseIds,
+      studentId: graduateStudentId, academicSession: 'TEST-GRAD-2026', passedCourseIds: ndOneCourseIds,
       missingResultCourseIds: [], decidedBy: preparer,
     });
-    assert(graduateNdOne.toStage === 'ND_II', 'ND I did not advance to ND II after all courses were passed.');
+    assert(graduateNdOne.toStage === 'ND_II', 'ND I did not advance to ND II after all ND I courses were passed.');
     const graduateNdTwo = await advanceStudentProgression({
-      studentId: graduateStudentId, academicSession: 'TEST-GRAD-2027', passedCourseIds: allGraduateCourseIds,
+      studentId: graduateStudentId, academicSession: 'TEST-GRAD-2027', passedCourseIds: ndOneCourseIds,
       missingResultCourseIds: [], decidedBy: preparer,
     });
-    assert(graduateNdTwo.toStage === 'GRADUATED', 'Student with all ND I and ND II requirements passed did not graduate.');
+    assert(graduateNdTwo.toStage === 'EXTENSION_1', 'Student graduated without passing the ND II compulsory course.');
+    const graduateExtension = await advanceStudentProgression({
+      studentId: graduateStudentId, academicSession: 'TEST-GRAD-2028', passedCourseIds: allGraduateCourseIds,
+      missingResultCourseIds: [], decidedBy: preparer,
+    });
+    assert(graduateExtension.toStage === 'GRADUATED', 'Student with all effective ND I and ND II requirements passed did not graduate through normal clearance.');
     check('Normal graduation occurs only after all effective ND I and ND II requirements are passed');
     console.log(`\\nRESULT: ${passed.length} PASS, 0 FAIL`);
     console.log('All records use TEST-prefixed synthetic identifiers. This temporary branch can be discarded after review.');
