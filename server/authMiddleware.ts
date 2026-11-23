@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { db, User } from './db';
+import { hasRequiredAcademicRole } from './academicProgressionAuthorization';
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -71,11 +72,7 @@ export function requireRoles(...allowedRoles: string[]) {
       return res.status(401).json({ success: false, message: 'Authentication required.' });
     }
 
-    if (req.user.role === 'SUPER_ADMIN') {
-      return next(); // Super admin bypasses role checks
-    }
-
-    if (!allowedRoles.includes(req.user.role)) {
+    if (!hasRequiredAcademicRole(req.user, allowedRoles)) {
       return res.status(403).json({
         success: false,
         message: `Forbidden. Role '${req.user.role}' lacks permission for this action.`,
