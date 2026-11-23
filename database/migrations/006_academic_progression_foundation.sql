@@ -1741,7 +1741,7 @@ EXECUTE FUNCTION validate_academic_progression_history_target();
 -- A newly created progression record must be accompanied by one
 -- INITIAL_RECORD history entry in the same transaction.
 CREATE OR REPLACE FUNCTION require_initial_academic_progression_history()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 DECLARE
     initial_history_exists BOOLEAN;
 BEGIN
@@ -1766,7 +1766,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE CONSTRAINT TRIGGER trg_require_initial_academic_progression_history
 AFTER INSERT ON student_academic_progression
