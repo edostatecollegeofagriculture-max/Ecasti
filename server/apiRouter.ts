@@ -27,7 +27,7 @@ import { activateAdmissionFeeObligations, listRetryableAdmissionFeeActivations }
 
 import { evaluateNdGraduationEligibility } from './academicProgressionService';
 import { academicProgressionApiRouter } from './academicProgressionApiRouter';
-import { listAcademicResultAttempts } from './academicResultNeonService';
+import { appendAcademicResultEvent, listAcademicResultAttempts } from './academicResultNeonService';
 
 export const apiRouter = Router();
 apiRouter.use('/academic-progression', academicProgressionApiRouter);
@@ -2274,6 +2274,69 @@ apiRouter.get(
       return res.status(503).json({
         success: false,
         message: 'Neon result attempts are temporarily unavailable.',
+      });
+    }
+  }
+);
+
+apiRouter.post(
+  '/results/neon-attempts/:id/events',
+  authenticateToken,
+  requireRoles('SUPER_ADMIN', 'EXAM_OFFICER'),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const resultAttemptId = String(req.params.id || '').trim();
+    const { eventType, idempotencyKey, reason } = req.body || {};
+    const allowedEvents = ['VERIFIED', 'APPROVED', 'PUBLISHED'] as const;
+
+    if (!resultAttemptId || resultAttemptId.length > 200) {
+      return res.status(400).json({ success: false, message: 'A valid result attempt ID is required.' });
+    }
+    if (typeof eventType !== 'string' || !allowedEvents.includes(eventType as typeof allowedEvents[number])) {
+      return res.status(400).json({ success: false, message: 'Only VERIFIED, APPROVED, or PUBLISHED events may be recorded here.' });
+    }
+    if (typeof idempotencyKey !== 'string' || !idempotencyKey.trim() || idempotencyKey.trim().length > 200) {
+      return res.status(400).json({ success: false, message: 'A valid idempotency key is required.' });
+    }
+    if (reason !== undefined && (typeof reason !== 'string' || reason.length > 1000)) {
+      return res.status(400).json({ success: false, message: 'The reason must be text no longer than 1000 characters.' });
+    }
+
+    try {
+      const outcome = await appendAcademicResultEvent({
+        resultAttemptId,
+        eventType: eventType as typeof allowedEvents[number],
+        actorUserId: req.user!.id,
+        idempotencyKey: idempotencyKey.trim(),
+        reason: typeof reason === 'string' ? reason.trim() : undefined,
+      });
+      db.logAudit({
+        userId: req.user!.id,
+        userEmail: req.user!.email,
+        action: `ACADEMIC_RESULT_${eventType}`,
+        resource: 'ACADEMIC_RESULT_ATTEMPT',
+        details: { resultAttemptId, eventId: outcome.event.id, created: outcome.created },
+        ipAddress: req.ip,
+      });
+      return res.status(outcome.created ? 201 : 200).json({
+        success: true,
+        created: outcome.created,
+        event: {
+          id: outcome.event.id,
+          resultAttemptId: outcome.event.result_attempt_id,
+          eventType: outcome.event.event_type,
+          actorUserId: outcome.event.actor_user_id,
+          createdAt: outcome.event.created_at,
+        },
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (message === 'Academic result attempt not found.') {
+        return res.status(404).json({ success: false, message: 'Academic result attempt not found.' });
+      }
+      // Database transition and idempotency failures are intentionally generic.
+      return res.status(409).json({
+        success: false,
+        message: 'The result workflow transition was rejected. Check the current stage and use a new idempotency key only for a new action.',
       });
     }
   }
