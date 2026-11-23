@@ -8,6 +8,8 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import jwt from 'jsonwebtoken';
 import type { AddressInfo } from 'node:net';
+import type { Server } from 'node:http';
+import type { Pool } from 'pg';
 
 const EXPECTED_TEMPORARY_HOST = 'ep-blue-mud-bdm6m3i0-pooler.c-8.us-east-2.aws.neon.tech';
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -125,8 +127,8 @@ const fixture = {
 };
 writeFileSync(fixturePath, JSON.stringify(fixture), 'utf8');
 
-let server: ReturnType<import('node:http').Server['listen']> | undefined;
-let neonPool: { query: (sql: string, values?: unknown[]) => Promise<{ rows: any[] }>; end: () => Promise<void> } | undefined;
+let server: Server | undefined;
+let neonPool: Pool | undefined;
 let passed = 0;
 async function test(name: string, run: () => Promise<void>) {
   await run();
@@ -164,12 +166,13 @@ async function main() {
     const app = express();
     app.use(express.json());
     app.use('/api/v1/academic-progression', academicProgressionApiRouter);
-    server = app.listen(0, '127.0.0.1');
+    const listeningServer = app.listen(0, '127.0.0.1');
+    server = listeningServer;
     await new Promise<void>((resolve, reject) => {
-      server!.once('listening', resolve);
-      server!.once('error', reject);
+      listeningServer.once('listening', resolve);
+      listeningServer.once('error', reject);
     });
-    const address = server.address() as AddressInfo;
+    const address = listeningServer.address() as AddressInfo;
     const baseUrl = `http://127.0.0.1:${address.port}/api/v1/academic-progression`;
 
     const token = (userId: string) => jwt.sign({ sub: userId }, jwtSecret, { expiresIn: '10m' });
@@ -410,7 +413,7 @@ async function main() {
         body: { academicSession: `TEST-API-2030-${suffix}`, reason: 'Synthetic Rector-approved API integration test.' },
       });
       assert.equal(result.status, 200, JSON.stringify(result.payload));
-      assert.equal(result.payload.progression.progressionStatus, 'GRADUATED');
+      assert.equal(result.payload.progression.status, 'GRADUATED');
       assert.equal(result.payload.progression.decisionType, 'MANAGEMENT_APPROVED_PASS');
     });
 
