@@ -19,6 +19,7 @@ const actor = (id: string, role: string, departmentId?: string, schoolId?: strin
 
 test('missing actor cannot read an academic record', () => {
   assert.equal(canReadStudentAcademicRecord(undefined, student), false);
+  assert.equal(canReadStudentAcademicRecord(actor('admin-a', 'SUPER_ADMIN'), student), true);
 });
 test('student can read own academic record', () => {
   assert.equal(canReadStudentAcademicRecord(actor('user-student-a', 'STUDENT'), student), true);
@@ -47,6 +48,7 @@ test('unrecognized role cannot read academic records', () => {
 test('student may submit own exception only', () => {
   assert.equal(canSubmitOwnStudentException(actor('user-student-a', 'STUDENT'), student), true);
   assert.equal(canSubmitOwnStudentException(actor('user-student-b', 'STUDENT'), student), false);
+  assert.equal(canSubmitOwnStudentException(actor('admin-a', 'SUPER_ADMIN'), student), true);
 });
 test('only Registry and institutional administrators can submit on behalf of student', () => {
   for (const role of ['REGISTRAR', 'INSTITUTION_ADMIN', 'SUPER_ADMIN']) {
