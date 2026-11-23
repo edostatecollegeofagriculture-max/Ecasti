@@ -532,13 +532,13 @@ academicProgressionApiRouter.post(
 
 /**
  * This endpoint deliberately requires the authenticated account itself to
- * have the RECT0R role; SUPER_ADMIN role bypasses are not accepted here.
+ * have the RECTOR role; SUPER_ADMIN role bypasses are not accepted here.
  */
 academicProgressionApiRouter.post(
   '/students/:studentId/progression/management-pass',
   authenticateToken,
   async (req: AuthenticatedRequest, res: Response) => {
-    if (req.user?.role !== 'RECTOR') {
+    if (!canApproveExtensionYearThreeManagementPass(req.user)) {
       return res.status(403).json({ success: false, message: 'Only the Rector may approve an Extension Year 3 management pass.' });
     }
     const studentId = String(req.params.studentId || '').trim();
