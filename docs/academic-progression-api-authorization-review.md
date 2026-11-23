@@ -82,17 +82,22 @@ Neon branch using synthetic test identities and records:
 
 - The actual academic progression router and nested curriculum mapping router
   were mounted in an ephemeral Express server.
-- The prior full API integration baseline reported **25 PASS, 0 FAIL**. The
-  suite has since been updated to verify SUPER_ADMIN management-pass
-  delegation and approver attribution; that updated suite must be rerun before
-  treating the new authorization policy as verified.
-- The separate curriculum assignment service workflow suite reported
-  **17 PASS, 0 FAIL**.
-- The prior HTTP authorization baseline reported **20 PASS, 0 FAIL**, and
-  authorization predicate tests reported **13 PASS, 0 FAIL**. Both suites have
-  since been extended for SUPER_ADMIN cross-scope access and management-pass
-  delegation and must be rerun.
-- Result evaluation tests reported **7 PASS, 0 FAIL**.
+- Updated full academic API integration suite: **25 PASS, 0 FAIL**, including
+  SUPER_ADMIN management-pass delegation and actual-actor attribution.
+- Updated HTTP authentication/authorization integration suite:
+  **21 PASS, 0 FAIL**, including SUPER_ADMIN cross-school/cross-department
+  access and HTTP 200 on the Rector-only management-pass guard.
+- Authorization predicate suite: **13 PASS, 0 FAIL**, including the
+  Rector-or-SUPER_ADMIN management-pass policy.
+- Temporary curriculum assignment and progression service workflow:
+  **17 PASS, 0 FAIL**, including Rector actor attribution in immutable history.
+- Result evaluator suite: **7 PASS, 0 FAIL**.
+- TypeScript check (`npm run lint`): passed after the test-contract correction.
+- Vite production build (`npm run build`): passed; Vite emitted non-blocking
+  compatibility and bundle-size advisories.
+
+The five test suites total **83 PASS, 0 FAIL**. The isolated Neon suites were
+run only against the confirmed disposable branch using synthetic identifiers.
 
 These tests close the isolated route and workflow verification items above.
 They do not prove production identity-provider behavior, production
@@ -100,9 +105,12 @@ configuration, or operational synchronization between the local result store
 and Neon requirement snapshots. The latter remains a production-readiness
 dependency and must be verified operationally before rollout.
 
-The updated authorization and API tests have not yet been rerun against this latest commit. No production data was read or changed during this source review. The review
-does not authorize production migrations, database writes, deployment, or PR
-merge.
+The updated authorization, HTTP, API, curriculum workflow, result evaluation,
+TypeScript, and build checks have now been rerun successfully after syncing the
+feature branch and correcting the temporary workflow test to use the current
+`approverUserId` service contract. No production data was read or changed
+during this validation. This review does not authorize production migrations,
+database writes, deployment, temporary-branch deletion, or PR merge.
 
 ## Automated authorization policy tests
 
@@ -144,7 +152,8 @@ including the nested curriculum mapping router. It exercises the HTTP
 endpoints for curriculum mapping preparation/review, student assignment and
 read scope, student exception submission/review, snapshot eligibility,
 progression initialization and advancement, normal graduation, and the
-Rector/SUPER_ADMIN Extension Year 3 management pass.
+Rector-or-SUPER_ADMIN Extension Year 3 management pass, including SUPER_ADMIN
+acting on behalf of the Rector with the actual SUPER_ADMIN actor ID persisted.
 
 Isolation safeguards:
 
@@ -160,7 +169,7 @@ Isolation safeguards:
   loopback port, closes the server and Neon pool, and removes the temporary
   JSON fixture when finished.
 - Neon test rows are intentionally retained on the disposable branch for
-  review; discard the temporary branch after reviewing the test output.
+  review. Keep the branch until the user explicitly approves its disposal.
 
 The harness checks that the required migration tables and the Migration 008
 actor-attribution column exist before making API requests. The completed run
