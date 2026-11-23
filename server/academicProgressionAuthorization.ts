@@ -44,11 +44,11 @@ export function canSubmitOwnStudentException(
   return ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'].includes(actor.role);
 }
 
-/** Management-pass authority is intentionally exact; no global-admin bypass. */
+/** Rector and SUPER_ADMIN may approve; SUPER_ADMIN acts on behalf of the Rector. */
 export function canApproveExtensionYearThreeManagementPass(
   actor: AcademicActor | undefined
 ): boolean {
-  return actor?.role === 'RECTOR';
+  return actor?.role === 'RECTOR' || actor?.role === 'SUPER_ADMIN';
 }
 
 /** Shared requireRoles middleware grants SUPER_ADMIN a global bypass. */
