@@ -2,8 +2,12 @@
 import path from 'path';
 import bcrypt from 'bcryptjs';
 
-const DATA_DIR = path.resolve(process.cwd(), 'data');
-const DB_FILE = path.resolve(DATA_DIR, 'edocasti_db.json');
+// Tests may point the JSON store at a disposable synthetic fixture. The
+// default path remains unchanged for normal application runs.
+const DB_FILE = process.env.EDOCASTI_DATA_FILE
+  ? path.resolve(process.env.EDOCASTI_DATA_FILE)
+  : path.resolve(process.cwd(), 'data', 'edocasti_db.json');
+const DATA_DIR = path.dirname(DB_FILE);
 
 export interface AuditLog {
   id: string;
