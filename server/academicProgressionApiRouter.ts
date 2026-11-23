@@ -4,6 +4,7 @@ import { AuthenticatedRequest, authenticateToken, requireRoles } from './authMid
 import { neonPool } from './neon';
 import { academicCurriculumMappingApiRouter } from './academicCurriculumMappingApiRouter';
 import { assignStudentCurriculum, getStudentCurriculumAssignment } from './academicCurriculumMappingService';
+import { listStudentCurriculumExceptions, reviewStudentCurriculumException, submitStudentCurriculumException } from './academicCurriculumExceptionService';
 
 type RequiredCourseRow = {
   student_id: string;
@@ -330,6 +331,137 @@ academicProgressionApiRouter.get(
         success: false,
         message: 'Student curriculum assignment data is unavailable. Confirm that migration 006 is installed in the target environment.',
       });
+    }
+  }
+);
+
+
+/**
+ * Student-specific compulsory-course exception requests.
+ * Submission is limited to the student concerned or Registry administrators.
+ */
+academicProgressionApiRouter.get(
+  '/students/:studentId/curriculum-exceptions',
+  authenticateToken,
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR', 'DEAN', 'HOD', 'EXAM_OFFICER', 'STUDENT'),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const studentId = String(req.params.studentId || '').trim();
+    const student = db.getState().students.find((item) => item.id === studentId);
+    if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
+    if (!canReadStudentAcademicRecord(req, student)) {
+      return res.status(403).json({ success: false, message: 'You do not have access to this student academic record.' });
+    }
+    try {
+      const exceptions = await listStudentCurriculumExceptions(studentId);
+      return res.json({ success: true, exceptions });
+    } catch {
+      return res.status(503).json({ success: false, message: 'Curriculum exception data is unavailable. Confirm that migration 006 is installed.' });
+    }
+  }
+);
+
+academicProgressionApiRouter.post(
+  '/students/:studentId/curriculum-exceptions',
+  authenticateToken,
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'STUDENT'),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const studentId = String(req.params.studentId || '').trim();
+    const student = db.getState().students.find((item) => item.id === studentId);
+    if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
+    if (req.user!.role === 'STUDENT' && req.user!.id !== student.userId) {
+      return res.status(403).json({ success: false, message: 'Students may submit exceptions only for their own academic record.' });
+    }
+    const programme = db.getState().programmes.find((item) => item.id === student.programmeId);
+    if (programme?.qualification !== 'ND') {
+      return res.status(422).json({ success: false, message: 'Curriculum exceptions currently support National Diploma students only.' });
+    }
+
+    const action = req.body?.action;
+    const courseId = typeof req.body?.courseId === 'string' ? req.body.courseId.trim() : '';
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+    if (!['ADD_COURSE', 'EXCLUDE_COURSE'].includes(action) || !courseId || !reason) {
+      return res.status(400).json({ success: false, message: 'Action, course ID and reason are required.' });
+    }
+    const course = db.getState().courses.find((item) => item.id === courseId);
+    if (!course) return res.status(404).json({ success: false, message: 'Course was not found in the institutional catalogue.' });
+    if (!course.isCompulsory || !['ND I', 'ND II'].includes(course.level)) {
+      return res.status(422).json({ success: false, message: 'Only compulsory ND I or ND II courses can be used for a curriculum exception.' });
+    }
+    if (course.programmeId && course.programmeId !== student.programmeId) {
+      return res.status(422).json({ success: false, message: 'The selected course belongs to a different programme.' });
+    }
+    if (!course.programmeId && course.departmentId !== student.departmentId) {
+      return res.status(422).json({ success: false, message: 'The selected course is not assigned to the student programme or department.' });
+    }
+
+    try {
+      const result = await submitStudentCurriculumException({
+        studentId,
+        courseId: course.id,
+        action,
+        courseCode: course.code,
+        courseTitle: course.title,
+        level: course.level,
+        semester: course.semester,
+        creditUnits: course.creditUnits,
+        submittedBy: req.user!.id,
+        reason,
+      });
+      db.logAudit({
+        userId: req.user!.id,
+        userEmail: req.user!.email,
+        action: 'STUDENT_CURRICULUM_EXCEPTION_SUBMITTED',
+        resource: 'STUDENT_ACADEMIC_CURRICULUM',
+        details: { studentId, exceptionId: result.id, action, courseId },
+        ipAddress: req.ip,
+      });
+      return res.status(201).json({ success: true, exception: result });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Curriculum exception could not be submitted.';
+      const conflict = /already|must have|not currently|not already|no longer current/i.test(message);
+      return res.status(conflict ? 409 : 400).json({ success: false, message });
+    }
+  }
+);
+
+/**
+ * Registry makes an independent decision. The service applies approved
+ * additions/exclusions to the student's effective requirement snapshots.
+ */
+academicProgressionApiRouter.post(
+  '/curriculum-exceptions/:exceptionId/review',
+  authenticateToken,
+  requireRoles('REGISTRAR', 'SUPER_ADMIN'),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const decision = req.body?.decision;
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : undefined;
+    if (!['APPROVE', 'REJECT'].includes(decision)) {
+      return res.status(400).json({ success: false, message: 'Decision must be APPROVE or REJECT.' });
+    }
+    if (decision === 'REJECT' && !reason) {
+      return res.status(400).json({ success: false, message: 'A reason is required when rejecting an exception.' });
+    }
+    try {
+      const result = await reviewStudentCurriculumException(
+        req.params.exceptionId,
+        req.user!.id,
+        decision,
+        reason
+      );
+      db.logAudit({
+        userId: req.user!.id,
+        userEmail: req.user!.email,
+        action: decision === 'APPROVE' ? 'STUDENT_CURRICULUM_EXCEPTION_APPROVED' : 'STUDENT_CURRICULUM_EXCEPTION_REJECTED',
+        resource: 'STUDENT_ACADEMIC_CURRICULUM',
+        details: { exceptionId: result.exceptionId, studentId: result.studentId, decision, action: result.action, reason: decision === 'REJECT' ? reason : undefined },
+        ipAddress: req.ip,
+      });
+      return res.json({ success: true, result });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Curriculum exception review could not be completed.';
+      const notFound = /not found/i.test(message);
+      const conflict = /only a |cannot |no longer current|could not be excluded/i.test(message);
+      return res.status(notFound ? 404 : conflict ? 409 : 400).json({ success: false, message });
     }
   }
 );
