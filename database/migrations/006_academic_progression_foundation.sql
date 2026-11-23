@@ -621,6 +621,7 @@ CREATE INDEX idx_academic_progression_programme
 
 CREATE TABLE academic_progression_history (
     id TEXT PRIMARY KEY,
+    history_sequence BIGINT GENERATED ALWAYS AS IDENTITY UNIQUE,
 
     student_id TEXT NOT NULL,
     programme_id TEXT NOT NULL,
@@ -682,6 +683,10 @@ CREATE INDEX idx_progression_history_student
 
 CREATE INDEX idx_progression_history_session
     ON academic_progression_history (academic_session);
+
+CREATE UNIQUE INDEX uq_progression_initial_record_per_student
+    ON academic_progression_history (student_id)
+    WHERE decision_type = 'INITIAL_RECORD';
 
 
 -- ============================================================
@@ -1921,7 +1926,7 @@ BEGIN
       FROM academic_progression_history h
      WHERE h.student_id = NEW.student_id
        AND h.id <> NEW.id
-     ORDER BY h.created_at DESC, h.id DESC
+     ORDER BY h.history_sequence DESC
      LIMIT 1;
 
     previous_history_exists := FOUND;
