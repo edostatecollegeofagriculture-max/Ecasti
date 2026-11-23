@@ -147,3 +147,28 @@ Reviewed against the source TypeScript interfaces and migrations 001, 006, and 0
 This was a static source/schema review only. No PostgreSQL parser, temporary Neon connection, SQL execution, table inspection, or application integration test was available in this session. Migration 010 is a one-time versioned migration: although table/index creation uses `IF NOT EXISTS`, its named `ALTER TABLE ... ADD CONSTRAINT` statements are not designed for re-execution after a partial/manual application. Apply it once, transactionally, to the temporary Neon branch only after confirming migration 010 has not already been applied. If it fails, inspect the transaction outcome before retrying; do not edit the production database.
 
 Before any JSON import, still resolve the empty schools source and the unmatched legacy payment student/invoice references. A successful schema install does not clear those blockers.
+
+## Guarded temporary-branch installation procedure
+
+A guarded installer is available as `scripts/apply-core-schema-temporary.ts`, exposed as `npm run apply:core-schema:temporary`.
+
+The installer:
+- Requires `DATABASE_URL` from the local environment and checks that its host and database path exactly match the previously designated temporary Neon branch and `/neondb`.
+- Connects only after that check, confirms the database name/schema, and refuses to run if any of the nine migration-010 tables already exist.
+- Requires the exact interactive confirmation `APPLY-010-TEMPORARY` before executing the SQL file.
+- Verifies all nine tables and all 18 named foreign-key constraints using PostgreSQL catalog metadata only. It does not query application rows or import JSON data.
+- Does not print or transmit the connection string.
+
+From PowerShell, in the repository directory, update the feature branch and run:
+
+```powershell
+git fetch origin
+git switch feature/academic-progression-snapshot-readonly
+git pull --ff-only origin feature/academic-progression-snapshot-readonly
+npm ci
+npm run apply:core-schema:temporary
+```
+
+The local `.env` must already point to the designated temporary branch; do not paste its contents into chat or a command. If the host guard fails, stop: the temporary branch may have expired or its endpoint may have changed. Do not weaken the guard or substitute a production connection string. If the script says any migration-010 table already exists, stop and inspect schema state rather than rerunning the migration.
+
+The installer has been committed but has **not** been run from this environment because no database connection is available here. Its runtime result must be reported after the user runs it locally. This is still not a data import or production cutover.
