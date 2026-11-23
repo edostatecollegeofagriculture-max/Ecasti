@@ -279,7 +279,7 @@ async function main() {
     check('Extension progression advances sequentially through Extension Years 2 and 3');
 
     const managementPass = await approveExtensionYearThreeManagementPass({
-      studentId, academicSession: 'TEST-SESSION-2030', rectorUserId: 'TEST-RECTOR',
+      studentId, academicSession: 'TEST-SESSION-2030', approverUserId: 'TEST-RECTOR',
       reason: 'Synthetic test: Rector-approved management pass.',
       outstandingCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-C-' + tag, 'TEST-COURSE-ADD-' + tag],
       missingResultCourseIds: ['TEST-COURSE-B-' + tag, 'TEST-COURSE-C-' + tag, 'TEST-COURSE-ADD-' + tag],
