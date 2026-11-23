@@ -3,6 +3,7 @@ import { db } from './db';
 import { AuthenticatedRequest, authenticateToken, requireRoles } from './authMiddleware';
 import { neonPool } from './neon';
 import { academicCurriculumMappingApiRouter } from './academicCurriculumMappingApiRouter';
+import { assignStudentCurriculum, getStudentCurriculumAssignment } from './academicCurriculumMappingService';
 
 type RequiredCourseRow = {
   student_id: string;
@@ -212,6 +213,116 @@ academicProgressionApiRouter.get(
       return res.status(503).json({
         success: false,
         message: 'Academic curriculum snapshot data is unavailable. Confirm that migration 006 has been reviewed and installed.',
+      });
+    }
+  }
+);
+
+
+function canReadStudentAcademicRecord(req: AuthenticatedRequest, student: {
+  userId: string;
+  departmentId: string;
+  schoolId: string;
+}): boolean {
+  const user = req.user;
+  if (!user) return false;
+  if (['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'].includes(user.role)) return true;
+  if (user.role === 'DEAN') return Boolean(user.schoolId && user.schoolId === student.schoolId);
+  if (user.role === 'HOD' || user.role === 'EXAM_OFFICER') {
+    return Boolean(user.departmentId && user.departmentId === student.departmentId);
+  }
+  if (user.role === 'STUDENT') return user.id === student.userId;
+  return false;
+}
+
+/**
+ * Assigns the current approved ND curriculum to a student and creates
+ * immutable required-course snapshots plus an assignment-ledger entry.
+ * The service performs all database writes in one transaction.
+ */
+academicProgressionApiRouter.post(
+  '/students/:studentId/curriculum-assignment',
+  authenticateToken,
+  requireRoles('INSTITUTION_ADMIN', 'REGISTRAR'),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const studentId = String(req.params.studentId || '').trim();
+    if (!studentId || studentId.length > 200) {
+      return res.status(400).json({ success: false, message: 'A valid student ID is required.' });
+    }
+
+    const state = db.getState();
+    const student = state.students.find((item) => item.id === studentId);
+    if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
+
+    const programme = state.programmes.find((item) => item.id === student.programmeId);
+    if (programme?.qualification !== 'ND') {
+      return res.status(422).json({ success: false, message: 'Automated curriculum assignment currently supports National Diploma students only.' });
+    }
+    if (!student.sessionAdmitted || !student.programmeId) {
+      return res.status(422).json({ success: false, message: 'The student programme and admission cohort must be complete before curriculum assignment.' });
+    }
+
+    try {
+      const result = await assignStudentCurriculum({
+        studentId: student.id,
+        programmeId: student.programmeId,
+        cohortSession: student.sessionAdmitted,
+        assignedBy: req.user!.id,
+      });
+      db.logAudit({
+        userId: req.user!.id,
+        userEmail: req.user!.email,
+        action: result.status === 'ASSIGNED' ? 'STUDENT_CURRICULUM_ASSIGNED' : 'STUDENT_CURRICULUM_ASSIGNMENT_REVIEW_REQUIRED',
+        resource: 'STUDENT_ACADEMIC_CURRICULUM',
+        details: {
+          studentId: student.id,
+          programmeId: student.programmeId,
+          cohortSession: student.sessionAdmitted,
+          assignmentId: 'assignmentId' in result ? result.assignmentId : undefined,
+          mappingId: 'mappingId' in result ? result.mappingId : undefined,
+          status: result.status,
+        },
+        ipAddress: req.ip,
+      });
+      return res.status(result.status === 'REVIEW_REQUIRED' ? 202 : 200).json({
+        success: true,
+        assignment: result,
+      });
+    } catch {
+      return res.status(503).json({
+        success: false,
+        message: 'Curriculum assignment could not be completed. No partial assignment was committed; verify the temporary database and review the assignment constraints.',
+      });
+    }
+  }
+);
+
+/**
+ * Returns the student's assignment, immutable course snapshots and ledger
+ * status. Programme/school/department scope is enforced before querying Neon.
+ */
+academicProgressionApiRouter.get(
+  '/students/:studentId/curriculum-assignment',
+  authenticateToken,
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR', 'DEAN', 'HOD', 'EXAM_OFFICER', 'STUDENT'),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const studentId = String(req.params.studentId || '').trim();
+    if (!studentId || studentId.length > 200) {
+      return res.status(400).json({ success: false, message: 'A valid student ID is required.' });
+    }
+    const student = db.getState().students.find((item) => item.id === studentId);
+    if (!student) return res.status(404).json({ success: false, message: 'Student record not found.' });
+    if (!canReadStudentAcademicRecord(req, student)) {
+      return res.status(403).json({ success: false, message: 'You do not have access to this student academic record.' });
+    }
+
+    try {
+      const result = await getStudentCurriculumAssignment(studentId);
+      return res.json({ success: true, ...result });
+    } catch {
+      return res.status(503).json({
+        success: false,
+        message: 'Student curriculum assignment data is unavailable. Confirm that migration 006 is installed in the target environment.',
       });
     }
   }
