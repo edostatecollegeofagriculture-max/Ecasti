@@ -155,7 +155,7 @@ A guarded installer is available as `scripts/apply-core-schema-temporary.ts`, ex
 The installer:
 - Requires `DATABASE_URL` from the local environment and checks that its host and database path exactly match the previously designated temporary Neon branch and `/neondb`.
 - Connects only after that check, confirms the database name/schema, and refuses to run if any of the nine migration-010 tables already exist.
-- Requires the exact interactive confirmation `APPLY-010-TEMPORARY` before executing the SQL file.
+- Requires the exact interactive confirmation `TEMPORARY` before executing the SQL file.
 - Verifies all nine tables and all 18 named foreign-key constraints using PostgreSQL catalog metadata only. It does not query application rows or import JSON data.
 - Does not print or transmit the connection string.
 
