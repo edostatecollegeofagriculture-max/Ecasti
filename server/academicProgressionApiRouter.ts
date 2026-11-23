@@ -7,6 +7,7 @@ import { assignStudentCurriculum, getStudentCurriculumAssignment } from './acade
 import { listStudentCurriculumExceptions, reviewStudentCurriculumException, submitStudentCurriculumException } from './academicCurriculumExceptionService';
 import { initializeStudentProgression, advanceStudentProgression, approveExtensionYearThreeManagementPass } from './academicProgressionDecisionService';
 import { evaluateCourseResults } from './academicResultEvaluation';
+import { listAuthoritativePublishedAcademicResults } from './academicResultNeonService';
 import { canApproveExtensionYearThreeManagementPass, canReadStudentAcademicRecord, canSubmitOwnStudentException } from './academicProgressionAuthorization';
 
 type RequiredCourseRow = {
@@ -44,7 +45,7 @@ academicProgressionApiRouter.use('/curriculum', academicCurriculumMappingApiRout
 
 /**
  * Read-only ND eligibility preview based on the student's assigned
- * curriculum snapshots and published results in the existing JSON store.
+ * curriculum snapshots and freshness-verified published results in Neon.
  *
  * This endpoint deliberately performs no writes and does not advance
  * progression state. Migration 006 must be installed before it is used.
@@ -514,12 +515,19 @@ academicProgressionApiRouter.post(
       if (!snapshotResult.rows.length) {
         return res.status(409).json({ success: false, message: 'No effective required-course snapshots exist for this student.' });
       }
+      const authoritative = await listAuthoritativePublishedAcademicResults({ studentId });
       const passedCourseIds: string[] = [];
       const missingResultCourseIds: string[] = [];
       for (const row of snapshotResult.rows) {
-        const courseResults = db.getState().results.filter(
-          (item) => item.studentId === studentId && item.courseId === row.course_id
-        );
+        const courseResults = authoritative.results
+          .filter((item: any) => item.course_id === row.course_id)
+          .map((item: any) => ({
+            status: 'PUBLISHED' as const,
+            totalScore: item.total_score,
+            grade: item.grade,
+            session: item.academic_session,
+            semester: item.semester,
+          }));
         const evaluation = evaluateCourseResults(courseResults, PASS_MARK);
         if (evaluation.status === 'PASSED') passedCourseIds.push(row.course_id);
         if (evaluation.status === 'MISSING_RESULT' || evaluation.status === 'UNPUBLISHED_RESULT') {
@@ -582,11 +590,19 @@ academicProgressionApiRouter.post(
       if (!requiredResult.rows.length) {
         return res.status(409).json({ success: false, message: 'No effective required-course snapshots exist for this student.' });
       }
-      const studentResults = db.getState().results.filter((item) => item.studentId === studentId);
+      const authoritative = await listAuthoritativePublishedAcademicResults({ studentId });
       const outstandingCourseIds: string[] = [];
       const missingResultCourseIds: string[] = [];
       for (const row of requiredResult.rows) {
-        const courseResults = studentResults.filter((item) => item.courseId === row.course_id);
+        const courseResults = authoritative.results
+          .filter((item: any) => item.course_id === row.course_id)
+          .map((item: any) => ({
+            status: 'PUBLISHED' as const,
+            totalScore: item.total_score,
+            grade: item.grade,
+            session: item.academic_session,
+            semester: item.semester,
+          }));
         const evaluation = evaluateCourseResults(courseResults, PASS_MARK);
         if (evaluation.status !== 'PASSED') {
           outstandingCourseIds.push(row.course_id);
