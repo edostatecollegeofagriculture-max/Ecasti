@@ -302,3 +302,42 @@ export async function listAuthoritativePublishedAcademicResults(
   );
   return { freshness, results: result.rows };
 }
+
+/**
+ * Operational query for the immutable attempt ledger. This is not an
+ * authoritative student-facing query: callers must still apply source
+ * freshness checks before using results for progression or publication.
+ */
+export async function listAcademicResultAttempts(filters: AcademicResultFilters = {}) {
+  const values: unknown[] = [];
+  const conditions: string[] = [];
+  const addFilter = (column: string, value: string, label: string, maxLength = 200) => {
+    values.push(requiredText(value, label, maxLength));
+    conditions.push(column + ' = $' + values.length);
+  };
+  if (filters.studentId) addFilter('a.student_id', filters.studentId, 'Student ID');
+  if (filters.courseId) addFilter('a.course_id', filters.courseId, 'Course ID');
+  if (filters.academicSession) addFilter('a.academic_session', filters.academicSession, 'Academic session', 40);
+  if (filters.semester) {
+    if (filters.semester !== 'First Semester' && filters.semester !== 'Second Semester') {
+      throw new Error('Semester is invalid.');
+    }
+    addFilter('a.semester', filters.semester, 'Semester');
+  }
+  const sql = [
+    'SELECT a.id AS result_attempt_id, a.legacy_result_id, a.student_id,',
+    'a.course_id, a.academic_session, a.semester, a.attempt_number,',
+    'a.ca_score, a.exam_score, a.total_score, a.grade, a.grade_point,',
+    'a.entered_by, a.created_at, latest.event_type AS latest_event_type,',
+    'latest.actor_user_id AS latest_event_actor_user_id,',
+    'latest.reason AS latest_event_reason, latest.created_at AS latest_event_at',
+    'FROM academic_result_attempts a',
+    'LEFT JOIN LATERAL (SELECT e.event_type, e.actor_user_id, e.reason, e.created_at',
+    'FROM academic_result_events e WHERE e.result_attempt_id = a.id',
+    'ORDER BY e.event_sequence DESC LIMIT 1) latest ON TRUE',
+    conditions.length ? 'WHERE ' + conditions.join(' AND ') : '',
+    'ORDER BY a.student_id, a.course_id, a.academic_session, a.semester, a.attempt_number'
+  ].join(' ');
+  const result = await neonPool.query(sql, values);
+  return result.rows;
+}
