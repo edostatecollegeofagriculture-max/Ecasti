@@ -596,6 +596,7 @@ export async function getStudentCurriculumAssignment(studentIdInput: string) {
   if (!assignmentResult.rows[0]) {
     return {
       assignment: null,
+      courses: [],
       ledger: ledgerResult.rows[0] ?? null,
     };
   }
