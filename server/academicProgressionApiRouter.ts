@@ -137,10 +137,17 @@ academicProgressionApiRouter.get(
         });
       }
 
+      const authoritative = await listAuthoritativePublishedAcademicResults({ studentId });
       const courses = requiredCourses.map((course) => {
-        const courseResults = state.results.filter(
-          (result) => result.studentId === studentId && result.courseId === course.course_id
-        );
+        const courseResults = authoritative.results
+          .filter((result: any) => result.course_id === course.course_id)
+          .map((result: any) => ({
+            status: 'PUBLISHED' as const,
+            totalScore: result.total_score,
+            grade: result.grade,
+            session: result.academic_session,
+            semester: result.semester,
+          }));
         const evaluation = evaluateCourseResults(courseResults, PASS_MARK);
 
         return {
