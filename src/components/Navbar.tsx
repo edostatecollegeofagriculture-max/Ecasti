@@ -12,7 +12,6 @@ import {
   FileText,
   LogOut,
   LogIn,
-  KeyRound,
   CheckCircle2,
   Sparkles,
   Layers,
