@@ -12,7 +12,6 @@ import {
   FileText,
   LogOut,
   LogIn,
-  KeyRound,
   CheckCircle2,
   Sparkles,
   Layers,
@@ -29,7 +28,6 @@ interface Props {
 export const Navbar: React.FC<Props> = ({
   activeTab,
   setActiveTab,
-  onOpenPersonaModal,
   onOpenLoginModal,
   onOpenPrintModal,
 }) => {
@@ -156,13 +154,6 @@ export const Navbar: React.FC<Props> = ({
 
         {/* Right Tools: Page Builder (sm-md quick access), Theme Toggle & User Account */}
         <div className="flex items-center gap-2 shrink-0">
-          {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role) && <button
-            onClick={onOpenPersonaModal}
-            className="hidden xl:flex bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1 rounded-lg shadow-xs items-center gap-1 cursor-pointer transition text-xs"
-            title="Fast switch between roles (Rector, Bursar, Lecturer, Student, etc.)"
-          >
-            <KeyRound className="w-3 h-3" /> Quick Switch Role
-          </button>}
           {user && canAccessWorkspace(user.role, 'builder') && <button
             onClick={() => setActiveTab('builder')}
             className={`lg:hidden hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap ${
