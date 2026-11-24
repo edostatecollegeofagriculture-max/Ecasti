@@ -70,10 +70,11 @@ export function seedDemoAcademicData(actor: { id: string; email: string }) {
   add('registrations', registration);
   add('results', result);
 
-  const examOfficerBefore = JSON.parse(JSON.stringify(required.examOfficer));
-  required.examOfficer.departmentId = department.id;
-  required.examOfficer.schoolId = school.id;
-  changes.push({ collection: 'users', id: required.examOfficer.id, before: examOfficerBefore, after: JSON.parse(JSON.stringify(required.examOfficer)) });
+  const examOfficer = required.examOfficer!;
+  const examOfficerBefore = JSON.parse(JSON.stringify(examOfficer));
+  examOfficer.departmentId = department.id;
+  examOfficer.schoolId = school.id;
+  changes.push({ collection: 'users', id: examOfficer.id, before: examOfficerBefore, after: JSON.parse(JSON.stringify(examOfficer)) });
 
   state[MANIFEST_KEY] = { version: 1, createdAt: now, changes };
   db.saveState();
