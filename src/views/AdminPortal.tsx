@@ -416,7 +416,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
       if (attRes.success && attRes.attendance) setAttendance(attRes.attendance);
       if (tktRes.success && tktRes.tickets) setTickets(tktRes.tickets);
 
-      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role)) {
+      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role)) {
         const [uRes, aRes, appRes] = await Promise.all([
           api.getUsers().catch(() => ({ success: false, users: [] })),
           api.getAuditLogs({ limit: 80 }).catch(() => ({ success: false, logs: [] })),
@@ -450,10 +450,11 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
   const canManageAdmissionFeeActivations = [
     'SUPER_ADMIN',
     'INSTITUTION_ADMIN',
+    'RECTOR',
     'REGISTRAR',
     'ADMISSIONS_OFFICER',
   ].includes(role);
-  const isSuperAdmin = ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(role);
+  const isSuperAdmin = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(role);
 
   const sidebarGroups: Array<{
     group: string;
@@ -477,19 +478,19 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'dean_curriculum',
           label: 'Dean: Programmes & Courses',
           icon: <GraduationCap className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'DEAN'],
         },
         {
           id: 'hod_allocation',
           label: 'HOD: Assign Lecturers',
           icon: <UserCheck className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'HOD'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'HOD'],
         },
         {
           id: 'exam_approvals',
-          label: 'Exam Officer Approvals',
+          label: user?.role === 'HOD' ? 'Course Registration Approvals' : user?.role === 'EXAM_OFFICER' ? 'Result Moderation & Publishing' : 'Academic Approvals',
           icon: <ClipboardCheck className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'HOD', 'EXAM_OFFICER'],
         },
       ],
     },
@@ -500,13 +501,13 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'registrar_docs',
           label: 'Registrar: Transcripts & Certs',
           icon: <FileText className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'],
         },
         {
           id: 'finance',
           label: 'Bursary & Fee Ledger',
           icon: <Wallet className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'BURSAR'],
         },
       ],
     },
@@ -517,19 +518,19 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'global_crud',
           label: 'Super Admin Global CRUD',
           icon: <Database className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'],
         },
         {
           id: 'users',
           label: 'Users & RBAC',
           icon: <Users className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR'],
         },
         {
           id: 'settings',
           label: 'Branding, Stamp & Rules',
           icon: <Settings className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'],
         },
         {
           id: 'cms',
@@ -720,7 +721,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
   const handleApproveRegistration = async (regId: string) => {
     try {
       await api.approveRegistration(regId);
-      notify('Course registration approved by Exam Officer.');
+      notify('Course registration approved by HOD.');
       loadData();
     } catch (err: any) {
       notify(err.message || 'Failed to approve registration', 'error');
@@ -831,10 +832,20 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
     }
   };
 
+  const handleHodApproveResult = async (resultId: string) => {
+    try {
+      await api.approveResultByHod(resultId);
+      notify('Result approved by HOD and forwarded to the Exam Officer for moderation.');
+      await loadData();
+    } catch (err: any) {
+      notify(err.message || 'Failed to approve result', 'error');
+    }
+  };
+
   const handlePublishResult = async (resultId: string) => {
     try {
       await api.publishResult(resultId);
-      notify('Result verified & published to student portal.');
+      notify('Exam Officer moderation completed; result published to the student portal.');
       loadData();
     } catch (err: any) {
       notify(err.message || 'Failed to publish result', 'error');
@@ -843,7 +854,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
 
   const handleBulkPublishResults = async (resultIds: string[]) => {
     const submittedIds = [...new Set(resultIds)].filter((id) =>
-      results.some((result) => result.id === id && result.status === 'SUBMITTED')
+      results.some((result) => result.id === id && result.status === 'HOD_APPROVED')
     );
     if (submittedIds.length === 0 || publishingResults) return;
 
@@ -851,7 +862,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
     try {
       const res = await api.approveResultsBulk({ resultIds: submittedIds });
       if (res.approvedCount > 0) {
-        notify(`Approved & published ${res.approvedCount} submitted result record(s) to students.`);
+        notify(`Moderated and published ${res.approvedCount} HOD-approved result record(s) to students.`);
       } else {
         notify('No submitted results were available to publish.', 'error');
       }
@@ -1700,11 +1711,11 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           {/* ==================== 4. EXAM OFFICER APPROVALS (COURSE REGS + RESULTS) ==================== */}
           {activeSubTab === 'exam_approvals' && (
             <div className="space-y-6">
-              {/* Panel A: Student Course Registrations Approval */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+              {/* Panel A: HOD course registration approval; full-access roles may also review */}
+              {user?.role !== 'EXAM_OFFICER' && <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                    Examination Officer Gate 1
+                    HOD Registration Approval
                   </span>
                   <h2 className="text-lg font-black text-slate-900 dark:text-white">
                     Student Course Registration Approvals
@@ -1728,7 +1739,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                       onChange: setExamRegStatusFilter,
                       options: [
                         { value: 'SUBMITTED', label: 'Pending Approval (SUBMITTED)' },
-                        { value: 'APPROVED_BY_EXAM_OFFICER', label: 'Approved by Exam Officer' },
+                        { value: 'APPROVED_BY_HOD', label: 'Approved by HOD' },
                         { value: 'APPROVED_BY_HOD', label: 'Approved by HOD' },
                         { value: 'REJECTED', label: 'Rejected' },
                       ],
@@ -1776,7 +1787,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                         <th className="p-3">Registered Course Details</th>
                         <th className="p-3 text-center">Credits</th>
                         <th className="p-3">Status</th>
-                        <th className="p-3 text-right">Exam Officer Action</th>
+                        <th className="p-3 text-right">HOD Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -1862,37 +1873,37 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </div>}
 
-              {/* Panel B: Lecturer Scores Approval & Publishing */}
+              {/* Panel B: Exam Officer result moderation and publication */}
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                      Examination Officer Gate 2
+                      {user?.role === 'HOD' ? 'HOD Approval Gate 1' : 'Examination Officer Gate 2'}
                     </span>
                     <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                      Lecturer CA &amp; Exam Score Moderation &amp; Publishing
+                      {user?.role === 'HOD' ? 'Departmental Result Review & Approval' : 'Lecturer CA &amp; Exam Score Moderation &amp; Publishing'}
                     </h2>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Results entered by lecturers remain hidden from students until approved and published here by the Exam Officer.
+                      {user?.role === 'HOD' ? 'Review results submitted by lecturers in your department and approve them for Exam Officer moderation. Students cannot see results at this stage.' : 'Only HOD-approved results are eligible for Exam Officer moderation and publication. Students see results only after publication.'}
                     </p>
                   </div>
 
-                  {filteredExamResults.some((r) => r.status === 'SUBMITTED') && (
+                  {user?.role !== 'HOD' && filteredExamResults.some((r) => r.status === 'HOD_APPROVED') && (
                     <button
                       type="button"
                       disabled={publishingResults}
                       onClick={() =>
                         handleBulkPublishResults(
-                          filteredExamResults.filter((r) => r.status === 'SUBMITTED').map((r) => r.id)
+                          filteredExamResults.filter((r) => r.status === 'HOD_APPROVED').map((r) => r.id)
                         )
                       }
                       className="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
                     >
                       <CheckCheck className="w-4 h-4 text-amber-300" />
-                      {publishingResults ? 'Publishing...' : 'Approve & Publish All Filtered Pending'}
-                      {' '}({filteredExamResults.filter((r) => r.status === 'SUBMITTED').length})
+                      {publishingResults ? 'Publishing...' : 'Moderate & Publish All HOD-Approved'}
+                      {' '}({filteredExamResults.filter((r) => r.status === 'HOD_APPROVED').length})
                     </button>
                   )}
                 </div>
@@ -1917,7 +1928,8 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                       value: examResStatusFilter,
                       onChange: setExamResStatusFilter,
                       options: [
-                        { value: 'SUBMITTED', label: 'Pending Exam Officer (SUBMITTED)' },
+                        { value: 'SUBMITTED', label: 'Awaiting HOD Approval' },
+                        { value: 'HOD_APPROVED', label: 'Awaiting Exam Officer Moderation' },
                         { value: 'PUBLISHED', label: 'Published to Students' },
                         { value: 'DRAFT', label: 'Draft' },
                       ],
@@ -1936,7 +1948,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                         <th className="p-3 text-center">Total</th>
                         <th className="p-3 text-center">Grade</th>
                         <th className="p-3">Approval Status</th>
-                        <th className="p-3 text-right">Exam Officer Action</th>
+                        <th className="p-3 text-right">{user?.role === 'HOD' ? 'HOD Action' : 'Exam Officer Action'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -1970,7 +1982,14 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                               </span>
                             </td>
                             <td className="p-3 text-right">
-                              {r.status === 'SUBMITTED' ? (
+                              {user?.role === 'HOD' && r.status === 'SUBMITTED' ? (
+                                <button
+                                  onClick={() => handleHodApproveResult(r.id)}
+                                  className="px-3 py-1 bg-emerald-800 hover:bg-emerald-900 text-white font-semibold rounded text-xs cursor-pointer shadow-2xs whitespace-nowrap"
+                                >
+                                  Approve for Exam Moderation
+                                </button>
+                              ) : user?.role !== 'HOD' && r.status === 'HOD_APPROVED' ? (
                                 <button
                                   onClick={() => handlePublishResult(r.id)}
                                   className="px-3 py-1 bg-emerald-800 hover:bg-emerald-900 text-white font-semibold rounded text-xs cursor-pointer shadow-2xs whitespace-nowrap"
@@ -1979,7 +1998,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                                 </button>
                               ) : (
                                 <span className={`text-[11px] font-semibold ${r.status === 'PUBLISHED' ? 'text-emerald-700' : 'text-slate-500'}`}>
-                                  {r.status === 'PUBLISHED' ? 'Published' : 'Draft — not eligible'}
+                                  {r.status === 'PUBLISHED' ? 'Published' : r.status === 'HOD_APPROVED' ? 'Awaiting Exam Officer' : r.status === 'SUBMITTED' ? 'Awaiting HOD' : 'Draft — not eligible'}
                                 </span>
                               )}
                             </td>
@@ -2319,7 +2338,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                     </div>
                   )}
 
-                  {['SUPER_ADMIN', 'BURSAR'].includes(role) && (
+                  {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && (
                     <form
                       className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-4"
                       onSubmit={async (event) => {
@@ -2458,7 +2477,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                           <th className="p-3">Type</th>
                           <th className="p-3">Category</th>
                           <th className="p-3">Status</th>
-                          {['SUPER_ADMIN', 'BURSAR'].includes(role) && <th className="p-3">Actions</th>}
+                          {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && <th className="p-3">Actions</th>}
                         </tr>
                       </thead>
                       <tbody>
@@ -2472,7 +2491,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                             <td className="p-3">{item.feeType === 'ONE_TIME' ? 'One Time' : 'Per Session'}</td>
                             <td className="p-3">{item.category}</td>
                             <td className="p-3">{item.isActive ? 'Active' : 'Inactive'}</td>
-                            {['SUPER_ADMIN', 'BURSAR'].includes(role) && (
+                            {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && (
                               <td className="p-3">
                                 <div className="flex flex-wrap gap-2">
                                   <button
@@ -2542,7 +2561,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                         ))}
                         {newFeeCatalog.length === 0 && (
                           <tr>
-                            <td colSpan={['SUPER_ADMIN', 'BURSAR'].includes(role) ? 6 : 5} className="p-5 text-center text-slate-500">
+                            <td colSpan={['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) ? 6 : 5} className="p-5 text-center text-slate-500">
                               No fee catalog records loaded. Use Refresh Catalog to load records.
                             </td>
                           </tr>
@@ -2588,7 +2607,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                     </div>
                   )}
 
-                  {['SUPER_ADMIN', 'BURSAR'].includes(role) && (
+                  {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && (
                     <form
                       className="grid grid-cols-1 md:grid-cols-4 gap-2 rounded-xl border border-slate-200 dark:border-slate-700 p-4"
                       onSubmit={async (event) => {
@@ -2699,7 +2718,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                                 >
                                   View Items
                                 </button>
-                                {['SUPER_ADMIN', 'BURSAR'].includes(role) && (
+                                {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && (
                                   <>
                                     <button
                                       type="button"
@@ -2802,7 +2821,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                         </button>
                       </div>
 
-                      {['SUPER_ADMIN', 'BURSAR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && selectedNewSchedule.isActive && (
+                      {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && selectedNewSchedule.isActive && (
                         <form
                           className="grid grid-cols-1 md:grid-cols-4 gap-2"
                           onSubmit={async (event) => {
@@ -2891,7 +2910,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                               <th className="p-2">Override</th>
                               <th className="p-2">Effective</th>
                               <th className="p-2">Priority</th>
-                              {['SUPER_ADMIN', 'BURSAR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && <th className="p-2">Action</th>}
+                              {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && <th className="p-2">Action</th>}
                             </tr>
                           </thead>
                           <tbody>
@@ -2926,7 +2945,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                                     />
                                   ) : item.allocationPriority}
                                 </td>
-                                {['SUPER_ADMIN', 'BURSAR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && (
+                                {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && (
                                   <td className="p-2">
                                     <div className="flex flex-wrap items-center gap-2">
                                       {editingNewScheduleItemId === item.id ? (

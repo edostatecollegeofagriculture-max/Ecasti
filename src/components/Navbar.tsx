@@ -57,7 +57,7 @@ export const Navbar: React.FC<Props> = ({
           <span className="bg-emerald-800/80 px-2 py-0.5 rounded border border-emerald-700 text-emerald-100 hidden md:inline">
             {settings?.currentSemester || 'First Semester'}
           </span>
-          {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role) && <button
+          {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role) && <button
             onClick={onOpenPersonaModal}
             className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-0.5 rounded shadow-xs flex items-center gap-1 cursor-pointer transition"
             title="Fast switch between roles (Rector, Bursar, Lecturer, Student, etc.)"
@@ -91,7 +91,7 @@ export const Navbar: React.FC<Props> = ({
         </div>
 
         {/* Persistent Global Search Bar */}
-        {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role) && <div className="flex-1 max-w-md hidden md:block">
+        {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role) && <div className="flex-1 max-w-md hidden md:block">
           <GlobalSearchBar onNavigate={(tab, sub) => setActiveTab(tab, sub)} onOpenPrintModal={onOpenPrintModal} />
         </div>}
 
@@ -229,7 +229,7 @@ export const Navbar: React.FC<Props> = ({
       </div>
 
       {/* Mobile Global Search Bar */}
-      {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role) && <div className="md:hidden px-4 pb-2.5">
+      {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role) && <div className="md:hidden px-4 pb-2.5">
         <GlobalSearchBar onNavigate={(tab, sub) => setActiveTab(tab, sub)} onOpenPrintModal={onOpenPrintModal} />
       </div>}
 

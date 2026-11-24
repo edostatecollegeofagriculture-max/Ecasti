@@ -6,9 +6,12 @@ on:
       - staging-postgres-state-store
       - feature/academic-progression-snapshot-readonly
       - staging-role-specific-workspaces
+      - staging-role-responsibility-matrix
+      - staging-hod-result-approval
   pull_request:
     branches:
       - feature/academic-progression-snapshot-readonly
+      - staging-role-responsibility-matrix
 
 jobs:
   validate:
@@ -27,3 +30,4 @@ jobs:
       - run: npm run test:academic-progression-http-authorization
       - run: npm run test:academic-result-evaluation
       - run: npm run test:role-access
+      - run: npm run test:result-approval-authorization

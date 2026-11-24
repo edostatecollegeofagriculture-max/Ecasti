@@ -28,6 +28,7 @@ import { activateAdmissionFeeObligations, listRetryableAdmissionFeeActivations }
 import { evaluateNdGraduationEligibility } from './academicProgressionService';
 import { academicProgressionApiRouter } from './academicProgressionApiRouter';
 import { appendAcademicResultEvent, listAcademicResultAttempts } from './academicResultNeonService';
+import { canExamOfficerModerateResult, canHodApproveResult, isHodApprovedForPublication } from './resultApprovalAuthorization';
 
 export const apiRouter = Router();
 apiRouter.use('/academic-progression', academicProgressionApiRouter);
@@ -720,7 +721,7 @@ apiRouter.get(
 );
 
 apiRouter.get('/academics/lecturers', authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'HOD'), (req: AuthenticatedRequest, res: Response) => {
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'), (req: AuthenticatedRequest, res: Response) => {
   const state = db.getState();
   let lecturerUsers = state.users.filter((u) => u.role === 'LECTURER' && u.isActive);
   if (req.user!.role === 'HOD') {
@@ -1066,7 +1067,7 @@ apiRouter.delete(
 apiRouter.get(
   '/admissions',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'ADMISSIONS_OFFICER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { status, programmeId, session } = req.query;
     let list = db.getState().applications;
@@ -1169,7 +1170,7 @@ apiRouter.post('/admissions/apply', authenticateToken, (req: AuthenticatedReques
 apiRouter.put(
   '/admissions/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'ADMISSIONS_OFFICER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const app = db.getState().applications.find((a) => a.id === id);
@@ -1198,7 +1199,7 @@ apiRouter.delete(
 apiRouter.patch(
   '/admissions/:id/decision',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'ADMISSIONS_OFFICER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const { status, screeningNotes } = req.body;
@@ -1506,7 +1507,7 @@ apiRouter.post(
 apiRouter.post(
   '/admissions/:id/migrate-student',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'ADMISSIONS_OFFICER'),
   async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -1628,7 +1629,7 @@ apiRouter.post(
 apiRouter.get(
   '/admissions/fee-activation-retries',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'ADMISSIONS_OFFICER'),
   async (req: AuthenticatedRequest, res: Response) => {
     if (!isFeeManagementEnabled()) {
       return res.status(503).json({
@@ -1657,7 +1658,7 @@ apiRouter.get(
 apiRouter.post(
   '/admissions/:id/retry-fee-activation',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'ADMISSIONS_OFFICER'),
   async (req: AuthenticatedRequest, res: Response) => {
     if (!isFeeManagementEnabled()) {
       return res.status(503).json({
@@ -1718,7 +1719,7 @@ apiRouter.post(
 apiRouter.get(
   '/students',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'DEAN', 'HOD', 'LECTURER', 'EXAM_OFFICER', 'BURSAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'BURSAR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { departmentId, level, search, programmeId } = req.query;
     const state = db.getState();
@@ -1759,7 +1760,7 @@ apiRouter.get(
       );
       list = list.filter((s) => enrolledStudentIds.has(s.id));
     }
-    if (role === 'HOD' || role === 'EXAM_OFFICER') {
+    if (role === 'EXAM_OFFICER') {
       const departmentId = req.user!.departmentId;
       list = departmentId ? list.filter((s) => s.departmentId === departmentId) : [];
     }
@@ -1941,17 +1942,17 @@ apiRouter.get('/students/me', authenticateToken, (req: AuthenticatedRequest, res
 apiRouter.get(
   '/registrations',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
   const { session, semester, studentId } = req.query;
   const state = db.getState();
   let list = state.registrations;
   const actorRole = req.user!.role;
-  if (actorRole === 'EXAM_OFFICER') {
+  if (actorRole === 'HOD') {
     const departmentId = req.user!.departmentId;
     const departmentCourseIds = new Set(state.courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
     list = departmentId
-      ? list.filter((registration) => registration.courseIds.some((courseId) => departmentCourseIds.has(courseId)))
+      ? list.filter((registration) => registration.courseIds.every((courseId) => departmentCourseIds.has(courseId)))
       : [];
   }
   if (session) list = list.filter((r) => r.session === session);
@@ -2071,7 +2072,7 @@ apiRouter.post('/registrations/register', authenticateToken, (req: Authenticated
 apiRouter.patch(
   '/registrations/:id/approve',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const reg = db.getState().registrations.find((r) => r.id === id);
@@ -2079,13 +2080,18 @@ apiRouter.patch(
       return res.status(404).json({ success: false, message: 'Registration not found.' });
     }
 
-    if (reg.status === 'APPROVED_BY_EXAM_OFFICER') {
+    if (req.user!.role === 'HOD') {
+      const departmentId = req.user!.departmentId;
+      const allowedCourseIds = new Set(db.getState().courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+      if (!departmentId || !reg.courseIds.every((courseId) => allowedCourseIds.has(courseId))) return res.status(403).json({ success: false, message: 'You can only approve registrations for your department.' });
+    }
+    if (reg.status === 'APPROVED_BY_HOD') {
       return res.status(409).json({ success: false, message: 'This registration has already been approved.' });
     }
     if (reg.status !== 'SUBMITTED') {
       return res.status(400).json({ success: false, message: 'Only submitted registrations can be approved.' });
     }
-    reg.status = 'APPROVED_BY_EXAM_OFFICER';
+    reg.status = 'APPROVED_BY_HOD';
     reg.approvedAt = new Date().toISOString();
     reg.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
 
@@ -2106,7 +2112,7 @@ apiRouter.patch(
 apiRouter.post(
   '/registrations/approve-bulk',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
     const { registrationIds, session, semester } = req.body;
     const state = db.getState();
@@ -2120,8 +2126,11 @@ apiRouter.post(
       const selected = selectedIds
         ? selectedIds.has(registration.id)
         : (!session || registration.session === session) && (!semester || registration.semester === semester);
-      if (selected && registration.status === 'SUBMITTED') {
-        registration.status = 'APPROVED_BY_EXAM_OFFICER';
+      const hodDepartmentId = req.user!.role === 'HOD' ? req.user!.departmentId : undefined;
+      const hodCourseIds = hodDepartmentId ? new Set(state.courses.filter((course) => course.departmentId === hodDepartmentId).map((course) => course.id)) : null;
+      const withinHodDepartment = req.user!.role !== 'HOD' || Boolean(hodDepartmentId && registration.courseIds.every((courseId) => Boolean(hodCourseIds?.has(courseId))));
+      if (selected && withinHodDepartment && registration.status === 'SUBMITTED') {
+        registration.status = 'APPROVED_BY_HOD';
         registration.approvedAt = now;
         registration.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
         approvedCount++;
@@ -2143,11 +2152,16 @@ apiRouter.post(
 apiRouter.patch(
   '/registrations/:id/reject',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const reg = db.getState().registrations.find((r) => r.id === id);
     if (!reg) return res.status(404).json({ success: false, message: 'Registration not found.' });
+    if (req.user!.role === 'HOD') {
+      const departmentId = req.user!.departmentId;
+      const allowedCourseIds = new Set(db.getState().courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+      if (!departmentId || !reg.courseIds.every((courseId) => allowedCourseIds.has(courseId))) return res.status(403).json({ success: false, message: 'You can only reject registrations for your department.' });
+    }
     reg.status = 'REJECTED';
     reg.approvedAt = new Date().toISOString();
     reg.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
@@ -2159,12 +2173,17 @@ apiRouter.patch(
 apiRouter.put(
   '/registrations/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const reg = db.getState().registrations.find((r) => r.id === id);
     if (!reg) return res.status(404).json({ success: false, message: 'Registration not found.' });
-    if (reg.status === 'APPROVED_BY_EXAM_OFFICER') {
+    if (req.user!.role === 'HOD') {
+      const departmentId = req.user!.departmentId;
+      const allowedCourseIds = new Set(db.getState().courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+      if (!departmentId || !reg.courseIds.every((courseId) => allowedCourseIds.has(courseId))) return res.status(403).json({ success: false, message: 'You can only edit registrations for your department.' });
+    }
+    if (reg.status === 'APPROVED_BY_HOD') {
       return res.status(409).json({ success: false, message: 'Approved registrations are locked against changes.' });
     }
     const { courseIds } = req.body;
@@ -2223,7 +2242,7 @@ function recalculateStudentAcademicTotals(state: ReturnType<typeof db.getState>,
   }
 }
 
-apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'HOD', 'EXAM_OFFICER', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'HOD', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
   const { courseId, session, semester, studentId, status } = req.query;
   let list = db.getState().results;
 
@@ -2440,8 +2459,8 @@ apiRouter.post(
       (r) => r.courseId === courseId && r.studentId === studentId && r.session === targetSession && r.semester === targetSemester
     );
 
-    const isAutoPublishRole = ['SUPER_ADMIN', 'EXAM_OFFICER'].includes(req.user!.role);
-    const nextStatus = existing?.status === 'PUBLISHED' && isAutoPublishRole ? 'PUBLISHED' : 'SUBMITTED';
+    // Every score entry or revision restarts the approval chain.
+    const nextStatus = 'SUBMITTED';
 
     const resultRecord: AssessmentResult = {
       id: existing?.id || 'res-' + Date.now() + '-' + Math.floor(Math.random() * 100),
@@ -2482,6 +2501,87 @@ apiRouter.post(
 );
 
 apiRouter.patch(
+  '/results/:id/hod-approve',
+  authenticateToken,
+  requireRoles('HOD'),
+  (req: AuthenticatedRequest, res: Response) => {
+    const state = db.getState();
+    const result = state.results.find((item) => item.id === req.params.id);
+    if (!result) return res.status(404).json({ success: false, message: 'Result not found.' });
+
+    const departmentId = req.user!.departmentId;
+    const course = state.courses.find((item) => item.id === result.courseId);
+    if (!departmentId || !canHodApproveResult(req.user, course, result)) {
+      return res.status(403).json({ success: false, message: 'You can only approve submitted results for courses in your department.' });
+    }
+
+    result.status = 'HOD_APPROVED';
+    result.hodApprovedAt = new Date().toISOString();
+    result.hodApprovedBy = `${req.user!.fullName} (${req.user!.role})`;
+    db.saveState();
+    db.logAudit({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'RESULT_HOD_APPROVED',
+      resource: 'RESULT',
+      details: { resultId: result.id, courseId: result.courseId, studentId: result.studentId },
+      ipAddress: req.ip,
+    });
+    return res.json({ success: true, result });
+  }
+);
+
+apiRouter.post(
+  '/results/hod-approve-bulk',
+  authenticateToken,
+  requireRoles('HOD'),
+  (req: AuthenticatedRequest, res: Response) => {
+    const { resultIds, courseId } = req.body || {};
+    if (resultIds !== undefined && (!Array.isArray(resultIds) || resultIds.some((id: unknown) => typeof id !== 'string'))) {
+      return res.status(400).json({ success: false, message: 'Result IDs must be an array of valid IDs.' });
+    }
+    const requestedIds = new Set<string>(resultIds || []);
+    const hasCourseFilter = typeof courseId === 'string' && courseId.trim().length > 0;
+    if (requestedIds.size === 0 && !hasCourseFilter) {
+      return res.status(400).json({ success: false, message: 'Select submitted results or specify a course.' });
+    }
+    const departmentId = req.user!.departmentId;
+    if (!departmentId) return res.status(403).json({ success: false, message: 'Your account has no assigned department.' });
+    const state = db.getState();
+    const departmentCourseIds = new Set(state.courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+    if (hasCourseFilter && !departmentCourseIds.has(courseId)) {
+      return res.status(403).json({ success: false, message: 'You can only approve results for courses in your department.' });
+    }
+    const now = new Date().toISOString();
+    const eligibleResults = state.results.filter((result) => {
+      const course = state.courses.find((item) => item.id === result.courseId);
+      return canHodApproveResult(req.user, course, result) &&
+        departmentCourseIds.has(result.courseId) &&
+        (requestedIds.has(result.id) || (hasCourseFilter && result.courseId === courseId));
+    });
+    for (const result of eligibleResults) {
+      result.status = 'HOD_APPROVED';
+      result.hodApprovedAt = now;
+      result.hodApprovedBy = `${req.user!.fullName} (${req.user!.role})`;
+    }
+    if (eligibleResults.length > 0) db.saveState();
+    db.logAudit({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'RESULTS_HOD_BULK_APPROVED',
+      resource: 'RESULT',
+      details: { count: eligibleResults.length, resultIds: eligibleResults.map((result) => result.id) },
+      ipAddress: req.ip,
+    });
+    return res.json({
+      success: true,
+      approvedCount: eligibleResults.length,
+      skippedCount: Math.max(0, requestedIds.size - eligibleResults.length),
+    });
+  }
+);
+
+apiRouter.patch(
   '/results/:id/publish',
   authenticateToken,
   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
@@ -2491,6 +2591,15 @@ apiRouter.patch(
     const resItem = state.results.find((r) => r.id === id);
     if (!resItem) {
       return res.status(404).json({ success: false, message: 'Result not found.' });
+    }
+    if (!isHodApprovedForPublication(resItem)) {
+      return res.status(409).json({ success: false, message: 'Results must be approved by the HOD before Exam Officer moderation and publication.' });
+    }
+    if (req.user!.role === 'EXAM_OFFICER') {
+      const course = state.courses.find((item) => item.id === resItem.courseId);
+      if (!canExamOfficerModerateResult(req.user, course, resItem)) {
+        return res.status(403).json({ success: false, message: 'You can only moderate HOD-approved results for your department.' });
+      }
     }
 
     resItem.status = 'PUBLISHED';
@@ -2533,7 +2642,9 @@ apiRouter.post(
     const now = new Date().toISOString();
     const touchedStudents = new Set<string>();
     const eligibleResults = state.results.filter((result) => {
-      if (result.status !== 'SUBMITTED') return false;
+      const course = state.courses.find((item) => item.id === result.courseId);
+      if (!isHodApprovedForPublication(result)) return false;
+      if (req.user!.role === 'EXAM_OFFICER' && !canExamOfficerModerateResult(req.user, course, result)) return false;
       const matchesId = requestedIds.has(result.id);
       const matchesCourse = hasCourseFilter && result.courseId === courseId;
       return matchesId || matchesCourse;
@@ -2589,7 +2700,10 @@ apiRouter.put(
     if (req.user!.role === 'LECTURER' && req.body.status !== undefined) {
       return res.status(403).json({ success: false, message: 'Lecturers cannot approve or publish results.' });
     }
-    const { caScore, examScore, status } = req.body;
+    const { caScore, examScore } = req.body;
+    if (req.body.status !== undefined) {
+      return res.status(400).json({ success: false, message: 'Result status can only be changed through the approval workflow.' });
+    }
     if (caScore !== undefined) {
       resItem.caScore = Math.max(0, Math.min(Number(caScore), state.settings.caMaxMarks));
     }
@@ -2600,12 +2714,12 @@ apiRouter.put(
     const { grade, gradePoint } = computeGradeAndPoints(resItem.totalScore);
     resItem.grade = grade;
     resItem.gradePoint = gradePoint;
-    if (status !== undefined) {
-      resItem.status = status;
-      if (status === 'PUBLISHED' && !resItem.publishedAt) {
-        resItem.publishedAt = new Date().toISOString();
-      }
-    }
+    // Any score revision invalidates prior HOD approval and publication.
+    resItem.status = 'SUBMITTED';
+    delete resItem.hodApprovedBy;
+    delete resItem.hodApprovedAt;
+    delete resItem.approvedBy;
+    delete resItem.publishedAt;
     recalculateStudentAcademicTotals(state, resItem.studentId);
     db.saveState();
     return res.json({ success: true, result: resItem });
@@ -2963,7 +3077,7 @@ apiRouter.delete(
 
 apiRouter.get('/finance/invoices', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
   const user = req.user!;
-  if (user.role !== 'STUDENT' && !['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'].includes(user.role)) {
+  if (user.role !== 'STUDENT' && !['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'BURSAR'].includes(user.role)) {
     return res.status(403).json({ success: false, message: 'You do not have permission to view the fee ledger.' });
   }
   const { studentId } = req.query;
@@ -3125,7 +3239,7 @@ apiRouter.delete(
 apiRouter.get('/attendance', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
   const { courseId } = req.query;
   const user = req.user!;
-  if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER'].includes(user.role)) {
+  if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'LECTURER'].includes(user.role)) {
     return res.status(403).json({ success: false, message: 'You do not have permission to view attendance records.' });
   }
   const state = db.getState();
@@ -3229,7 +3343,7 @@ apiRouter.get('/support', authenticateToken, (req: AuthenticatedRequest, res: Re
     list = list.filter((ticket) => ticket.category === 'Admissions');
   } else if (user.role === 'REGISTRAR') {
     list = list.filter((ticket) => ['Course Registration', 'Results'].includes(ticket.category));
-  } else if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role)) {
+  } else if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role)) {
     return res.status(403).json({ success: false, message: 'You do not have permission to view support queues.' });
   }
   return res.json({ success: true, tickets: list });
@@ -3291,7 +3405,7 @@ apiRouter.post('/support/:id/reply', authenticateToken, (req: AuthenticatedReque
   if (!ticket) {
     return res.status(404).json({ success: false, message: 'Ticket not found.' });
   }
-  const supportRoles = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER', 'BURSAR'];
+  const supportRoles = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'ADMISSIONS_OFFICER', 'BURSAR'];
   if (ticket.userId !== user.id && !supportRoles.includes(user.role)) {
     return res.status(403).json({ success: false, message: 'You can only reply to your own ticket or an authorized support queue.' });
   }
