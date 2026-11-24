@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HeroSlide, NewsArticle } from '../types';
 import { api } from '../services/api';
 import {
   ChevronLeft,
   ChevronRight,
-  Pause,
-  Play,
   ArrowRight,
   Sparkles,
   Tractor,
@@ -28,11 +26,8 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
   const [loading, setLoading] = useState(true);
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
-
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load slides and featured news
   const loadContent = async () => {
@@ -92,18 +87,16 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
     loadContent();
   }, []);
 
-  // Auto-play timer
+  // Keep the hero slideshow rotating continuously, including while the pointer is over it.
   useEffect(() => {
-    if (!isPlaying || slides.length === 0) return;
+    if (slides.length < 2) return;
 
-    timerRef.current = setInterval(() => {
+    const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % slides.length);
     }, 6000);
 
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isPlaying, slides.length, currentIndex]);
+    return () => clearInterval(timer);
+  }, [slides.length]);
 
   const goToNext = () => {
     setCurrentIndex((prev) => (prev + 1) % slides.length);
@@ -169,8 +162,6 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
       <div
         style={heroStyles.containerStyle}
         className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl border-2 border-emerald-800/50 dark:border-amber-500/30 bg-slate-950 text-white min-h-[380px] sm:min-h-[440px] lg:min-h-[480px] flex flex-col justify-between"
-        onMouseEnter={() => setIsPlaying(false)}
-        onMouseLeave={() => setIsPlaying(true)}
       >
         {/* Configured slide image, with a readable colour overlay above it */}
         {hasSlideImage && (
@@ -222,18 +213,7 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
             </span>
           </div>
 
-          {/* Autoplay toggle and slide counters */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              style={heroStyles.secondaryBtnStyle}
-              className="p-1.5 rounded-lg bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 hover:text-white border border-emerald-700/50 transition cursor-pointer"
-              title={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
-              aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
-            >
-              {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            </button>
-          </div>
+
         </div>
 
         {/* Slide Content Area */}
