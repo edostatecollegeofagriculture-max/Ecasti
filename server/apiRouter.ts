@@ -34,7 +34,12 @@ import { getDemoSeedStatus, seedDemoAcademicData, unseedDemoAcademicData } from 
 export const apiRouter = Router();
 apiRouter.use('/academic-progression', academicProgressionApiRouter);
 
-const superAdminOnly = [authenticateToken, requireRoles('SUPER_ADMIN')];
+const requireExactSuperAdmin = (req: AuthenticatedRequest, res: Response, next: () => void) => {
+  if (!req.user) return res.status(401).json({ success: false, message: 'Authentication required.' });
+  if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ success: false, message: 'Only the SUPER_ADMIN role may manage staging demo data.' });
+  return next();
+};
+const superAdminOnly = [authenticateToken, requireExactSuperAdmin];
 apiRouter.get('/staging/demo-data/status', ...superAdminOnly, (_req: AuthenticatedRequest, res: Response) => {
   try { return res.json(getDemoSeedStatus()); }
   catch (error) { return res.status(403).json({ success: false, message: error instanceof Error ? error.message : 'Demo data controls unavailable.' }); }
