@@ -1846,7 +1846,7 @@ apiRouter.post(
 apiRouter.put(
   '/students/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -2586,6 +2586,9 @@ apiRouter.put(
     if (req.user!.role === 'LECTURER' && resultCourse?.lecturerId !== req.user!.id) {
       return res.status(403).json({ success: false, message: 'You can only update results for courses assigned to you.' });
     }
+    if (req.user!.role === 'LECTURER' && req.body.status !== undefined) {
+      return res.status(403).json({ success: false, message: 'Lecturers cannot approve or publish results.' });
+    }
     const { caScore, examScore, status } = req.body;
     if (caScore !== undefined) {
       resItem.caScore = Math.max(0, Math.min(Number(caScore), state.settings.caMaxMarks));
@@ -2855,7 +2858,7 @@ apiRouter.get('/finance/fee-schedules', (req, res) => {
 apiRouter.post(
   '/finance/fee-schedules',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { title, category, level, session, amount, programmeId } = req.body;
     const state = db.getState();
@@ -2899,7 +2902,7 @@ apiRouter.post(
 apiRouter.put(
   '/finance/fee-schedules/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
