@@ -6,6 +6,7 @@ on:
       - staging-postgres-state-store
       - feature/academic-progression-snapshot-readonly
       - staging-role-specific-workspaces
+      - staging-role-responsibility-matrix
   pull_request:
     branches:
       - feature/academic-progression-snapshot-readonly
