@@ -1863,7 +1863,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </div>}
 
               {/* Panel B: Exam Officer result moderation and publication */}
               {user?.role !== 'HOD' && <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
