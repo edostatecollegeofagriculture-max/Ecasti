@@ -720,7 +720,7 @@ apiRouter.get(
 );
 
 apiRouter.get('/academics/lecturers', authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'HOD'), (req: AuthenticatedRequest, res: Response) => {
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'), (req: AuthenticatedRequest, res: Response) => {
   const state = db.getState();
   let lecturerUsers = state.users.filter((u) => u.role === 'LECTURER' && u.isActive);
   if (req.user!.role === 'HOD') {
@@ -1066,7 +1066,7 @@ apiRouter.delete(
 apiRouter.get(
   '/admissions',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'ADMISSIONS_OFFICER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { status, programmeId, session } = req.query;
     let list = db.getState().applications;
@@ -1169,7 +1169,7 @@ apiRouter.post('/admissions/apply', authenticateToken, (req: AuthenticatedReques
 apiRouter.put(
   '/admissions/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'ADMISSIONS_OFFICER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const app = db.getState().applications.find((a) => a.id === id);
@@ -2241,7 +2241,7 @@ function recalculateStudentAcademicTotals(state: ReturnType<typeof db.getState>,
   }
 }
 
-apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'HOD', 'EXAM_OFFICER', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD', 'EXAM_OFFICER', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
   const { courseId, session, semester, studentId, status } = req.query;
   let list = db.getState().results;
 
