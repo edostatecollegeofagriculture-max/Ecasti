@@ -2596,6 +2596,12 @@ apiRouter.patch(
     if (resItem.status !== 'HOD_APPROVED') {
       return res.status(409).json({ success: false, message: 'Results must be approved by the HOD before Exam Officer moderation and publication.' });
     }
+    if (req.user!.role === 'EXAM_OFFICER') {
+      const course = state.courses.find((item) => item.id === resItem.courseId);
+      if (!req.user!.departmentId || course?.departmentId !== req.user!.departmentId) {
+        return res.status(403).json({ success: false, message: 'You can only moderate results for your department.' });
+      }
+    }
 
     resItem.status = 'PUBLISHED';
     resItem.publishedAt = new Date().toISOString();
@@ -2636,8 +2642,12 @@ apiRouter.post(
     const state = db.getState();
     const now = new Date().toISOString();
     const touchedStudents = new Set<string>();
+    const examOfficerCourseIds = req.user!.role === 'EXAM_OFFICER'
+      ? new Set(state.courses.filter((course) => course.departmentId === req.user!.departmentId).map((course) => course.id))
+      : null;
     const eligibleResults = state.results.filter((result) => {
       if (result.status !== 'HOD_APPROVED') return false;
+      if (examOfficerCourseIds && !examOfficerCourseIds.has(result.courseId)) return false;
       const matchesId = requestedIds.has(result.id);
       const matchesCourse = hasCourseFilter && result.courseId === courseId;
       return matchesId || matchesCourse;
@@ -2707,6 +2717,12 @@ apiRouter.put(
     const { grade, gradePoint } = computeGradeAndPoints(resItem.totalScore);
     resItem.grade = grade;
     resItem.gradePoint = gradePoint;
+    // Any score revision invalidates prior HOD approval and publication.
+    resItem.status = 'SUBMITTED';
+    delete resItem.hodApprovedBy;
+    delete resItem.hodApprovedAt;
+    delete resItem.approvedBy;
+    delete resItem.publishedAt;
     recalculateStudentAcademicTotals(state, resItem.studentId);
     db.saveState();
     return res.json({ success: true, result: resItem });
