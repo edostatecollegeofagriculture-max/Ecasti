@@ -3,11 +3,9 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Navbar } from './components/Navbar';
 import { Breadcrumbs } from './components/Breadcrumbs';
-import { PersonaSwitcherModal } from './components/PersonaSwitcherModal';
 import { LoginModal } from './components/LoginModal';
 import { PrintSlipModal } from './components/PrintSlipModal';
 import { SchoolLogo } from './components/SchoolLogo';
-import { KeyRound } from 'lucide-react';
 import { canAccessWorkspace, getRoleHome } from './utils/roleAccess';
 
 const PublicPortal = lazy(() => import('./views/PublicPortal').then((module) => ({ default: module.PublicPortal })));
@@ -29,7 +27,6 @@ const MainApp: React.FC = () => {
   const { user, settings } = useAuth();
   const [activeTab, setActiveTab] = useState('public');
   const [activeSubSection, setActiveSubSection] = useState<string | undefined>('overview');
-  const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const [printModalState, setPrintModalState] = useState<PrintModalState>({
@@ -44,7 +41,6 @@ const MainApp: React.FC = () => {
 
     setActiveTab(destination.tab);
     setActiveSubSection(destination.section);
-    setIsPersonaModalOpen(false);
     setIsLoginModalOpen(false);
     setPrintModalState((current) => ({ ...current, isOpen: false, data: null }));
   }, [user?.id, user?.email, user?.role]);
@@ -86,7 +82,6 @@ const MainApp: React.FC = () => {
       <Navbar
         activeTab={activeTab}
         setActiveTab={handleNavigate}
-        onOpenPersonaModal={() => setIsPersonaModalOpen(true)}
         onOpenLoginModal={() => setIsLoginModalOpen(true)}
         onOpenPrintModal={openPrintModal}
       />
@@ -144,22 +139,6 @@ const MainApp: React.FC = () => {
         )}
         </Suspense>
       </main>
-
-      {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role) && <div className="fixed bottom-5 right-5 z-40 no-print">
-        <button
-          onClick={() => setIsPersonaModalOpen(true)}
-          className="bg-emerald-900 hover:bg-emerald-800 dark:bg-emerald-800 dark:hover:bg-emerald-700 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-xl hover:shadow-2xl flex items-center gap-2 border-2 border-amber-400 transition transform hover:-translate-y-0.5 cursor-pointer"
-        >
-          <KeyRound className="w-4 h-4 text-amber-400" />
-          <span>Test as Rector / HOD / Student</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        </button>
-      </div>}
-
-      <PersonaSwitcherModal
-        isOpen={isPersonaModalOpen}
-        onClose={() => setIsPersonaModalOpen(false)}
-      />
 
       <LoginModal
         isOpen={isLoginModalOpen}
