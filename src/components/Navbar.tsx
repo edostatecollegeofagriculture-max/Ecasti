@@ -51,7 +51,7 @@ export const Navbar: React.FC<Props> = ({
       <div className="max-w-[84rem] mx-auto px-3 sm:px-5 xl:px-7 py-2.5 flex items-center justify-between gap-2 sm:gap-4">
         {/* Logo and Brand */}
         <div
-          onClick={() => { if (!user) setActiveTab('public'); }}
+          onClick={() => setActiveTab('public', 'overview')}
           className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group shrink-0"
         >
           <SchoolLogo size={40} className="group-hover:scale-105 transition shrink-0" />
