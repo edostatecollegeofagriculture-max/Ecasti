@@ -159,27 +159,8 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
               : `bg-linear-to-br ${currentSlide?.bgGradient || 'from-emerald-950 via-emerald-900 to-slate-950'}`
           } transition-all duration-700 ease-in-out`}
         />
-        {currentSlide?.imageUrl && (
-          <>
-            <img
-              src={currentSlide.imageUrl}
-              alt={currentSlide.title}
-              className="absolute inset-0 w-full h-full object-cover opacity-50 transition-opacity duration-700"
-            />
-            <div
-              style={heroStyles.imageTintStyle}
-              className={`absolute inset-0 ${
-                customBg ? '' : 'bg-linear-to-r from-slate-950/90 via-emerald-950/75 to-slate-950/55'
-              }`}
-            />
-          </>
-        )}
+        {/* Hero background uses its configured colour treatment; slide image URLs are not rendered. */}
         <div className="absolute inset-0 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:28px_28px] opacity-10 pointer-events-none" />
-
-        {/* College crest watermark: uses the configured institutional logo when available. */}
-        <div className="absolute right-3 sm:right-10 top-1/2 -translate-y-1/2 w-48 h-48 sm:w-72 sm:h-72 lg:w-[25rem] lg:h-[25rem] opacity-20 pointer-events-none" aria-hidden="true">
-          <SchoolLogo variant="full" size="100%" className="drop-shadow-2xl" />
-        </div>
 
         {/* Heraldic Watermark Glow inside Slide */}
         <div className="absolute -right-16 -bottom-16 w-96 h-96 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
