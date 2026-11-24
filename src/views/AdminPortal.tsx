@@ -1313,7 +1313,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {onOpenPageBuilder && isSuperAdmin && (
+          {onOpenPageBuilder && ['SUPER_ADMIN', 'RECTOR'].includes(role) && (
             <button
               onClick={onOpenPageBuilder}
               className="px-3.5 py-2 bg-emerald-900 hover:bg-emerald-800 text-amber-300 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
