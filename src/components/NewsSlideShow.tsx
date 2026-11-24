@@ -308,23 +308,43 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
           <span>Notice</span>
         </div>
 
-        <div
-          style={{ ...heroStyles.subtitleStyle, color: '#dc2626' }}
-          className="flex-1 overflow-x-auto whitespace-nowrap scrollbar-none flex items-center gap-6 text-red-600"
-        >
-          {news.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setSelectedArticle(item)}
-              className="hover:opacity-80 transition flex items-center gap-2 cursor-pointer font-medium"
-            >
-              <span
-                style={heroStyles.dotAccentStyle}
-                className="w-1.5 h-1.5 rounded-full bg-amber-400"
-              />
-              <span>{item.title}</span>
-            </button>
-          ))}
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <style>{`
+            @keyframes hero-notice-marquee {
+              from { transform: translateX(0); }
+              to { transform: translateX(-50%); }
+            }
+            .hero-notice-track {
+              animation: hero-notice-marquee 38s linear infinite;
+              will-change: transform;
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .hero-notice-track { animation: none; }
+            }
+          `}</style>
+          <div
+            className="hero-notice-track flex w-max whitespace-nowrap text-red-600"
+            style={{ ...heroStyles.subtitleStyle, color: '#dc2626' }}
+          >
+            {[0, 1].map((copy) => (
+              <div key={copy} className="flex shrink-0 items-center gap-6 pr-6" aria-hidden={copy === 1}>
+                {news.map((item) => (
+                  <button
+                    key={`${copy}-${item.id}`}
+                    onClick={() => setSelectedArticle(item)}
+                    tabIndex={copy === 1 ? -1 : 0}
+                    className="hover:opacity-80 transition flex items-center gap-2 cursor-pointer font-medium"
+                  >
+                    <span
+                      style={heroStyles.dotAccentStyle}
+                      className="w-1.5 h-1.5 rounded-full bg-amber-400"
+                    />
+                    <span>{item.title}</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
