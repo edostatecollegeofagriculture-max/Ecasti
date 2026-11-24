@@ -323,8 +323,8 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
         </div>
 
         <div
-          style={heroStyles.subtitleStyle}
-          className="flex-1 overflow-x-auto whitespace-nowrap scrollbar-none flex items-center gap-6 text-emerald-100"
+          style={{ ...heroStyles.subtitleStyle, color: '#dc2626' }}
+          className="flex-1 overflow-x-auto whitespace-nowrap scrollbar-none flex items-center gap-6 text-red-600"
         >
           {news.map((item) => (
             <button
