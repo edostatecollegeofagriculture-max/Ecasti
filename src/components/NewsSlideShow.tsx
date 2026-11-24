@@ -17,6 +17,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { NewsArticleModal } from './NewsArticleModal';
+import { SchoolLogo } from './SchoolLogo';
 import { getHeroSlideStyles, hasCustomHeroBackground } from '../utils/heroTheme';
 
 interface Props {
@@ -175,6 +176,11 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
         )}
         <div className="absolute inset-0 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:28px_28px] opacity-10 pointer-events-none" />
 
+        {/* College crest watermark: uses the configured institutional logo when available. */}
+        <div className="absolute right-3 sm:right-10 top-1/2 -translate-y-1/2 w-48 h-48 sm:w-72 sm:h-72 lg:w-[25rem] lg:h-[25rem] opacity-20 pointer-events-none" aria-hidden="true">
+          <SchoolLogo variant="full" size="100%" className="drop-shadow-2xl" />
+        </div>
+
         {/* Heraldic Watermark Glow inside Slide */}
         <div className="absolute -right-16 -bottom-16 w-96 h-96 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
         <div className="absolute -left-16 -top-16 w-80 h-80 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
@@ -182,6 +188,7 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
         {/* Top Header of Slideshow */}
         <div className="relative z-10 p-5 sm:p-7 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
+            <SchoolLogo variant="full" size={44} className="shrink-0 drop-shadow-lg" />
             <span
               style={heroStyles.badgeStyle}
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-400/40 backdrop-blur-xs"
