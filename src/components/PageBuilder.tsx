@@ -162,7 +162,7 @@ const SECTION_LABELS: Record<string, string> = {
   footer: 'Campus Footer',
 };
 
-const ADMIN_EDIT_ROLES = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'BURSAR', 'ADMISSIONS_OFFICER', 'DEAN'];
+const ADMIN_EDIT_ROLES = ['SUPER_ADMIN', 'RECTOR'];
 
 export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }) => {
   const { user, settings: ctxSettings, pageContent: ctxPageContent, refreshSettings, refreshPageContent, switchPersona } =
