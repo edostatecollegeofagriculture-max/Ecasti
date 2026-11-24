@@ -44,22 +44,22 @@ export function getDefaultAdminTab(role: string | null | undefined): AdminWorksp
 }
 
 export function canAccessWorkspace(role: string | null | undefined, tab: string): boolean {
+  if (tab === 'admissions-review') return role === 'ADMISSIONS_OFFICER';
+  if (tab === 'builder') return role === 'SUPER_ADMIN' || role === 'RECTOR';
   if (FULL_ACCESS_ROLES.includes(role as typeof FULL_ACCESS_ROLES[number])) return true;
-  if (tab === 'public' || tab === 'admissions') return !role || role === 'APPLICANT' || role === 'ADMISSIONS_OFFICER';
+  if (tab === 'public' || tab === 'admissions') return !role || role === 'APPLICANT';
   if (!role) return false;
   if (tab === 'student') return role === 'STUDENT';
   if (tab === 'lecturer') return role === 'LECTURER';
   if (tab === 'admin') return getDefaultAdminTab(role) !== null;
-  if (tab === 'builder') return false;
   return false;
 }
-
 export function getRoleHome(role: string | null | undefined): { tab: string; section: string } {
   switch (role) {
     case 'STUDENT': return { tab: 'student', section: 'courses' };
     case 'LECTURER': return { tab: 'lecturer', section: 'overview' };
-    case 'APPLICANT':
-    case 'ADMISSIONS_OFFICER': return { tab: 'admissions', section: 'overview' };
+    case 'APPLICANT': return { tab: 'admissions', section: 'overview' };
+    case 'ADMISSIONS_OFFICER': return { tab: 'admissions-review', section: 'applications' };
     default:
       return getDefaultAdminTab(role)
         ? { tab: 'admin', section: getDefaultAdminTab(role)! }

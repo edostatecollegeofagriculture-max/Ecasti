@@ -493,7 +493,7 @@ apiRouter.get('/settings', (req, res) => {
 apiRouter.put(
   '/settings',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const current = db.getState().settings;
     const updated = { ...current, ...req.body, id: 'default' };
@@ -1195,7 +1195,7 @@ apiRouter.post('/admissions/apply', authenticateToken, (req: AuthenticatedReques
 apiRouter.put(
   '/admissions/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const app = db.getState().applications.find((a) => a.id === id);
@@ -1228,6 +1228,13 @@ apiRouter.patch(
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const { status, screeningNotes } = req.body;
+    const allowedStatuses = ['OFFERED', 'UNDER_REVIEW', 'REJECTED'];
+    if (!allowedStatuses.includes(String(status))) {
+      return res.status(400).json({ success: false, message: 'Decision status must be OFFERED, UNDER_REVIEW, or REJECTED.' });
+    }
+    if (screeningNotes !== undefined && (typeof screeningNotes !== 'string' || screeningNotes.length > 2000)) {
+      return res.status(400).json({ success: false, message: 'Screening notes must be text no longer than 2,000 characters.' });
+    }
     const app = db.getState().applications.find((a) => a.id === id);
 
     if (!app) {
@@ -1235,7 +1242,7 @@ apiRouter.patch(
     }
 
     app.status = status;
-    if (screeningNotes) app.screeningNotes = screeningNotes;
+    if (screeningNotes !== undefined) app.screeningNotes = screeningNotes.trim();
     app.reviewedBy = `${req.user!.fullName} (${req.user!.role})`;
     app.decisionAt = new Date().toISOString();
 
@@ -3621,7 +3628,7 @@ apiRouter.get('/cms/news/:id', (req, res) => {
 apiRouter.post(
   '/cms/news',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { title, summary, content, category, imageUrl, isFeaturedInSlider, status, author } = req.body;
 
@@ -3670,7 +3677,7 @@ apiRouter.post(
 apiRouter.put(
   '/cms/news/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const { title, summary, content, category, imageUrl, isFeaturedInSlider, status, author } = req.body;
@@ -3709,7 +3716,7 @@ apiRouter.put(
 apiRouter.delete(
   '/cms/news/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -3738,7 +3745,7 @@ apiRouter.delete(
 apiRouter.patch(
   '/cms/news/:id/toggle-slider',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -3772,7 +3779,7 @@ apiRouter.get('/cms/slides', (req, res) => {
 apiRouter.post(
   '/cms/slides',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const {
       title,
@@ -3791,6 +3798,7 @@ apiRouter.post(
       secondaryBtnTextColor,
       footerBarBgColor,
       imageUrl,
+      imageOpacity,
       ctaText,
       ctaTab,
       ctaSubSection,
@@ -3822,6 +3830,7 @@ apiRouter.post(
       secondaryBtnTextColor: secondaryBtnTextColor || '',
       footerBarBgColor: footerBarBgColor || '',
       imageUrl: imageUrl || '',
+      imageOpacity: Math.min(100, Math.max(10, Number(imageOpacity ?? 65))),
       ctaText: ctaText || 'Learn More',
       ctaTab: ctaTab || 'public',
       ctaSubSection: ctaSubSection || 'overview',
@@ -3849,7 +3858,7 @@ apiRouter.post(
 apiRouter.put(
   '/cms/slides/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -3876,6 +3885,7 @@ apiRouter.put(
       secondaryBtnTextColor,
       footerBarBgColor,
       imageUrl,
+      imageOpacity,
       ctaText,
       ctaTab,
       ctaSubSection,
@@ -3900,6 +3910,7 @@ apiRouter.put(
     if (secondaryBtnTextColor !== undefined) slide.secondaryBtnTextColor = secondaryBtnTextColor;
     if (footerBarBgColor !== undefined) slide.footerBarBgColor = footerBarBgColor;
     if (imageUrl !== undefined) slide.imageUrl = imageUrl;
+    if (imageOpacity !== undefined) slide.imageOpacity = Math.min(100, Math.max(10, Number(imageOpacity)));
     if (ctaText !== undefined) slide.ctaText = ctaText.trim();
     if (ctaTab !== undefined) slide.ctaTab = ctaTab;
     if (ctaSubSection !== undefined) slide.ctaSubSection = ctaSubSection;
@@ -3925,7 +3936,7 @@ apiRouter.put(
 apiRouter.delete(
   '/cms/slides/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -3960,7 +3971,7 @@ apiRouter.get('/cms/page-content', (req, res) => {
 apiRouter.put(
   '/cms/page-content',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const current = db.getState().pageContent;
     const updated = { ...current, ...req.body };

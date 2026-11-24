@@ -162,7 +162,7 @@ const SECTION_LABELS: Record<string, string> = {
   footer: 'Campus Footer',
 };
 
-const ADMIN_EDIT_ROLES = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'BURSAR', 'ADMISSIONS_OFFICER', 'DEAN'];
+const ADMIN_EDIT_ROLES = ['SUPER_ADMIN', 'RECTOR'];
 
 export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }) => {
   const { user, settings: ctxSettings, pageContent: ctxPageContent, refreshSettings, refreshPageContent, switchPersona } =
@@ -1285,6 +1285,18 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                   className={inputCls}
                 />
               </div>
+              <div>
+                <label className={labelCls}>Current Semester</label>
+                <select
+                  value={settings.currentSemester}
+                  onChange={(e) => setSettings({ ...settings, currentSemester: e.target.value })}
+                  className={inputCls}
+                >
+                  <option value="First Semester">First Semester</option>
+                  <option value="Second Semester">Second Semester</option>
+                  <option value="Third Semester">Third Semester</option>
+                </select>
+              </div>
             </div>
 
             <div>
@@ -1654,10 +1666,6 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                 })}
               </div>
             </div>
-
-            {renderImageEditor('Slide Background Image', slide.imageUrl, (v) => updateLocal({ imageUrl: v }), {
-              maxDimension: 1400,
-            })}
 
             <label className="flex items-center gap-2 text-xs cursor-pointer">
               <input
