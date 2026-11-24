@@ -542,7 +542,7 @@ export class DatabaseEngine {
       // deadlock the replacement instance before it can bind its HTTP port.
       await client.query('BEGIN');
       try {
-        await client.query("SELECT pg_advisory_xact_lock(hashtext('ecasti-staging-json-state-v1'))");
+        await client.query("SELECT pg_advisory_xact_lock(hashtext('ecasti-staging-json-state-v2'))");
         await client.query(`
           CREATE TABLE IF NOT EXISTS ecasti_application_state (
             singleton_id SMALLINT PRIMARY KEY CHECK (singleton_id = 1),
