@@ -1719,7 +1719,7 @@ apiRouter.post(
 apiRouter.get(
   '/students',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'BURSAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'BURSAR', 'LECTURER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { departmentId, level, search, programmeId } = req.query;
     const state = db.getState();
@@ -1755,7 +1755,7 @@ apiRouter.get(
       const assignedCourseIds = new Set(state.courses.filter((c) => c.lecturerId === req.user!.id).map((c) => c.id));
       const enrolledStudentIds = new Set(
         state.registrations
-          .filter((r) => r.courseIds.some((courseId) => assignedCourseIds.has(courseId)))
+          .filter((r) => r.status === 'APPROVED_BY_HOD' && r.courseIds.some((courseId) => assignedCourseIds.has(courseId)))
           .map((r) => r.studentId)
       );
       list = list.filter((s) => enrolledStudentIds.has(s.id));
@@ -1942,7 +1942,7 @@ apiRouter.get('/students/me', authenticateToken, (req: AuthenticatedRequest, res
 apiRouter.get(
   '/registrations',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD', 'LECTURER'),
   (req: AuthenticatedRequest, res: Response) => {
   const { session, semester, studentId } = req.query;
   const state = db.getState();
@@ -1954,6 +1954,15 @@ apiRouter.get(
     list = departmentId
       ? list.filter((registration) => registration.courseIds.every((courseId) => departmentCourseIds.has(courseId)))
       : [];
+  }
+  if (actorRole === 'LECTURER') {
+    const assignedCourseIds = new Set(state.courses.filter((course) => course.lecturerId === req.user!.id).map((course) => course.id));
+    list = list
+      .filter((registration) => registration.status === 'APPROVED_BY_HOD' && registration.courseIds.some((courseId) => assignedCourseIds.has(courseId)))
+      .map((registration) => ({
+        ...registration,
+        courseIds: registration.courseIds.filter((courseId) => assignedCourseIds.has(courseId)),
+      }));
   }
   if (session) list = list.filter((r) => r.session === session);
   if (semester) list = list.filter((r) => r.semester === semester);
