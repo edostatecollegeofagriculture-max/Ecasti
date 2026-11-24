@@ -133,7 +133,11 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
 
   const currentSlide = slides[currentIndex] || slides[0];
   const heroStyles = getHeroSlideStyles(currentSlide);
-  const customBg = hasCustomHeroBackground(currentSlide);
+  const hasSlideImage = Boolean(currentSlide?.imageUrl);
+  const customBg = hasCustomHeroBackground(currentSlide) || hasSlideImage;
+  const heroImageOverlay = currentSlide?.bgColor || currentSlide?.bgSecondaryColor
+    ? `linear-gradient(90deg, ${currentSlide.bgColor || currentSlide.bgSecondaryColor}dd 0%, ${currentSlide.bgSecondaryColor || currentSlide.bgColor}99 65%, ${currentSlide.bgSecondaryColor || currentSlide.bgColor}66 100%)`
+    : 'linear-gradient(90deg, rgba(2, 44, 34, 0.82) 0%, rgba(2, 44, 34, 0.48) 65%, rgba(2, 44, 34, 0.28) 100%)';
 
   const getIcon = (name: string) => {
     switch (name) {
@@ -168,9 +172,21 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
         onMouseEnter={() => setIsPlaying(false)}
         onMouseLeave={() => setIsPlaying(true)}
       >
+        {/* Configured slide image, with a readable colour overlay above it */}
+        {hasSlideImage && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-in-out"
+            style={{
+              backgroundImage: `url(\"${currentSlide.imageUrl}\")`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          />
+        )}
         {/* Background Image / Gradients & Geometric Accents */}
         <div
-          style={heroStyles.gradientLayerStyle}
+          style={hasSlideImage ? { background: heroImageOverlay } : heroStyles.gradientLayerStyle}
           className={`absolute inset-0 ${
             customBg
               ? ''
