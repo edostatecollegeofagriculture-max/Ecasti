@@ -560,6 +560,14 @@ export class DatabaseEngine {
 
         if (stored.rowCount === 1) {
           this.state = stored.rows[0].state as DatabaseState;
+          const publicContentRestored = this.restoreMissingStagingPublicContent(this.state);
+          if (publicContentRestored) {
+            await client.query(
+              'UPDATE ecasti_application_state SET state = $1::jsonb, revision = revision + 1, updated_at = NOW() WHERE singleton_id = 1',
+              [JSON.stringify(this.state)]
+            );
+            console.log('[EDOCASTI] restored missing public-facing staging content without resetting operational data.');
+          }
           console.log('[EDOCASTI] loaded durable application state from staging PostgreSQL.');
         } else {
           await client.query(
@@ -595,6 +603,109 @@ export class DatabaseEngine {
 
   private ensureDataDir(): void {
     fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+
+  /**
+   * Restore only public-facing starter content on the isolated staging store.
+   * Existing edits are preserved; student, staff, finance and assessment data
+   * are deliberately not seeded by this routine.
+   */
+  private restoreMissingStagingPublicContent(state: DatabaseState): boolean {
+    const seed = this.generateSeedData();
+    let changed = false;
+
+    if (!Array.isArray(state.schools) || state.schools.length === 0) {
+      state.schools = seed.schools;
+      changed = true;
+    }
+    if (!Array.isArray(state.departments) || state.departments.length === 0) {
+      state.departments = seed.departments;
+      changed = true;
+    }
+    if (!Array.isArray(state.programmes) || state.programmes.length === 0) {
+      state.programmes = seed.programmes;
+      changed = true;
+    }
+
+    if (!Array.isArray(state.newsArticles) || state.newsArticles.length === 0) {
+      const publishedAt = '2026-11-24T09:00:00.000Z';
+      state.newsArticles = [
+        {
+          id: 'public-welcome-001',
+          title: 'Welcome to Edo State College of Agriculture, Science and Technology',
+          slug: 'welcome-to-edocasti',
+          summary: 'Discover the College, its academic community, and its focus on practical learning in agriculture, applied science, and technology.',
+          content: 'Welcome to EDOCASTI, Iguoriakhi. This public portal is the starting point for prospective applicants, students, families, partners, and members of the public to learn about the institution and access its online services. Use the Page Builder to tailor this starter announcement with approved institutional information.',
+          category: 'Campus Life',
+          isFeaturedInSlider: false,
+          status: 'PUBLISHED',
+          author: 'EDOCASTI Portal',
+          publishedAt,
+          views: 0,
+        },
+        {
+          id: 'public-academics-001',
+          title: 'Explore Academic Schools and Programme Areas',
+          slug: 'explore-academic-schools-and-programmes',
+          summary: 'Explore the College’s agriculture, applied sciences, engineering, and management study areas.',
+          content: 'The portal provides an overview of academic schools, departments, and programme areas. Programme availability, entry requirements, duration, and accreditation status should be confirmed with the College before applications are submitted. Update this starter notice with the current approved programme catalogue.',
+          category: 'Academics',
+          isFeaturedInSlider: false,
+          status: 'PUBLISHED',
+          author: 'EDOCASTI Portal',
+          publishedAt,
+          views: 0,
+        },
+        {
+          id: 'public-admissions-001',
+          title: 'Admissions Information and Applicant Guidance',
+          slug: 'admissions-information-and-applicant-guidance',
+          summary: 'Find admissions guidance and use the online portal to begin or follow up on an application.',
+          content: 'Prospective applicants can use the admissions area of this portal to review the application process and access available online services. Confirm current application dates, approved entry requirements, fees, and screening instructions through the College Admissions Office before publishing them as official notices.',
+          category: 'Admissions',
+          isFeaturedInSlider: false,
+          status: 'PUBLISHED',
+          author: 'EDOCASTI Portal',
+          publishedAt,
+          views: 0,
+        },
+      ];
+      changed = true;
+    }
+
+    if (!Array.isArray(state.sliderSlides) || state.sliderSlides.length === 0) {
+      state.sliderSlides = [{
+        id: 'public-welcome-slide',
+        title: 'Learn, Innovate, and Grow at EDOCASTI',
+        subtitle: 'Explore practical learning opportunities in agriculture, applied sciences, engineering, and enterprise at Iguoriakhi.',
+        badge: 'Welcome to EDOCASTI',
+        bgGradient: 'from-emerald-950 via-emerald-900 to-slate-950',
+        accentColor: 'amber-400',
+        ctaText: 'Explore Admissions',
+        ctaTab: 'admissions',
+        ctaSubSection: 'form',
+        iconName: 'GraduationCap',
+        order: 1,
+        isActive: true,
+      }];
+      changed = true;
+    }
+
+    const defaults = seed.pageContent as unknown as Record<string, unknown>;
+    const current = (state.pageContent || {}) as unknown as Record<string, unknown>;
+    for (const [key, fallback] of Object.entries(defaults)) {
+      const value = current[key];
+      const missing = value === undefined || value === null ||
+        (typeof value === 'string' && value.trim() === '') ||
+        (Array.isArray(value) && value.length === 0 && Array.isArray(fallback) && fallback.length > 0);
+      if (missing) {
+        current[key] = fallback;
+        changed = true;
+      }
+    }
+    state.pageContent = current as unknown as PageContent;
+
+    return changed;
   }
 
   constructor() {
@@ -636,6 +747,9 @@ export class DatabaseEngine {
         );
         if (missingDemoUsers.length > 0) {
           current.users = [...(current.users || []), ...missingDemoUsers];
+          this.saveState(current);
+        }
+        if (this.restoreMissingStagingPublicContent(current)) {
           this.saveState(current);
         }
         return current;
@@ -731,6 +845,7 @@ export class DatabaseEngine {
       issuedDocuments: [],
     };
 
+    this.restoreMissingStagingPublicContent(state);
     this.saveState(state);
     fs.writeFileSync(STAGING_INIT_MARKER, new Date().toISOString(), 'utf-8');
     return state;
