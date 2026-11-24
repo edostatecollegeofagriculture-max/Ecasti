@@ -1195,7 +1195,7 @@ apiRouter.post('/admissions/apply', authenticateToken, (req: AuthenticatedReques
 apiRouter.put(
   '/admissions/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const app = db.getState().applications.find((a) => a.id === id);
@@ -1228,6 +1228,13 @@ apiRouter.patch(
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const { status, screeningNotes } = req.body;
+    const allowedStatuses = ['OFFERED', 'UNDER_REVIEW', 'REJECTED'];
+    if (!allowedStatuses.includes(String(status))) {
+      return res.status(400).json({ success: false, message: 'Decision status must be OFFERED, UNDER_REVIEW, or REJECTED.' });
+    }
+    if (screeningNotes !== undefined && (typeof screeningNotes !== 'string' || screeningNotes.length > 2000)) {
+      return res.status(400).json({ success: false, message: 'Screening notes must be text no longer than 2,000 characters.' });
+    }
     const app = db.getState().applications.find((a) => a.id === id);
 
     if (!app) {
@@ -1235,7 +1242,7 @@ apiRouter.patch(
     }
 
     app.status = status;
-    if (screeningNotes) app.screeningNotes = screeningNotes;
+    if (screeningNotes !== undefined) app.screeningNotes = screeningNotes.trim();
     app.reviewedBy = `${req.user!.fullName} (${req.user!.role})`;
     app.decisionAt = new Date().toISOString();
 
