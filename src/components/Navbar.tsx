@@ -167,7 +167,7 @@ export const Navbar: React.FC<Props> = ({
             }`}
           >
             <Layers className="w-3.5 h-3.5" /> Page Builder
-          </button>}}
+          </button>}
         </nav>
 
         {/* Right Tools: Page Builder (sm-md quick access), Theme Toggle & User Account */}
