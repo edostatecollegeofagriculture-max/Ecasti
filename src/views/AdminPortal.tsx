@@ -1303,10 +1303,10 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           </button>
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
-              {user?.role?.replace(/_/g, ' ')} · Institutional Management
+              {user?.role === 'HOD' ? 'HOD · Departmental Academic Workflow' : user?.role?.replace(/_/g, ' ') + ' · Institutional Management'}
             </span>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-0.5">
-              EDOCASTI Governance &amp; Workflow Console
+              {user?.role === 'HOD' ? 'Departmental Academic Workspace' : 'EDOCASTI Governance &amp; Workflow Console'}
             </h1>
           </div>
         </div>
