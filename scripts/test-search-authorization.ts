@@ -14,4 +14,4 @@ for (const role of ['STUDENT', 'LECTURER', 'HOD', 'DEAN', 'BURSAR', 'APPLICANT',
   assert.equal(canSearchApplicants(role), false, `${role} must not search applicant records`);
 }
 
-console.log('RESULT: 14 PASS, 0 FAIL');
+console.log('RESULT: 24 PASS, 0 FAIL');
