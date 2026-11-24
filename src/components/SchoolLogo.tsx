@@ -25,7 +25,7 @@ export const SchoolLogo: React.FC<Props> = ({
         alt={isWatermark ? '' : `${settings.shortName || 'EDOCASTI'} Official Crest`}
         aria-hidden={isWatermark ? true : undefined}
         draggable={false}
-        className={`object-contain ${isWatermark ? '' : 'rounded-full'} ${className}`}
+        className={`${isWatermark ? 'object-cover' : 'object-contain rounded-full'} ${className}`}
         style={{
           width: resolvedSize,
           height: resolvedSize,
