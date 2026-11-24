@@ -29,7 +29,7 @@ import { evaluateNdGraduationEligibility } from './academicProgressionService';
 import { academicProgressionApiRouter } from './academicProgressionApiRouter';
 import { appendAcademicResultEvent, listAcademicResultAttempts } from './academicResultNeonService';
 import { canExamOfficerModerateResult, canHodApproveResult, isHodApprovedForPublication } from './resultApprovalAuthorization';
-import { getDemoSeedStatus, seedDemoAcademicData, unseedDemoAcademicData } from './demoDataService';
+import { getDemoSeedStatus, seedDemoAcademicData, unseedDemoAcademicData, preserveEditedDemoStudentAndClean } from './demoDataService';
 import { canManageStagingDemoData } from './demoDataAuthorization';
 
 export const apiRouter = Router();
@@ -52,6 +52,10 @@ apiRouter.post('/staging/demo-data/seed', ...superAdminOnly, (req: Authenticated
 apiRouter.post('/staging/demo-data/unseed', ...superAdminOnly, (req: AuthenticatedRequest, res: Response) => {
   try { return res.json(unseedDemoAcademicData({ id: req.user!.id, email: req.user!.email })); }
   catch (error) { return res.status(409).json({ success: false, message: error instanceof Error ? error.message : 'Unable to unseed demo data.' }); }
+});
+apiRouter.post('/staging/demo-data/preserve-student-cleanup', ...superAdminOnly, (req: AuthenticatedRequest, res: Response) => {
+  try { return res.json(preserveEditedDemoStudentAndClean({ id: req.user!.id, email: req.user!.email })); }
+  catch (error) { return res.status(409).json({ success: false, message: error instanceof Error ? error.message : 'Unable to safely clean demo data.' }); }
 });
 // ==================== ACADEMIC PROGRESSION (READ ONLY) ====================
 apiRouter.get(

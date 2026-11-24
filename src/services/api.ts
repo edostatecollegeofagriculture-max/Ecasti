@@ -113,6 +113,10 @@ class ApiService {
     return this.request<{ success: boolean; message: string; recordCount: number }>('/staging/demo-data/unseed', { method: 'POST' });
   }
 
+  preserveEditedDemoStudentAndClean() {
+    return this.request<{ success: boolean; message: string; recordCount: number; preservedStudentId: string }>('/staging/demo-data/preserve-student-cleanup', { method: 'POST' });
+  }
+
   public getToken(): string | null {
     return this.token;
   }
