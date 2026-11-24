@@ -16,6 +16,7 @@ import {
   ArrowRight,
   Sparkles,
   ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
 
 interface Props {
@@ -112,6 +113,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
   const [newsCategory, setNewsCategory] = useState<string>('ALL');
   const [newsWildcard, setNewsWildcard] = useState('');
   const [schoolWildcard, setSchoolWildcard] = useState('');
+  const [showAcademicOfferings, setShowAcademicOfferings] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
 
   const [schools, setSchools] = useState<School[]>([]);
@@ -361,15 +363,30 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
             </p>
           </div>
 
-          <WildcardFilterBar
-            query={schoolWildcard}
-            onQueryChange={setSchoolWildcard}
-            placeholder="Wildcard filter schools & programmes (e.g. *Agric* or ND*)..."
-            totalCount={schools.length}
-            filteredCount={filteredSchools.length}
-          />
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowAcademicOfferings((visible) => !visible)}
+              aria-expanded={showAcademicOfferings}
+              aria-controls="public-academic-offerings"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white px-6 py-3 text-sm font-bold shadow-sm transition-colors cursor-pointer"
+            >
+              {showAcademicOfferings ? 'Hide Schools & Programmes' : 'View Schools & Programmes'}
+              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showAcademicOfferings ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {showAcademicOfferings && (
+            <div id="public-academic-offerings" className="space-y-6">
+              <WildcardFilterBar
+                query={schoolWildcard}
+                onQueryChange={setSchoolWildcard}
+                placeholder="Wildcard filter schools & programmes (e.g. *Agric* or ND*)..."
+                totalCount={schools.length}
+                filteredCount={filteredSchools.length}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredSchools.map((sch) => {
               const schProgs = getSchoolProgrammes(sch.id);
               return (
@@ -423,8 +440,10 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
                   </div>
                 </div>
               );
-            })}
-          </div>
+              })}
+              </div>
+            </div>
+          )}
         </section>
       );
     }
