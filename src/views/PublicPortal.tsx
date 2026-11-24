@@ -167,7 +167,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
 
     if (sectionKey === 'hero') {
       return (
-        <section key="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+        <section key="hero" className="portal-section pt-5 sm:pt-8">
           <NewsSlideShow onNavigate={handleNavigate} />
         </section>
       );
@@ -178,13 +178,13 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
         matchesWildcard(newsWildcard, a.title, a.summary, a.category, a.author)
       );
       return (
-        <section key="news" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+        <section key="news" className="portal-section space-y-6 sm:space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div>
               <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
                 {content.newsSectionKicker}
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+              <h2 className="portal-section-heading text-2xl sm:text-3xl mt-2">
                 {content.newsSectionHeading}
               </h2>
             </div>
@@ -219,10 +219,10 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
               <div
                 key={article.id}
                 onClick={() => setSelectedArticle(article)}
-                className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-emerald-600 dark:hover:border-amber-500/60 shadow-xs hover:shadow-xl transition-all duration-200 flex flex-col justify-between cursor-pointer"
+                className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-800 hover:border-emerald-600 dark:hover:border-emerald-500 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col justify-between cursor-pointer"
               >
                 {article.imageUrl && (
-                  <div className="h-44 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                  <div className="aspect-[16/9] w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
                     <img
                       src={article.imageUrl}
                       alt={article.title}
@@ -270,7 +270,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
 
     if (sectionKey === 'rector') {
       return (
-        <section key="rector" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section key="rector" className="portal-section">
           <div
             style={{
               backgroundColor: content.rectorBgColor || undefined,
@@ -284,7 +284,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
               color: content.rectorTextColor || undefined,
               borderColor: content.rectorBorderColor || undefined,
             }}
-            className="bg-linear-to-br from-emerald-950 via-emerald-900 to-emerald-950 rounded-3xl p-8 sm:p-12 text-white border-2 border-amber-500/40 shadow-xl grid grid-cols-1 lg:grid-cols-3 gap-8 items-center"
+            className="bg-linear-to-br from-[#075b43] via-[#086b4c] to-[#0d7655] rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 text-white border border-emerald-700/40 shadow-lg grid grid-cols-1 lg:grid-cols-3 gap-7 lg:gap-10 items-center"
           >
             <div className="lg:col-span-1 text-center space-y-3">
               <div className="relative inline-block">
@@ -348,12 +348,12 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
       });
 
       return (
-        <section key="schools" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <section key="schools" className="portal-section space-y-7 sm:space-y-9">
           <div className="text-center max-w-2xl mx-auto">
             <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider">
               {content.schoolsSectionKicker}
             </span>
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white mt-1">
+            <h2 className="portal-section-heading text-3xl sm:text-4xl mt-2">
               {content.schoolsSectionHeading}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
@@ -375,10 +375,10 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
               return (
                 <div
                   key={sch.id}
-                  className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 shadow-xs hover:shadow-md transition flex flex-col justify-between"
+                  className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 shadow-sm hover:shadow-lg transition flex flex-col justify-between"
                 >
                   {sch.imageUrl && (
-                    <div className="h-44 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                    <div className="aspect-[16/9] w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
                       <img src={sch.imageUrl} alt={sch.name} className="w-full h-full object-cover" />
                     </div>
                   )}
@@ -431,8 +431,8 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
 
     if (sectionKey === 'calendar') {
       return (
-        <section key="calendar" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-slate-900 rounded-3xl p-8 sm:p-10 text-white border border-slate-800">
+        <section key="calendar" className="portal-section">
+          <div className="bg-linear-to-br from-[#073f31] to-[#0b5b43] rounded-2xl sm:rounded-3xl p-6 sm:p-9 lg:p-10 text-white border border-emerald-800 shadow-lg">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
               <div>
                 <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
@@ -463,12 +463,12 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
 
     if (sectionKey === 'faqs') {
       return (
-        <section key="faqs" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section key="faqs" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider">
               {content.faqSectionKicker}
             </span>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+            <h2 className="portal-section-heading text-2xl sm:text-3xl mt-2">
               {content.faqSectionHeading}
             </h2>
           </div>
@@ -477,7 +477,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
             {content.faqs.map((faq, idx) => (
               <div
                 key={faq.id || idx}
-                className="border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 overflow-hidden"
+                className="border border-slate-200/90 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 shadow-sm overflow-hidden"
               >
                 <button
                   onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
@@ -512,7 +512,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
           ? 'bg-slate-900 text-white border border-slate-800'
           : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800';
       return (
-        <section key={custom.id} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section key={custom.id} className="portal-section">
           <div className={`rounded-3xl p-8 sm:p-10 grid grid-cols-1 ${custom.imageUrl ? 'lg:grid-cols-3 gap-8 items-center' : ''} ${cardClass}`}>
             <div className={custom.imageUrl ? 'lg:col-span-2' : ''}>
               {custom.kicker && (
@@ -536,7 +536,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
                 <img
                   src={custom.imageUrl}
                   alt={custom.title}
-                  className="w-full h-56 object-cover rounded-2xl border border-white/10 shadow-md"
+                  className="w-full aspect-[16/10] object-cover rounded-xl border border-white/10 shadow-md"
                 />
               </div>
             )}
@@ -549,7 +549,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
   };
 
   return (
-    <div className="space-y-14 sm:space-y-16 pb-0">
+    <div className="min-h-screen space-y-16 sm:space-y-20 pb-12 bg-[#f6f8f6] dark:bg-slate-950">
       {sectionOrder.map((key) => renderSection(key))}
 
       {/* Render any visible custom sections not already in sectionOrder */}
