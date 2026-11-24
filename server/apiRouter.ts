@@ -493,7 +493,7 @@ apiRouter.get('/settings', (req, res) => {
 apiRouter.put(
   '/settings',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const current = db.getState().settings;
     const updated = { ...current, ...req.body, id: 'default' };
@@ -3621,7 +3621,7 @@ apiRouter.get('/cms/news/:id', (req, res) => {
 apiRouter.post(
   '/cms/news',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { title, summary, content, category, imageUrl, isFeaturedInSlider, status, author } = req.body;
 
@@ -3670,7 +3670,7 @@ apiRouter.post(
 apiRouter.put(
   '/cms/news/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const { title, summary, content, category, imageUrl, isFeaturedInSlider, status, author } = req.body;
@@ -3709,7 +3709,7 @@ apiRouter.put(
 apiRouter.delete(
   '/cms/news/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -3738,7 +3738,7 @@ apiRouter.delete(
 apiRouter.patch(
   '/cms/news/:id/toggle-slider',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -3772,7 +3772,7 @@ apiRouter.get('/cms/slides', (req, res) => {
 apiRouter.post(
   '/cms/slides',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const {
       title,
@@ -3849,7 +3849,7 @@ apiRouter.post(
 apiRouter.put(
   '/cms/slides/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -3925,7 +3925,7 @@ apiRouter.put(
 apiRouter.delete(
   '/cms/slides/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -3960,7 +3960,7 @@ apiRouter.get('/cms/page-content', (req, res) => {
 apiRouter.put(
   '/cms/page-content',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     const current = db.getState().pageContent;
     const updated = { ...current, ...req.body };
