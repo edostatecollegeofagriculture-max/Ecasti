@@ -355,6 +355,16 @@ export interface PageContent {
   footerLocationHeading: string;
   footerLocationAddress: string;
   footerContactHeading: string;
+  footerContactPhone?: string;
+  footerContactEmail?: string;
+  footerBackgroundImageUrl?: string;
+  footerBgColor?: string;
+  footerBgSecondaryColor?: string;
+  footerTextColor?: string;
+  footerSubtitleColor?: string;
+  footerAccentColor?: string;
+  footerBorderColor?: string;
+  footerIconColor?: string;
   sectionOrder: string[];
   hiddenSections: string[];
   customSections: CustomPageSection[];

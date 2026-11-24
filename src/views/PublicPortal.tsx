@@ -501,35 +501,49 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
     if (sectionKey === 'footer') {
       return (
         <section key="footer" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-emerald-950 text-white rounded-3xl p-8 sm:p-12 grid grid-cols-1 md:grid-cols-3 gap-8 border-t-4 border-amber-500">
+          <div
+            style={{
+              backgroundColor: content.footerBgColor || undefined,
+              backgroundImage: content.footerBackgroundImageUrl
+                ? `linear-gradient(135deg, ${content.footerBgColor || '#022c22'}dd, ${content.footerBgSecondaryColor || '#064e3b'}cc), url(${content.footerBackgroundImageUrl})`
+                : content.footerBgColor || content.footerBgSecondaryColor
+                  ? `linear-gradient(135deg, ${content.footerBgColor || '#022c22'}, ${content.footerBgSecondaryColor || '#064e3b'})`
+                  : undefined,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              color: content.footerTextColor || undefined,
+              borderColor: content.footerBorderColor || undefined,
+            }}
+            className="bg-emerald-950 text-white rounded-3xl p-8 sm:p-12 grid grid-cols-1 md:grid-cols-3 gap-8 border-t-4 border-amber-500"
+          >
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <SchoolLogo size={44} />
                 <div>
-                  <span className="font-black text-amber-400 text-lg">{content.footerBrandTitle}</span>
-                  <p className="text-[10px] text-emerald-300">{content.footerBrandSubtitle}</p>
+                  <span className="font-black text-amber-400 text-lg" style={{ color: content.footerAccentColor || undefined }}>{content.footerBrandTitle}</span>
+                  <p className="text-[10px] text-emerald-300" style={{ color: content.footerSubtitleColor || undefined }}>{content.footerBrandSubtitle}</p>
                 </div>
               </div>
-              <p className="text-xs text-emerald-200 leading-relaxed">{content.footerDescription}</p>
+              <p className="text-xs text-emerald-200 leading-relaxed" style={{ color: content.footerSubtitleColor || undefined }}>{content.footerDescription}</p>
             </div>
 
-            <div className="space-y-2 text-xs text-emerald-200">
-              <h4 className="font-bold text-white text-sm uppercase">{content.footerLocationHeading}</h4>
+            <div className="space-y-2 text-xs text-emerald-200" style={{ color: content.footerSubtitleColor || undefined }}>
+              <h4 className="font-bold text-white text-sm uppercase" style={{ color: content.footerTextColor || undefined }}>{content.footerLocationHeading}</h4>
               <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" style={{ color: content.footerIconColor || content.footerAccentColor || undefined }} />
                 <span>{content.footerLocationAddress}</span>
               </div>
             </div>
 
-            <div className="space-y-2 text-xs text-emerald-200">
-              <h4 className="font-bold text-white text-sm uppercase">{content.footerContactHeading}</h4>
+            <div className="space-y-2 text-xs text-emerald-200" style={{ color: content.footerSubtitleColor || undefined }}>
+              <h4 className="font-bold text-white text-sm uppercase" style={{ color: content.footerTextColor || undefined }}>{content.footerContactHeading}</h4>
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>{settings?.contactPhone || '+234 803 000 1234'}</span>
+                <Phone className="w-4 h-4 text-amber-400 shrink-0" style={{ color: content.footerIconColor || content.footerAccentColor || undefined }} />
+                <span>{content.footerContactPhone || settings?.contactPhone || '+234 803 000 1234'}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>{settings?.contactEmail || 'admissions@edocasti.edu.ng'}</span>
+                <Mail className="w-4 h-4 text-amber-400 shrink-0" style={{ color: content.footerIconColor || content.footerAccentColor || undefined }} />
+                <span>{content.footerContactEmail || settings?.contactEmail || 'admissions@edocasti.edu.ng'}</span>
               </div>
             </div>
           </div>
