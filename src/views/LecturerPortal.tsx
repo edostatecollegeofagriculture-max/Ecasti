@@ -157,7 +157,7 @@ export const LecturerPortal: React.FC = () => {
       if (res.success) {
         await loadCourseResults(selectedCourse.id);
         setSaveSuccess(
-          `Score submitted for ${student.fullName} (${student.matricNumber}) — Pending Examination Officer approval.`
+          `Score submitted for ${student.fullName} (${student.matricNumber}) — Pending HOD review and approval before Exam Officer moderation.`
         );
         setTimeout(() => setSaveSuccess(null), 3500);
       }
@@ -191,7 +191,7 @@ export const LecturerPortal: React.FC = () => {
       }
       await loadCourseResults(selectedCourse.id);
       setSaveSuccess(
-        `Saved ${savedCount} student scores for ${selectedCourse.code} — forwarded to Examination Officer.`
+        `Saved ${savedCount} student scores for ${selectedCourse.code} — submitted for HOD review before Exam Officer moderation.`
       );
       setTimeout(() => setSaveSuccess(null), 4000);
     } catch (err: any) {
@@ -396,7 +396,7 @@ export const LecturerPortal: React.FC = () => {
                     Grade Roster: {selectedCourse?.code} ({selectedCourse?.title})
                   </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    CA Max: {settings?.caMaxMarks || 40} | Exam Max: {settings?.examMaxMarks || 60}. Submitted scores require Examination Officer approval before student release.
+                    CA Max: {settings?.caMaxMarks || 40} | Exam Max: {settings?.examMaxMarks || 60}. Submitted scores must be approved by the HOD, then moderated and published by the Exam Officer before student release.
                   </p>
                 </div>
                 <span className="text-xs font-bold px-3 py-1 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 rounded-lg tabular-nums">
