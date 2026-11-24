@@ -536,7 +536,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
                   <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
                     <Calendar className="w-4 h-4" /> {item.title}
                   </div>
-                  <p className="text-xs text-slate-300">{item.description}</p>
+                  <p className="text-xs text-slate-300 leading-relaxed text-justify [text-align-last:left]">{item.description}</p>
                   <div className="text-[11px] text-emerald-400 font-semibold pt-2">{item.statusLabel}</div>
                 </div>
               ))}
