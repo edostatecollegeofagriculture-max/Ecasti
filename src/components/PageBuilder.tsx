@@ -1285,6 +1285,18 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                   className={inputCls}
                 />
               </div>
+              <div>
+                <label className={labelCls}>Current Semester</label>
+                <select
+                  value={settings.currentSemester}
+                  onChange={(e) => setSettings({ ...settings, currentSemester: e.target.value })}
+                  className={inputCls}
+                >
+                  <option value="First Semester">First Semester</option>
+                  <option value="Second Semester">Second Semester</option>
+                  <option value="Third Semester">Third Semester</option>
+                </select>
+              </div>
             </div>
 
             <div>
