@@ -50,11 +50,10 @@ test('student may submit own exception only', () => {
   assert.equal(canSubmitOwnStudentException(actor('user-student-b', 'STUDENT'), student), false);
   assert.equal(canSubmitOwnStudentException(actor('admin-a', 'SUPER_ADMIN'), student), true);
 });
-test('only Registry and institutional administrators can submit on behalf of student', () => {
-  for (const role of ['REGISTRAR', 'INSTITUTION_ADMIN', 'SUPER_ADMIN']) {
+test('Registry, Rector, and institutional administrators can submit on behalf of student', () => {
+  for (const role of ['REGISTRAR', 'INSTITUTION_ADMIN', 'RECTOR', 'SUPER_ADMIN']) {
     assert.equal(canSubmitOwnStudentException(actor('staff-a', role), student), true);
   }
-  assert.equal(canSubmitOwnStudentException(actor('rector-a', 'RECTOR'), student), false);
 });
 test('Rector and SUPER_ADMIN may approve Extension Year 3 management pass', () => {
   assert.equal(canApproveExtensionYearThreeManagementPass(actor('rector-a', 'RECTOR')), true);
@@ -63,8 +62,9 @@ test('Rector and SUPER_ADMIN may approve Extension Year 3 management pass', () =
     assert.equal(canApproveExtensionYearThreeManagementPass(actor('other-a', role)), false);
   }
 });
-test('shared role policy documents and preserves SUPER_ADMIN bypass', () => {
+test('shared role policy grants Rector and SUPER_ADMIN institution-wide bypass', () => {
   assert.equal(hasRequiredAcademicRole(actor('admin-a', 'SUPER_ADMIN'), ['REGISTRAR']), true);
+  assert.equal(hasRequiredAcademicRole(actor('rector-a', 'RECTOR'), ['REGISTRAR']), true);
   assert.equal(hasRequiredAcademicRole(actor('dean-a', 'DEAN'), ['REGISTRAR']), false);
   assert.equal(hasRequiredAcademicRole(undefined, ['REGISTRAR']), false);
 });
