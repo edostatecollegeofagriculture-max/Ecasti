@@ -83,6 +83,8 @@ apiRouter.get(
   (req: AuthenticatedRequest, res: Response) => {
   const q = String(req.query.q || '').trim().toLowerCase();
   const state = db.getState();
+  res.setHeader('Cache-Control', 'private, no-store');
+  res.setHeader('Vary', 'Authorization');
   const role = req.user?.role;
   const canSearchStudents = canSearchInstitutionStudents(role);
   const canSearchApplicantsForActor = canSearchApplicants(role);
@@ -95,7 +97,6 @@ apiRouter.get(
         id: s.id,
         matricNumber: s.matricNumber,
         fullName: u?.fullName || 'Student',
-        email: u?.email || '',
         programmeName: prog?.name || '',
         level: s.level,
         cgpa: s.cgpa,
@@ -119,7 +120,6 @@ apiRouter.get(
         id: a.id,
         applicationNumber: a.applicationNumber,
         fullName: `${a.firstName} ${a.lastName}`,
-        email: a.email,
         programmeName: prog?.name || '',
         status: a.status,
         type: 'APPLICANT',
