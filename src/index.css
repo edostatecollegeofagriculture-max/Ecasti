@@ -4,8 +4,40 @@
 
 @layer base {
   :root {
-    --color-primary-green: #064e3b;
-    --color-primary-gold: #f59e0b;
+    --color-primary-green: #075b43;
+    --color-primary-green-dark: #064735;
+    --color-primary-green-soft: #eaf5ef;
+    --color-primary-gold: #c99a32;
+    --color-page: #f6f8f6;
+    --color-ink: #17251f;
+    --color-muted: #64736b;
+    --radius-panel: 1.25rem;
+    --shadow-panel: 0 12px 32px -22px rgb(15 55 39 / 28%);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    min-width: 320px;
+    letter-spacing: -0.01em;
+  }
+
+  button, input, select, textarea {
+    font: inherit;
+  }
+
+  button:focus-visible, a:focus-visible, input:focus-visible,
+  select:focus-visible, textarea:focus-visible {
+    outline: 3px solid rgb(201 154 50 / 70%);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: #d9eee2;
+    color: #064735;
   }
 
   body {
@@ -46,5 +78,48 @@
   body {
     background: white !important;
     color: black !important;
+  }
+}
+
+
+@layer components {
+  .portal-section {
+    width: min(100% - 2rem, 80rem);
+    margin-inline: auto;
+  }
+
+  .portal-section-heading {
+    color: #17251f;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+  }
+
+  .portal-eyebrow {
+    color: #08734f;
+    font-size: .7rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .portal-panel {
+    border: 1px solid #e1e9e3;
+    border-radius: 1.125rem;
+    background: #fff;
+    box-shadow: 0 12px 32px -22px rgb(15 55 39 / 28%);
+  }
+
+  .portal-muted {
+    color: #64736b;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
   }
 }

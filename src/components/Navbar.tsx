@@ -45,16 +45,16 @@ export const Navbar: React.FC<Props> = ({
         color: pageContent?.headerTextColor || '#ffffff',
         borderColor: pageContent?.headerBorderColor || '#065f46',
       }}
-      className="sticky top-0 z-40 border-b shadow-xs transition-colors duration-200"
+      className="sticky top-0 z-40 border-b shadow-md shadow-emerald-950/10 transition-colors duration-200"
     >
       {/* Main Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3 sm:gap-6">
+      <div className="max-w-[84rem] mx-auto px-3 sm:px-5 xl:px-7 py-2.5 flex items-center justify-between gap-2 sm:gap-4">
         {/* Logo and Brand */}
         <div
           onClick={() => { if (!user) setActiveTab('public'); }}
           className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group shrink-0"
         >
-          <SchoolLogo size={44} className="group-hover:scale-105 transition shrink-0" />
+          <SchoolLogo size={40} className="group-hover:scale-105 transition shrink-0" />
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-black text-base sm:text-lg tracking-tight" style={{ color: pageContent?.headerAccentColor || '#fbbf24' }}>
@@ -78,10 +78,10 @@ export const Navbar: React.FC<Props> = ({
         </div>}
 
         {/* Dynamic Navigation Tabs */}
-        <nav className="hidden lg:flex items-center gap-1 p-1 rounded-xl border" style={{ backgroundColor: pageContent?.headerNavBgColor || 'rgba(255,255,255,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)', color: pageContent?.headerNavTextColor || '#ffffff' }}>
+        <nav className="hidden lg:flex items-center gap-1 p-1 rounded-xl border shadow-inner" style={{ backgroundColor: pageContent?.headerNavBgColor || 'rgba(255,255,255,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)', color: pageContent?.headerNavTextColor || '#ffffff' }}>
           <button
             onClick={() => setActiveTab('public')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
               activeTab === 'public'
                 ? 'bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-400 shadow-xs'
                 : 'text-inherit hover:brightness-110'
@@ -202,7 +202,7 @@ export const Navbar: React.FC<Props> = ({
           ) : (
             <button
               onClick={onOpenLoginModal}
-              className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+              className="px-3 py-1.5 bg-emerald-800 hover:bg-emerald-900 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow-xs transition cursor-pointer"
             >
               <LogIn className="w-4 h-4" /> Sign In
             </button>
@@ -216,12 +216,12 @@ export const Navbar: React.FC<Props> = ({
       </div>}
 
       {/* Mobile Nav Tabs */}
-      <div className="lg:hidden flex items-center overflow-x-auto px-4 py-2 border-t gap-1 text-xs" style={{ backgroundColor: 'rgba(0,0,0,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)', color: pageContent?.headerNavTextColor || '#ffffff' }}>
+      <div className="lg:hidden flex items-center overflow-x-auto px-3 sm:px-5 py-2 border-t gap-1.5 text-xs scrollbar-thin" style={{ backgroundColor: 'rgba(0,0,0,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)', color: pageContent?.headerNavTextColor || '#ffffff' }}>
         <button
           onClick={() => setActiveTab('public')}
-          className={`px-3 py-1 rounded-md shrink-0 font-medium ${
+          className={`px-3 py-1.5 rounded-lg shrink-0 font-semibold transition ${
             activeTab === 'public'
-              ? 'bg-emerald-800 text-white dark:bg-emerald-700'
+              ? 'bg-white/20 text-white ring-1 ring-white/25 dark:bg-white/15'
               : 'text-inherit'
           }`}
         >
