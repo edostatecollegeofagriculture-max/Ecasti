@@ -1758,14 +1758,16 @@ apiRouter.get(
       list = schoolId ? list.filter((s) => s.schoolId === schoolId) : [];
     }
     if (['HOD', 'DEAN', 'EXAM_OFFICER', 'LECTURER', 'BURSAR'].includes(role)) {
-      list = list.map((student) => {
-        const {
-          email: _email, phone: _phone, photoUrl: _photoUrl, gender: _gender,
-          dob: _dob, emergencyContact: _emergencyContact, nextOfKin: _nextOfKin,
-          ...limitedStudent
-        } = student;
-        return limitedStudent;
-      });
+      list = list.map((student) => ({
+        ...student,
+        email: '',
+        phone: '',
+        photoUrl: '',
+        gender: '',
+        dob: '',
+        emergencyContact: '',
+        nextOfKin: '',
+      }));
     }
 
     return res.json({ success: true, students: list });
