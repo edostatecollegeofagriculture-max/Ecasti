@@ -527,7 +527,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
               <p className="text-xs text-emerald-200 leading-relaxed" style={{ color: content.footerSubtitleColor || undefined }}>{content.footerDescription}</p>
             </div>
 
-            <div className="space-y-2 text-xs text-emerald-200">
+            <div className="space-y-2 text-xs text-emerald-200" style={{ color: content.footerSubtitleColor || undefined }}>
               <h4 className="font-bold text-white text-sm uppercase" style={{ color: content.footerTextColor || undefined }}>{content.footerLocationHeading}</h4>
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" style={{ color: content.footerIconColor || content.footerAccentColor || undefined }} />
@@ -535,7 +535,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
               </div>
             </div>
 
-            <div className="space-y-2 text-xs text-emerald-200">
+            <div className="space-y-2 text-xs text-emerald-200" style={{ color: content.footerSubtitleColor || undefined }}>
               <h4 className="font-bold text-white text-sm uppercase" style={{ color: content.footerTextColor || undefined }}>{content.footerContactHeading}</h4>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-amber-400 shrink-0" style={{ color: content.footerIconColor || content.footerAccentColor || undefined }} />
