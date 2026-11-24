@@ -4,13 +4,12 @@ export type PortalRole =
   | 'LECTURER' | 'STUDENT' | 'APPLICANT';
 
 export type AdminWorkspaceTab =
-  | 'admissions_review' | 'analytics' | 'dean_curriculum' | 'hod_allocation' | 'exam_approvals' | 'registrar_docs' | 'finance' | 'global_crud' | 'users'
+  | 'analytics' | 'dean_curriculum' | 'hod_allocation' | 'exam_approvals' | 'registrar_docs' | 'finance' | 'global_crud' | 'users'
   | 'settings' | 'cms' | 'audit';
 
 const FULL_ACCESS_ROLES = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'] as const;
 
 const ADMIN_TAB_ROLES: Record<AdminWorkspaceTab, readonly string[]> = {
-  admissions_review: ['ADMISSIONS_OFFICER'],
   analytics: [...FULL_ACCESS_ROLES],
   dean_curriculum: [...FULL_ACCESS_ROLES, 'DEAN'],
   hod_allocation: [...FULL_ACCESS_ROLES, 'HOD'],
