@@ -4493,13 +4493,13 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                           </button>
                         </div>
 
-                        <div className="mb-1"><span className="px-3 py-1 rounded-lg text-xs font-semibold border" style={{ backgroundColor: item.backgroundColor || pageContent.calendarCardBgColor || "rgba(255,255,255,0.05)", borderColor: item.borderColor || pageContent.calendarCardBorderColor || "rgba(255,255,255,0.10)" }}>{pageContent.calendarCurrentPeriodLabel || "Current Period"}: {pageContent.calendarCurrentPeriodText || settings?.currentSemester || "First Semester"}</span></div>
+                        <div className="mb-1"><span className="px-3 py-1 rounded-lg text-xs font-semibold border" style={{ backgroundColor: pageContent.calendarCardBgColor || "rgba(255,255,255,0.05)", borderColor: pageContent.calendarCardBorderColor || "rgba(255,255,255,0.10)" }}>{pageContent.calendarCurrentPeriodLabel || "Current Period"}: {pageContent.calendarCurrentPeriodText || settings?.currentSemester || "First Semester"}</span></div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {pageContent.calendarItems.map((item) => (
                             <div
                               key={item.id}
                               onClick={() => setSelected({ type: 'calendarItem', id: item.id })}
-                              style={{ backgroundColor: pageContent.calendarCardBgColor || "rgba(255,255,255,0.05)", borderColor: pageContent.calendarCardBorderColor || "rgba(255,255,255,0.10)" }}
+                              style={{ backgroundColor: item.backgroundColor || pageContent.calendarCardBgColor || "rgba(255,255,255,0.05)", borderColor: item.borderColor || pageContent.calendarCardBorderColor || "rgba(255,255,255,0.10)" }}
                               className={`p-4 rounded-xl border space-y-2 transition ${outlineCls(
                                 isSelected('calendarItem', item.id)
                               )}`}
