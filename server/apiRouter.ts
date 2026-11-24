@@ -3791,6 +3791,7 @@ apiRouter.post(
       secondaryBtnTextColor,
       footerBarBgColor,
       imageUrl,
+      imageOpacity,
       ctaText,
       ctaTab,
       ctaSubSection,
@@ -3822,6 +3823,7 @@ apiRouter.post(
       secondaryBtnTextColor: secondaryBtnTextColor || '',
       footerBarBgColor: footerBarBgColor || '',
       imageUrl: imageUrl || '',
+      imageOpacity: Math.min(100, Math.max(10, Number(imageOpacity ?? 65))),
       ctaText: ctaText || 'Learn More',
       ctaTab: ctaTab || 'public',
       ctaSubSection: ctaSubSection || 'overview',
@@ -3876,6 +3878,7 @@ apiRouter.put(
       secondaryBtnTextColor,
       footerBarBgColor,
       imageUrl,
+      imageOpacity,
       ctaText,
       ctaTab,
       ctaSubSection,
@@ -3900,6 +3903,7 @@ apiRouter.put(
     if (secondaryBtnTextColor !== undefined) slide.secondaryBtnTextColor = secondaryBtnTextColor;
     if (footerBarBgColor !== undefined) slide.footerBarBgColor = footerBarBgColor;
     if (imageUrl !== undefined) slide.imageUrl = imageUrl;
+    if (imageOpacity !== undefined) slide.imageOpacity = Math.min(100, Math.max(10, Number(imageOpacity)));
     if (ctaText !== undefined) slide.ctaText = ctaText.trim();
     if (ctaTab !== undefined) slide.ctaTab = ctaTab;
     if (ctaSubSection !== undefined) slide.ctaSubSection = ctaSubSection;
