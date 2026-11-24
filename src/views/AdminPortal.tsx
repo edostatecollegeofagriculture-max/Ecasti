@@ -1704,7 +1704,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
               {user?.role !== 'EXAM_OFFICER' && <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                    Examination Officer Gate 1
+                    HOD Registration Approval
                   </span>
                   <h2 className="text-lg font-black text-slate-900 dark:text-white">
                     Student Course Registration Approvals
@@ -1917,7 +1917,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                       value: examResStatusFilter,
                       onChange: setExamResStatusFilter,
                       options: [
-                        { value: 'SUBMITTED', label: 'Pending Exam Officer (SUBMITTED)' },
+                        { value: 'SUBMITTED', label: 'Pending HOD (SUBMITTED)' },
                         { value: 'PUBLISHED', label: 'Published to Students' },
                         { value: 'DRAFT', label: 'Draft' },
                       ],
@@ -1989,7 +1989,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </div>}
             </div>
           )}
 
