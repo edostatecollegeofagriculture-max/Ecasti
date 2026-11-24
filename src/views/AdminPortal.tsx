@@ -1351,7 +1351,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
         <aside
           className={`${
             sidebarOpenMobile ? 'block' : 'hidden'
-          } lg:block w-full lg:w-64 shrink-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3 space-y-5 lg:sticky lg:top-24 shadow-xs`}
+          } lg:block w-full lg:w-64 shrink-0 max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain scrollbar-thin bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3 space-y-5 lg:sticky lg:top-24 shadow-xs`}
         >
           {sidebarGroups.map((group) => {
             const visibleItems = group.items.filter((item) => canAccessAdminTab(role, item.id));
