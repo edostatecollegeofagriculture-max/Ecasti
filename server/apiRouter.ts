@@ -71,7 +71,7 @@ apiRouter.get(
 // ==================== END ACADEMIC PROGRESSION ====================
 
 // ==================== GLOBAL SEARCH ====================
-apiRouter.get('/search', (req, res) => {
+apiRouter.get('/search', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'), (req, res) => {
   const q = String(req.query.q || '').trim().toLowerCase();
   const state = db.getState();
 
@@ -785,7 +785,7 @@ apiRouter.post(
 apiRouter.put(
   '/academics/courses/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'HOD', 'REGISTRAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -896,7 +896,7 @@ apiRouter.post(
 apiRouter.put(
   '/academics/schools/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'REGISTRAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const school = db.getState().schools.find((s) => s.id === id);
@@ -2031,7 +2031,7 @@ apiRouter.post('/registrations/register', authenticateToken, (req: Authenticated
 apiRouter.patch(
   '/registrations/:id/approve',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'HOD', 'DEAN', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const reg = db.getState().registrations.find((r) => r.id === id);
@@ -2527,7 +2527,7 @@ apiRouter.post(
 apiRouter.put(
   '/results/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'HOD', 'EXAM_OFFICER', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'EXAM_OFFICER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -3286,7 +3286,7 @@ apiRouter.get(
 
 // ==================== DASHBOARD & EXECUTIVE ANALYTICS ====================
 
-apiRouter.get('/dashboard/stats', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+apiRouter.get('/dashboard/stats', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'), (req: AuthenticatedRequest, res: Response) => {
   const state = db.getState();
   const studentsCount = state.students.length;
   const applicantsCount = state.applications.length;
