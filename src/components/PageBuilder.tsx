@@ -136,6 +136,15 @@ const FALLBACK_PAGE_CONTENT: PageContent = {
     'Explore our accredited National Diploma (ND) and Higher National Diploma (HND) programmes.',
   calendarSectionKicker: 'Official Schedule',
   calendarSectionHeading: '2025/2026 Academic Calendar Highlights',
+  calendarCurrentPeriodLabel: 'Current Period',
+  calendarCurrentPeriodText: '',
+  calendarAddHighlightLabel: 'Add Highlight',
+  calendarBgColor: '#073f31',
+  calendarBgSecondaryColor: '#0b5b43',
+  calendarTextColor: '#ffffff',
+  calendarAccentColor: '#fbbf24',
+  calendarCardBgColor: 'rgba(255,255,255,0.05)',
+  calendarCardBorderColor: 'rgba(255,255,255,0.10)',
   calendarItems: [],
   faqSectionKicker: 'Help & Guidance',
   faqSectionHeading: 'Frequently Asked Questions',
@@ -2653,12 +2662,22 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
           </div>
           <div>
             <label className={labelCls}>Heading</label>
-            <input
-              type="text"
-              value={pageContent.calendarSectionHeading}
-              onChange={(e) => setPageContent({ ...pageContent, calendarSectionHeading: e.target.value })}
-              className={inputCls}
-            />
+            <input type="text" value={pageContent.calendarSectionHeading} onChange={(e) => setPageContent({ ...pageContent, calendarSectionHeading: e.target.value })} className={inputCls} />
+          </div>
+          <div><label className={labelCls}>Current Period Label</label><input type="text" value={pageContent.calendarCurrentPeriodLabel ?? 'Current Period'} onChange={(e) => setPageContent({ ...pageContent, calendarCurrentPeriodLabel: e.target.value })} className={inputCls} /></div>
+          <div><label className={labelCls}>Current Period Text (blank uses active semester)</label><input type="text" value={pageContent.calendarCurrentPeriodText ?? ''} onChange={(e) => setPageContent({ ...pageContent, calendarCurrentPeriodText: e.target.value })} className={inputCls} /></div>
+          <div><label className={labelCls}>Add Highlight Button Text</label><input type="text" value={pageContent.calendarAddHighlightLabel ?? 'Add Highlight'} onChange={(e) => setPageContent({ ...pageContent, calendarAddHighlightLabel: e.target.value })} className={inputCls} /></div>
+          <div className="grid grid-cols-2 gap-3">
+            {([
+              ['calendarBgColor','Section Background','#073f31'],
+              ['calendarBgSecondaryColor','Gradient End','#0b5b43'],
+              ['calendarTextColor','Section Text','#ffffff'],
+              ['calendarAccentColor','Accent / Highlight','#fbbf24'],
+              ['calendarCardBgColor','Card Background','#164e3b'],
+              ['calendarCardBorderColor','Card Border','#2f6b55'],
+            ] as const).map(([key,label,fallback]) => (
+              <div key={key}><label className={labelCls}>{label}</label><input type="color" value={(pageContent[key]?.startsWith('#') ? pageContent[key] : fallback)} onChange={(e) => setPageContent({ ...pageContent, [key]: e.target.value })} className={inputCls} /></div>
+            ))}
           </div>
         </div>
       );
@@ -4445,16 +4464,15 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                     return (
                       <div
                         key="calendar"
-                        className={`bg-slate-900 rounded-3xl p-6 sm:p-8 text-white border border-slate-800 space-y-5 ${
-                          isHidden ? 'opacity-50' : ''
-                        }`}
+                        style={{ backgroundImage: `linear-gradient(135deg, ${pageContent.calendarBgColor || '#073f31'}, ${pageContent.calendarBgSecondaryColor || '#0b5b43'})`, color: pageContent.calendarTextColor || '#ffffff' }}
+                        className={`rounded-3xl p-6 sm:p-8 border space-y-5 ${isHidden ? 'opacity-50' : ''}`}
                       >
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div
                             onClick={() => setSelected({ type: 'calendarHeader' })}
                             className={`p-2 -m-2 rounded-xl transition ${outlineCls(isSelected('calendarHeader'))}`}
                           >
-                            <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: pageContent.calendarAccentColor || "#fbbf24" }}>
                               {pageContent.calendarSectionKicker}
                             </span>
                             <h2 className="text-xl font-bold mt-0.5">{pageContent.calendarSectionHeading}</h2>
@@ -4463,20 +4481,22 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                             onClick={handleAddCalendarItem}
                             className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-lg flex items-center gap-1 cursor-pointer"
                           >
-                            <Plus className="w-3.5 h-3.5" /> Add Highlight
+                            <Plus className="w-3.5 h-3.5" /> {pageContent.calendarAddHighlightLabel || "Add Highlight"}
                           </button>
                         </div>
 
+                        <div className="mb-1"><span className="px-3 py-1 rounded-lg text-xs font-semibold border" style={{ backgroundColor: pageContent.calendarCardBgColor || "rgba(255,255,255,0.05)", borderColor: pageContent.calendarCardBorderColor || "rgba(255,255,255,0.10)" }}>{pageContent.calendarCurrentPeriodLabel || "Current Period"}: {pageContent.calendarCurrentPeriodText || settings?.currentSemester || "First Semester"}</span></div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {pageContent.calendarItems.map((item) => (
                             <div
                               key={item.id}
                               onClick={() => setSelected({ type: 'calendarItem', id: item.id })}
-                              className={`p-4 rounded-xl bg-white/5 border border-white/10 space-y-2 transition ${outlineCls(
+                              style={{ backgroundColor: pageContent.calendarCardBgColor || "rgba(255,255,255,0.05)", borderColor: pageContent.calendarCardBorderColor || "rgba(255,255,255,0.10)" }}
+                              className={`p-4 rounded-xl border space-y-2 transition ${outlineCls(
                                 isSelected('calendarItem', item.id)
                               )}`}
                             >
-                              <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                              <div className="flex items-center gap-2 font-bold text-sm" style={{ color: pageContent.calendarAccentColor || "#fbbf24" }}>
                                 <Calendar className="w-4 h-4" /> {item.title}
                               </div>
                               <p className="text-xs text-slate-300">{item.description}</p>

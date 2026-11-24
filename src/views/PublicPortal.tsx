@@ -46,6 +46,15 @@ const DEFAULT_PAGE_CONTENT: PageContent = {
     'Explore our accredited National Diploma (ND) and Higher National Diploma (HND) programmes.',
   calendarSectionKicker: 'Official Schedule',
   calendarSectionHeading: '2025/2026 Academic Calendar Highlights',
+  calendarCurrentPeriodLabel: 'Current Period',
+  calendarCurrentPeriodText: '',
+  calendarAddHighlightLabel: 'Add Highlight',
+  calendarBgColor: '#073f31',
+  calendarBgSecondaryColor: '#0b5b43',
+  calendarTextColor: '#ffffff',
+  calendarAccentColor: '#fbbf24',
+  calendarCardBgColor: 'rgba(255,255,255,0.05)',
+  calendarCardBorderColor: 'rgba(255,255,255,0.10)',
   calendarItems: [
     {
       id: 'cal-1',
@@ -517,23 +526,23 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
     if (sectionKey === 'calendar') {
       return (
         <section key="calendar" className="portal-section">
-          <div className="bg-linear-to-br from-[#073f31] to-[#0b5b43] rounded-2xl sm:rounded-3xl p-6 sm:p-9 lg:p-10 text-white border border-emerald-800 shadow-lg">
+          <div style={{ backgroundImage: `linear-gradient(135deg, ${content.calendarBgColor || '#073f31'}, ${content.calendarBgSecondaryColor || '#0b5b43'})`, color: content.calendarTextColor || '#ffffff' }} className="rounded-2xl sm:rounded-3xl p-6 sm:p-9 lg:p-10 border border-emerald-800 shadow-lg">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
               <div>
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: content.calendarAccentColor || "#fbbf24" }}>
                   {content.calendarSectionKicker}
                 </span>
                 <h2 className="text-2xl font-bold mt-1">{content.calendarSectionHeading}</h2>
               </div>
               <span className="px-3 py-1 bg-emerald-800 text-emerald-200 text-xs font-semibold rounded-lg border border-emerald-600">
-                Current Period: {settings?.currentSemester || 'First Semester'}
+                {content.calendarCurrentPeriodLabel || 'Current Period'}: {content.calendarCurrentPeriodText || settings?.currentSemester || 'First Semester'}
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {content.calendarItems.map((item) => (
                 <div key={item.id} className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                  <div className="flex items-center gap-2 font-bold text-sm" style={{ color: content.calendarAccentColor || "#fbbf24" }}>
                     <Calendar className="w-4 h-4" /> {item.title}
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed text-justify [text-align-last:left]">{item.description}</p>

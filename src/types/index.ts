@@ -347,6 +347,15 @@ export interface PageContent {
   schoolsSectionSubheading: string;
   calendarSectionKicker: string;
   calendarSectionHeading: string;
+  calendarCurrentPeriodLabel?: string;
+  calendarCurrentPeriodText?: string;
+  calendarAddHighlightLabel?: string;
+  calendarBgColor?: string;
+  calendarBgSecondaryColor?: string;
+  calendarTextColor?: string;
+  calendarAccentColor?: string;
+  calendarCardBgColor?: string;
+  calendarCardBorderColor?: string;
   calendarItems: CalendarHighlight[];
   faqSectionKicker: string;
   faqSectionHeading: string;
