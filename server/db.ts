@@ -526,7 +526,14 @@ export class DatabaseEngine {
       const identity = await client.query(
         'SELECT current_database() AS database_name'
       );
-      if (identity.rows[0]?.database_name !== 'ecasti_staging_db') {
+      const connectedDatabaseName = String(identity.rows[0]?.database_name || 'unknown');
+      if (connectedDatabaseName !== 'ecasti_staging_db') {
+        // The database name is safe diagnostic metadata; never log DATABASE_URL
+        // or any connection credentials.
+        console.error('[EDOCASTI] staging database identity mismatch', {
+          expectedDatabaseName: 'ecasti_staging_db',
+          connectedDatabaseName,
+        });
         throw new Error('STOP: DATABASE_URL is not connected to the dedicated Ecasti staging database.');
       }
 
