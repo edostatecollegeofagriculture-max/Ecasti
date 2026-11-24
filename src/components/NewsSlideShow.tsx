@@ -164,12 +164,13 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
             <img
               src={currentSlide.imageUrl}
               alt={currentSlide.title}
-              className="absolute inset-0 w-full h-full object-cover opacity-50 transition-opacity duration-700"
+              style={{ opacity: Math.min(1, Math.max(0.1, (currentSlide?.imageOpacity ?? 65) / 100)) }}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
             />
             <div
               style={heroStyles.imageTintStyle}
               className={`absolute inset-0 ${
-                customBg ? '' : 'bg-linear-to-r from-slate-950/90 via-emerald-950/75 to-slate-950/55'
+                customBg ? '' : 'bg-linear-to-r from-slate-950/70 via-emerald-950/45 to-slate-950/30'
               }`}
             />
           </>
