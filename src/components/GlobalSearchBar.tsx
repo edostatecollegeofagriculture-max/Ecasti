@@ -145,7 +145,7 @@ export const GlobalSearchBar: React.FC<Props> = ({ onNavigate, onOpenPrintModal 
             if (!isOpen) setIsOpen(true);
           }}
           placeholder="Search students, courses, official slips... (Ctrl+K)"
-          className="w-full pl-9 pr-16 py-1.5 text-xs bg-slate-100 hover:bg-slate-200/70 focus:bg-white dark:bg-slate-800/90 dark:hover:bg-slate-800 dark:focus:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 dark:focus:border-emerald-500 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
+          className="w-full pl-9 pr-9 py-1.5 text-xs bg-slate-100 hover:bg-slate-200/70 focus:bg-white dark:bg-slate-800/90 dark:hover:bg-slate-800 dark:focus:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-emerald-500 dark:focus:border-emerald-500 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
         />
         <div className="absolute right-2.5 flex items-center gap-1">
           {query && (
@@ -156,9 +156,6 @@ export const GlobalSearchBar: React.FC<Props> = ({ onNavigate, onOpenPrintModal 
               <X className="w-3.5 h-3.5" />
             </button>
           )}
-          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 rounded">
-            ⌘K
-          </kbd>
         </div>
       </div>
 
