@@ -1667,27 +1667,6 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
               </div>
             </div>
 
-            {renderImageEditor('Slide Background Image', slide.imageUrl, (v) => updateLocal({ imageUrl: v }), {
-              maxDimension: 1400,
-            })}
-            <div className="space-y-1.5 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <label htmlFor="hero-image-opacity">Hero image visibility</label>
-                <span>{slide.imageOpacity ?? 65}%</span>
-              </div>
-              <input
-                id="hero-image-opacity"
-                type="range"
-                min="10"
-                max="100"
-                step="5"
-                value={slide.imageOpacity ?? 65}
-                onChange={(e) => updateLocal({ imageOpacity: Number(e.target.value) })}
-                className="w-full accent-emerald-700"
-              />
-              <p className="text-[10px] text-slate-500">Increase visibility to make the slide image clearer; lower it to soften the image behind text.</p>
-            </div>
-
             <label className="flex items-center gap-2 text-xs cursor-pointer">
               <input
                 type="checkbox"
