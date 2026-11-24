@@ -113,6 +113,24 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
     setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
+  // Avoid flashing the hard-coded fallback hero while the configured public slides load.
+  // Keep the hero's footprint stable and neutral until its real slide/theme is ready.
+  if (loading) {
+    return (
+      <div className="w-full space-y-3" aria-busy="true" aria-label="Loading public highlights">
+        <div className="relative min-h-[380px] sm:min-h-[440px] lg:min-h-[480px] overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 shadow-sm">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex items-center gap-3 text-sm font-medium text-slate-500 dark:text-slate-400">
+              <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
+              Loading campus highlights…
+            </div>
+          </div>
+        </div>
+        <div className="h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900" />
+      </div>
+    );
+  }
+
   const currentSlide = slides[currentIndex] || slides[0];
   const heroStyles = getHeroSlideStyles(currentSlide);
   const customBg = hasCustomHeroBackground(currentSlide);
