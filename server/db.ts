@@ -14,6 +14,7 @@ const STAGING_INIT_MARKER = `${DB_FILE}.staging-demo-only-initialized`;
 const STAGING_QUICK_ACCESS_EMAILS = new Set([
   'superadmin@edocasti.edu.ng',
   'dean@edocasti.edu.ng',
+  'rector@edocasti.edu.ng',
   'hod.agric@edocasti.edu.ng',
   'examofficer@edocasti.edu.ng',
   'lecturer.agric@edocasti.edu.ng',
@@ -536,7 +537,18 @@ export class DatabaseEngine {
     // is written only after the first isolated demo-only reset succeeds.
     if (fs.existsSync(STAGING_INIT_MARKER) && fs.existsSync(DB_FILE)) {
       try {
-        return JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')) as DatabaseState;
+        const current = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')) as DatabaseState;
+        // Add newly allowlisted demo accounts without resetting or overwriting
+        // any staging records created by E2E tests.
+        const existingEmails = new Set((current.users || []).map((user) => user.email.toLowerCase()));
+        const missingDemoUsers = this.generateSeedData().users.filter((user) =>
+          STAGING_QUICK_ACCESS_EMAILS.has(user.email.toLowerCase()) && !existingEmails.has(user.email.toLowerCase())
+        );
+        if (missingDemoUsers.length > 0) {
+          current.users = [...(current.users || []), ...missingDemoUsers];
+          this.saveState(current);
+        }
+        return current;
       } catch (err) {
         console.error('Staging demo-only database could not be read; rebuilding the isolated demo baseline.', err);
       }
