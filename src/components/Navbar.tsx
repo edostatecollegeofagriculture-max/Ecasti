@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { canAccessWorkspace } from '../utils/roleAccess';
 import { GlobalSearchBar } from './GlobalSearchBar';
 import { ThemeToggle } from './ThemeToggle';
 import { SchoolLogo } from './SchoolLogo';
@@ -56,13 +57,13 @@ export const Navbar: React.FC<Props> = ({
           <span className="bg-emerald-800/80 px-2 py-0.5 rounded border border-emerald-700 text-emerald-100 hidden md:inline">
             {settings?.currentSemester || 'First Semester'}
           </span>
-          <button
+          {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role) && <button
             onClick={onOpenPersonaModal}
             className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-0.5 rounded shadow-xs flex items-center gap-1 cursor-pointer transition"
             title="Fast switch between roles (Rector, Bursar, Lecturer, Student, etc.)"
           >
             <KeyRound className="w-3 h-3" /> Quick Switch Role
-          </button>
+          </button>}
         </div>
       </div>
 
@@ -70,7 +71,7 @@ export const Navbar: React.FC<Props> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3 sm:gap-6">
         {/* Logo and Brand */}
         <div
-          onClick={() => setActiveTab('public')}
+          onClick={() => { if (!user) setActiveTab('public'); }}
           className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group shrink-0"
         >
           <SchoolLogo size={44} className="group-hover:scale-105 transition shrink-0" />
@@ -90,16 +91,13 @@ export const Navbar: React.FC<Props> = ({
         </div>
 
         {/* Persistent Global Search Bar */}
-        <div className="flex-1 max-w-md hidden md:block">
-          <GlobalSearchBar
-            onNavigate={(tab, sub) => setActiveTab(tab, sub)}
-            onOpenPrintModal={onOpenPrintModal}
-          />
-        </div>
+        {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role) && <div className="flex-1 max-w-md hidden md:block">
+          <GlobalSearchBar onNavigate={(tab, sub) => setActiveTab(tab, sub)} onOpenPrintModal={onOpenPrintModal} />
+        </div>}
 
         {/* Dynamic Navigation Tabs */}
         <nav className="hidden lg:flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
-          <button
+          {!user && <button
             onClick={() => setActiveTab('public')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'public'
@@ -108,9 +106,9 @@ export const Navbar: React.FC<Props> = ({
             }`}
           >
             Public Info
-          </button>
+          </button>}
 
-          <button
+          {(!user || canAccessWorkspace(user.role, 'admissions')) && <button
             onClick={() => setActiveTab('admissions')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'admissions'
@@ -119,9 +117,9 @@ export const Navbar: React.FC<Props> = ({
             }`}
           >
             Admissions
-          </button>
+          </button>}
 
-          {user && (user.role === 'STUDENT' || user.role === 'SUPER_ADMIN') && (
+          {user && canAccessWorkspace(user.role, 'student') && (
             <button
               onClick={() => setActiveTab('student')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
@@ -134,8 +132,7 @@ export const Navbar: React.FC<Props> = ({
             </button>
           )}
 
-          {user &&
-            ['LECTURER', 'HOD', 'DEAN', 'SUPER_ADMIN'].includes(user.role) && (
+          {user && canAccessWorkspace(user.role, 'lecturer') && (
               <button
                 onClick={() => setActiveTab('lecturer')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
@@ -148,18 +145,7 @@ export const Navbar: React.FC<Props> = ({
               </button>
             )}
 
-          {user &&
-            [
-              'SUPER_ADMIN',
-              'INSTITUTION_ADMIN',
-              'RECTOR',
-              'DEAN',
-              'HOD',
-              'EXAM_OFFICER',
-              'REGISTRAR',
-              'ADMISSIONS_OFFICER',
-              'BURSAR',
-            ].includes(user.role) && (
+          {user && canAccessWorkspace(user.role, 'admin') && (
               <button
                 onClick={() => setActiveTab('admin')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer whitespace-nowrap ${
@@ -172,7 +158,7 @@ export const Navbar: React.FC<Props> = ({
               </button>
             )}
 
-          <button
+          {user && canAccessWorkspace(user.role, 'builder') && <button
             onClick={() => setActiveTab('builder')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'builder'
@@ -181,12 +167,12 @@ export const Navbar: React.FC<Props> = ({
             }`}
           >
             <Layers className="w-3.5 h-3.5" /> Page Builder
-          </button>
+          </button>}
         </nav>
 
         {/* Right Tools: Page Builder (sm-md quick access), Theme Toggle & User Account */}
         <div className="flex items-center gap-2 shrink-0">
-          <button
+          {user && canAccessWorkspace(user.role, 'builder') && <button
             onClick={() => setActiveTab('builder')}
             className={`lg:hidden hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap ${
               activeTab === 'builder'
@@ -195,7 +181,7 @@ export const Navbar: React.FC<Props> = ({
             }`}
           >
             <Layers className="w-3.5 h-3.5" /> Page Builder
-          </button>
+          </button>}
 
           {/* Theme Toggle */}
           <ThemeToggle />
@@ -243,16 +229,13 @@ export const Navbar: React.FC<Props> = ({
       </div>
 
       {/* Mobile Global Search Bar */}
-      <div className="md:hidden px-4 pb-2.5">
-        <GlobalSearchBar
-          onNavigate={(tab, sub) => setActiveTab(tab, sub)}
-          onOpenPrintModal={onOpenPrintModal}
-        />
-      </div>
+      {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role) && <div className="md:hidden px-4 pb-2.5">
+        <GlobalSearchBar onNavigate={(tab, sub) => setActiveTab(tab, sub)} onOpenPrintModal={onOpenPrintModal} />
+      </div>}
 
       {/* Mobile Nav Tabs */}
       <div className="lg:hidden flex items-center overflow-x-auto px-4 py-2 border-t border-slate-100 dark:border-slate-800 gap-1 bg-slate-50 dark:bg-slate-900/90 text-xs">
-        <button
+        {!user && <button
           onClick={() => setActiveTab('public')}
           className={`px-3 py-1 rounded-md shrink-0 font-medium ${
             activeTab === 'public'
@@ -261,8 +244,8 @@ export const Navbar: React.FC<Props> = ({
           }`}
         >
           College Info
-        </button>
-        <button
+        </button>}
+        {(!user || canAccessWorkspace(user.role, 'admissions')) && <button
           onClick={() => setActiveTab('admissions')}
           className={`px-3 py-1 rounded-md shrink-0 font-medium ${
             activeTab === 'admissions'
@@ -271,8 +254,8 @@ export const Navbar: React.FC<Props> = ({
           }`}
         >
           Admissions
-        </button>
-        {user && (user.role === 'STUDENT' || user.role === 'SUPER_ADMIN') && (
+        </button>}
+        {user && canAccessWorkspace(user.role, 'student') && (
           <button
             onClick={() => setActiveTab('student')}
             className={`px-3 py-1 rounded-md shrink-0 font-medium ${
@@ -284,7 +267,7 @@ export const Navbar: React.FC<Props> = ({
             Student
           </button>
         )}
-        {user && ['LECTURER', 'HOD', 'DEAN', 'SUPER_ADMIN'].includes(user.role) && (
+        {user && canAccessWorkspace(user.role, 'lecturer') && (
           <button
             onClick={() => setActiveTab('lecturer')}
             className={`px-3 py-1 rounded-md shrink-0 font-medium ${
@@ -296,18 +279,7 @@ export const Navbar: React.FC<Props> = ({
             Lecturer
           </button>
         )}
-        {user &&
-          [
-            'SUPER_ADMIN',
-            'INSTITUTION_ADMIN',
-            'RECTOR',
-            'DEAN',
-            'HOD',
-            'EXAM_OFFICER',
-            'REGISTRAR',
-            'ADMISSIONS_OFFICER',
-            'BURSAR',
-          ].includes(user.role) && (
+        {user && canAccessWorkspace(user.role, 'admin') && (
             <button
               onClick={() => setActiveTab('admin')}
               className={`px-3 py-1 rounded-md shrink-0 font-medium ${
@@ -319,7 +291,7 @@ export const Navbar: React.FC<Props> = ({
               Management
             </button>
           )}
-        <button
+        {user && canAccessWorkspace(user.role, 'builder') && <button
           onClick={() => setActiveTab('builder')}
           className={`px-3 py-1 rounded-md shrink-0 font-semibold flex items-center gap-1 ${
             activeTab === 'builder'
@@ -328,7 +300,7 @@ export const Navbar: React.FC<Props> = ({
           }`}
         >
           <Layers className="w-3.5 h-3.5" /> Page Builder
-        </button>
+        </button>}
       </div>
     </header>
   );

@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { canAccessAdminTab } from '../utils/roleAccess';
 import { api, type FeeCatalogItem, type ProgramFeeSchedule, type ProgramFeeScheduleItem } from '../services/api';
 import {
   AuditLog,
@@ -415,7 +416,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
       if (attRes.success && attRes.attendance) setAttendance(attRes.attendance);
       if (tktRes.success && tktRes.tickets) setTickets(tktRes.tickets);
 
-      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'].includes(user.role)) {
+      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role)) {
         const [uRes, aRes, appRes] = await Promise.all([
           api.getUsers().catch(() => ({ success: false, users: [] })),
           api.getAuditLogs({ limit: 80 }).catch(() => ({ success: false, logs: [] })),
@@ -426,7 +427,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
         if (appRes.success && appRes.applications) setApplications(appRes.applications);
       }
 
-      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'RECTOR', 'REGISTRAR'].includes(user.role)) {
+      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'RECTOR'].includes(user.role)) {
         const pRes = await api.getPayments().catch(() => ({ success: false, payments: [] }));
         if (pRes.success && pRes.payments) setPayments(pRes.payments);
       }
@@ -442,7 +443,10 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
   }, [user?.id, user?.role]);
 
   // Role permission helper for sidebar visibility
-  const role = user?.role || 'SUPER_ADMIN';
+  const role = user?.role || 'UNKNOWN';
+  const safeActiveSubTab = canAccessAdminTab(role, activeSubTab)
+    ? activeSubTab
+    : (ROLE_DEFAULT_TAB[role] || 'analytics');
   const canManageAdmissionFeeActivations = [
     'SUPER_ADMIN',
     'INSTITUTION_ADMIN',
@@ -462,7 +466,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'analytics',
           label: 'Executive Analytics',
           icon: <Activity className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'DEAN', 'HOD', 'EXAM_OFFICER', 'BURSAR', 'ADMISSIONS_OFFICER'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'],
         },
       ],
     },
@@ -473,19 +477,19 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'dean_curriculum',
           label: 'Dean: Programmes & Courses',
           icon: <GraduationCap className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'DEAN', 'HOD'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN'],
         },
         {
           id: 'hod_allocation',
           label: 'HOD: Assign Lecturers',
           icon: <UserCheck className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'DEAN', 'HOD'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'HOD'],
         },
         {
           id: 'exam_approvals',
           label: 'Exam Officer Approvals',
           icon: <ClipboardCheck className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'HOD', 'DEAN', 'REGISTRAR'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'],
         },
       ],
     },
@@ -496,13 +500,13 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'registrar_docs',
           label: 'Registrar: Transcripts & Certs',
           icon: <FileText className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR', 'BURSAR'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
         },
         {
           id: 'finance',
           label: 'Bursary & Fee Ledger',
           icon: <Wallet className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'RECTOR', 'REGISTRAR'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'],
         },
       ],
     },
@@ -525,7 +529,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'settings',
           label: 'Branding, Stamp & Rules',
           icon: <Settings className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
         },
         {
           id: 'cms',
@@ -1338,7 +1342,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           } lg:block w-full lg:w-64 shrink-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3 space-y-5 lg:sticky lg:top-24 shadow-xs`}
         >
           {sidebarGroups.map((group) => {
-            const visibleItems = group.items.filter((item) => item.roles.includes(role) || isSuperAdmin);
+            const visibleItems = group.items.filter((item) => canAccessAdminTab(role, item.id));
             if (visibleItems.length === 0) return null;
             return (
               <div key={group.group} className="space-y-1">
@@ -1346,7 +1350,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                   {group.group}
                 </div>
                 {visibleItems.map((item) => {
-                  const active = activeSubTab === item.id;
+                  const active = safeActiveSubTab === item.id;
                   return (
                     <button
                       key={item.id}
@@ -1375,7 +1379,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
         {/* MAIN RIGHT WORKSPACE */}
         <div className="flex-1 min-w-0 w-full space-y-6">
           {/* ==================== 1. ANALYTICS ==================== */}
-          {activeSubTab === 'analytics' && (
+          {safeActiveSubTab === 'analytics' && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
