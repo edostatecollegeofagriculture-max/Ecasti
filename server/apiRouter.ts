@@ -29,9 +29,24 @@ import { evaluateNdGraduationEligibility } from './academicProgressionService';
 import { academicProgressionApiRouter } from './academicProgressionApiRouter';
 import { appendAcademicResultEvent, listAcademicResultAttempts } from './academicResultNeonService';
 import { canExamOfficerModerateResult, canHodApproveResult, isHodApprovedForPublication } from './resultApprovalAuthorization';
+import { getDemoSeedStatus, seedDemoAcademicData, unseedDemoAcademicData } from './demoDataService';
 
 export const apiRouter = Router();
 apiRouter.use('/academic-progression', academicProgressionApiRouter);
+
+const superAdminOnly = [authenticateToken, requireRoles('SUPER_ADMIN')];
+apiRouter.get('/staging/demo-data/status', ...superAdminOnly, (_req: AuthenticatedRequest, res: Response) => {
+  try { return res.json(getDemoSeedStatus()); }
+  catch (error) { return res.status(403).json({ success: false, message: error instanceof Error ? error.message : 'Demo data controls unavailable.' }); }
+});
+apiRouter.post('/staging/demo-data/seed', ...superAdminOnly, (req: AuthenticatedRequest, res: Response) => {
+  try { return res.json(seedDemoAcademicData({ id: req.user!.id, email: req.user!.email })); }
+  catch (error) { return res.status(409).json({ success: false, message: error instanceof Error ? error.message : 'Unable to seed demo data.' }); }
+});
+apiRouter.post('/staging/demo-data/unseed', ...superAdminOnly, (req: AuthenticatedRequest, res: Response) => {
+  try { return res.json(unseedDemoAcademicData({ id: req.user!.id, email: req.user!.email })); }
+  catch (error) { return res.status(409).json({ success: false, message: error instanceof Error ? error.message : 'Unable to unseed demo data.' }); }
+});
 // ==================== ACADEMIC PROGRESSION (READ ONLY) ====================
 apiRouter.get(
   '/academic-progression/students/:studentId/eligibility',
