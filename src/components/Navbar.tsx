@@ -15,7 +15,6 @@ import {
   CheckCircle2,
   Sparkles,
   Layers,
-  Phone,
 } from 'lucide-react';
 
 interface Props {
@@ -70,15 +69,6 @@ export const Navbar: React.FC<Props> = ({
               <span className="opacity-60">•</span>
               <span className="font-semibold">{settings?.currentSemester || 'First Semester'}</span>
             </div>
-            <a
-              href={`tel:${settings?.contactPhone || '+2348030001234'}`}
-              className="inline-flex items-center gap-1.5 mt-1 text-[10px] sm:text-[11px] font-semibold hover:underline"
-              style={{ color: pageContent?.headerSubtitleColor || '#d1fae5' }}
-              aria-label={`Call ${settings?.contactPhone || '+234 803 000 1234'}`}
-            >
-              <Phone className="w-3.5 h-3.5 shrink-0" style={{ color: pageContent?.headerAccentColor || '#fbbf24' }} />
-              <span>{settings?.contactPhone || '+234 803 000 1234'}</span>
-            </a>
           </div>
         </div>
 
