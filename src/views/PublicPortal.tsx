@@ -9,7 +9,6 @@ import { WildcardFilterBar } from '../components/WildcardFilterBar';
 import { matchesWildcard } from '../utils/wildcard';
 import {
   Calendar,
-  CheckCircle,
   MapPin,
   Phone,
   Mail,
@@ -165,11 +164,6 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
   const sectionOrder = configuredSectionOrder
     .filter((key) => key !== 'programmes')
     .flatMap((key) => key === 'schools' ? ['schools', 'programmes'] : [key]);
-
-  const getSchoolProgrammes = (schoolId: string) => {
-    const deptIds = departments.filter((d) => d.schoolId === schoolId).map((d) => d.id);
-    return programmes.filter((p) => deptIds.includes(p.departmentId));
-  };
 
   const renderSection = (sectionKey: string) => {
     if (hiddenSet.has(sectionKey)) return null;
