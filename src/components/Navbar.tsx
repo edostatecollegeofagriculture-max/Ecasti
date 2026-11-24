@@ -81,7 +81,7 @@ export const Navbar: React.FC<Props> = ({
 
         {/* Dynamic Navigation Tabs */}
         <nav className="hidden lg:flex items-center gap-1 p-1 rounded-xl border" style={{ backgroundColor: pageContent?.headerNavBgColor || 'rgba(255,255,255,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)', color: pageContent?.headerNavTextColor || '#ffffff' }}>
-          {!user && <button
+          <button
             onClick={() => setActiveTab('public')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'public'
@@ -90,7 +90,7 @@ export const Navbar: React.FC<Props> = ({
             }`}
           >
             Public Info
-          </button>}
+          </button>
 
           {(!user || canAccessWorkspace(user.role, 'admissions')) && <button
             onClick={() => setActiveTab('admissions')}
@@ -226,7 +226,7 @@ export const Navbar: React.FC<Props> = ({
 
       {/* Mobile Nav Tabs */}
       <div className="lg:hidden flex items-center overflow-x-auto px-4 py-2 border-t gap-1 text-xs" style={{ backgroundColor: 'rgba(0,0,0,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)', color: pageContent?.headerNavTextColor || '#ffffff' }}>
-        {!user && <button
+        <button
           onClick={() => setActiveTab('public')}
           className={`px-3 py-1 rounded-md shrink-0 font-medium ${
             activeTab === 'public'
@@ -234,8 +234,8 @@ export const Navbar: React.FC<Props> = ({
               : 'text-inherit'
           }`}
         >
-          College Info
-        </button>}
+          Public Info
+        </button>
         {(!user || canAccessWorkspace(user.role, 'admissions')) && <button
           onClick={() => setActiveTab('admissions')}
           className={`px-3 py-1 rounded-md shrink-0 font-medium ${
