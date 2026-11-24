@@ -87,6 +87,7 @@ type ScopeFilter = 'all' | 'public' | 'academics' | 'finance' | 'people';
 
 type SelectedItem =
   | { type: 'overview' }
+  | { type: 'header' }
   | { type: 'settings' }
   | { type: 'slide'; id: string }
   | { type: 'newsHeader' }
@@ -154,6 +155,7 @@ const FALLBACK_PAGE_CONTENT: PageContent = {
 
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero Slideshow',
+  header: 'Main Header',
   news: 'News & Press Bulletins',
   rector: "Rector's Message",
   schools: 'Schools & Programmes',
@@ -1171,6 +1173,15 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
 
             <div className="grid grid-cols-1 gap-1.5 text-xs">
               <button
+                onClick={() => setSelected({ type: 'header' })}
+                className="flex items-center justify-between p-2.5 rounded-lg border border-emerald-300 dark:border-emerald-800 hover:border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 cursor-pointer"
+              >
+                <span className="flex items-center gap-2 font-semibold text-emerald-900 dark:text-emerald-200">
+                  <Palette className="w-4 h-4" /> Main Header Appearance
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </button>
+              <button
                 onClick={() => setSelected({ type: 'settings' })}
                 className="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-emerald-600 bg-white dark:bg-slate-900 cursor-pointer"
               >
@@ -1231,6 +1242,60 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
               </button>
             </div>
           </div>
+        </div>
+      );
+    }
+
+    // MAIN HEADER APPEARANCE EDITOR
+    if (selected.type === 'header') {
+      const headerColors = [
+        ['Background Colour', 'headerBgColor', '#047857'],
+        ['Secondary Background', 'headerBgSecondaryColor', '#065f46'],
+        ['Main Text Colour', 'headerTextColor', '#ffffff'],
+        ['Institution Subtitle Colour', 'headerSubtitleColor', '#d1fae5'],
+        ['Brand Accent Colour', 'headerAccentColor', '#fbbf24'],
+        ['Navigation Surface', 'headerNavBgColor', '#0b6b50'],
+        ['Navigation Text Colour', 'headerNavTextColor', '#ffffff'],
+        ['Border Colour', 'headerBorderColor', '#065f46'],
+      ] as const;
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Portal Branding</span>
+              <h3 className="text-sm font-black text-slate-900 dark:text-white">Main Header Appearance</h3>
+            </div>
+            <button onClick={() => savePageContent()} disabled={saving}
+              className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 cursor-pointer">
+              <Save className="w-3.5 h-3.5" /> {saving ? 'Saving...' : 'Save Header'}
+            </button>
+          </div>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">Customize the main portal header background, typography, brand accent, navigation surface and border. Changes appear in the preview immediately.</p>
+          {renderImageEditor('Header Background Image', pageContent.headerBackgroundImageUrl, (v) =>
+            setPageContent({ ...pageContent, headerBackgroundImageUrl: v }), { maxDimension: 1800 }
+          )}
+          <div className="grid grid-cols-2 gap-2.5">
+            {headerColors.map(([label, key, fallback]) => (
+              <label key={key} className="space-y-1">
+                <span className={labelCls}>{label}</span>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={(pageContent as any)[key] || fallback}
+                    onChange={(e) => setPageContent({ ...pageContent, [key]: e.target.value })}
+                    className="h-9 w-11 rounded border border-slate-300 dark:border-slate-700 bg-white p-1 cursor-pointer" />
+                  <input type="text" value={(pageContent as any)[key] || ''}
+                    onChange={(e) => setPageContent({ ...pageContent, [key]: e.target.value })}
+                    placeholder={fallback} className={inputCls} />
+                </div>
+              </label>
+            ))}
+          </div>
+          <button type="button" onClick={() => setPageContent({
+            ...pageContent, headerBackgroundImageUrl: '', headerBgColor: '', headerBgSecondaryColor: '',
+            headerTextColor: '', headerSubtitleColor: '', headerAccentColor: '', headerNavBgColor: '',
+            headerNavTextColor: '', headerBorderColor: '',
+          })} className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+            <RotateCcw className="w-3 h-3 inline mr-1" /> Reset appearance to defaults
+          </button>
         </div>
       );
     }
@@ -3869,6 +3934,54 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
         {/* RIGHT SIDE: Live Interactive Preview of ALL App Information */}
         <section className="flex-1 lg:h-full overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className={`${previewContainerClass} space-y-8 transition-all duration-200 pb-12`}>
+            {/* MAIN HEADER LIVE PREVIEW */}
+            {showSectionByScope('public') && (
+              <div
+                onClick={() => setSelected({ type: 'header' })}
+                style={{
+                  backgroundColor: pageContent.headerBgColor || '#047857',
+                  backgroundImage: pageContent.headerBackgroundImageUrl
+                    ? `linear-gradient(110deg, ${pageContent.headerBgColor || '#047857'}eF, ${pageContent.headerBgSecondaryColor || '#065f46'}eF), url(${pageContent.headerBackgroundImageUrl})`
+                    : `linear-gradient(110deg, ${pageContent.headerBgColor || '#047857'}, ${pageContent.headerBgSecondaryColor || '#065f46'})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  color: pageContent.headerTextColor || '#ffffff',
+                  borderColor: pageContent.headerBorderColor || '#065f46',
+                }}
+                className={`rounded-xl border shadow-md overflow-hidden cursor-pointer transition ${outlineCls(isSelected('header'))}`}
+              >
+                <div className="px-4 sm:px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <SchoolLogo size={42} />
+                    <div className="min-w-0">
+                      <div className="font-black text-base" style={{ color: pageContent.headerAccentColor || '#fbbf24' }}>
+                        {settings?.shortName || 'EDOCASTI'}
+                      </div>
+                      <div className="text-[10px] sm:text-xs" style={{ color: pageContent.headerSubtitleColor || '#d1fae5' }}>
+                        {settings?.institutionName || 'Edo State College of Agriculture, Science and Technology'}
+                      </div>
+                      <div className="text-[10px] mt-1" style={{ color: pageContent.headerSubtitleColor || '#d1fae5' }}>
+                        Session: <strong style={{ color: pageContent.headerAccentColor || '#fbbf24' }}>{settings?.currentSession || '2025/2026'}</strong>
+                        <span className="mx-1.5 opacity-60">•</span>{settings?.currentSemester || 'First Semester'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {['College Info', 'Admissions', 'Student Portal', 'Faculty', 'Management'].map((item) => (
+                      <span key={item} className="px-2.5 py-1 rounded-lg text-[10px] font-semibold border"
+                        style={{ backgroundColor: pageContent.headerNavBgColor || 'rgba(255,255,255,0.12)', color: pageContent.headerNavTextColor || '#ffffff', borderColor: pageContent.headerBorderColor || 'rgba(255,255,255,0.2)' }}>
+                        {item}
+                      </span>
+                    ))}
+                    <span className="px-3 py-1.5 rounded-lg bg-white text-emerald-900 text-[10px] font-bold">Sign In</span>
+                  </div>
+                </div>
+                <div className="px-4 py-1.5 text-[10px] font-semibold border-t" style={{ backgroundColor: 'rgba(0,0,0,0.12)', borderColor: pageContent.headerBorderColor || 'rgba(255,255,255,0.2)', color: pageContent.headerSubtitleColor || '#d1fae5' }}>
+                  Click to edit Main Header appearance
+                </div>
+              </div>
+            )}
+
             {/* 1. PORTAL BANNER & INSTITUTION SETTINGS SUMMARY */}
             {showSectionByScope('public') &&
               settings &&

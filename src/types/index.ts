@@ -365,6 +365,15 @@ export interface PageContent {
   footerAccentColor?: string;
   footerBorderColor?: string;
   footerIconColor?: string;
+  headerBackgroundImageUrl?: string;
+  headerBgColor?: string;
+  headerBgSecondaryColor?: string;
+  headerTextColor?: string;
+  headerSubtitleColor?: string;
+  headerAccentColor?: string;
+  headerNavBgColor?: string;
+  headerNavTextColor?: string;
+  headerBorderColor?: string;
   sectionOrder: string[];
   hiddenSections: string[];
   customSections: CustomPageSection[];
