@@ -119,6 +119,7 @@ const MainApp: React.FC = () => {
         {activeTab === 'admissions' && (
           <AdmissionsPortal
             initialSection={activeSubSection}
+            forceApplicantView={activeSubSection === 'programmes'}
             onOpenPrintModal={openPrintModal}
             onGoToStudentWorkspace={() => handleNavigate('student', 'courses')}
             onOpenLoginModal={() => setIsLoginModalOpen(true)}
