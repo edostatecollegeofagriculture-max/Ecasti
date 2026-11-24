@@ -4,6 +4,7 @@ import { canAccessAdminTab, canAccessWorkspace, getDefaultAdminTab, getRoleHome 
 const forbidden = [
   ['HOD', 'dean_curriculum'],
   ['DEAN', 'exam_approvals'],
+  ['DEAN', 'hod_allocation'],
   ['EXAM_OFFICER', 'dean_curriculum'],
   ['STUDENT', 'admin'],
   ['STUDENT', 'builder'],
