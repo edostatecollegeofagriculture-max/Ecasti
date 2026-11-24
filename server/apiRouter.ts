@@ -30,13 +30,14 @@ import { academicProgressionApiRouter } from './academicProgressionApiRouter';
 import { appendAcademicResultEvent, listAcademicResultAttempts } from './academicResultNeonService';
 import { canExamOfficerModerateResult, canHodApproveResult, isHodApprovedForPublication } from './resultApprovalAuthorization';
 import { getDemoSeedStatus, seedDemoAcademicData, unseedDemoAcademicData } from './demoDataService';
+import { canManageStagingDemoData } from './demoDataAuthorization';
 
 export const apiRouter = Router();
 apiRouter.use('/academic-progression', academicProgressionApiRouter);
 
 const requireExactSuperAdmin = (req: AuthenticatedRequest, res: Response, next: () => void) => {
   if (!req.user) return res.status(401).json({ success: false, message: 'Authentication required.' });
-  if (req.user.role !== 'SUPER_ADMIN') return res.status(403).json({ success: false, message: 'Only the SUPER_ADMIN role may manage staging demo data.' });
+  if (!canManageStagingDemoData(req.user.role)) return res.status(403).json({ success: false, message: 'Only the SUPER_ADMIN role may manage staging demo data.' });
   return next();
 };
 const superAdminOnly = [authenticateToken, requireExactSuperAdmin];
