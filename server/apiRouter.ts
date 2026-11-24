@@ -831,7 +831,7 @@ apiRouter.patch(
     if (!course) {
       return res.status(404).json({ success: false, message: 'Course not found.' });
     }
-    if (req.user!.departmentId && course.departmentId !== req.user!.departmentId) {
+    if (!req.user!.departmentId || course.departmentId !== req.user!.departmentId) {
       return res.status(403).json({ success: false, message: 'You can only assign courses within your department.' });
     }
     const lecturerUser = lecturerId
@@ -930,7 +930,7 @@ apiRouter.delete(
 apiRouter.post(
   '/academics/departments',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'REGISTRAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { schoolId, code, name } = req.body;
     if (!schoolId || !code || !name) {
@@ -951,7 +951,7 @@ apiRouter.post(
 apiRouter.put(
   '/academics/departments/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'REGISTRAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const dept = db.getState().departments.find((d) => d.id === id);
@@ -984,7 +984,7 @@ apiRouter.delete(
 apiRouter.post(
   '/academics/programmes',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'REGISTRAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { departmentId, code, name, qualification, durationYears, description, requirements } = req.body;
     if (!departmentId || !code || !name) {
@@ -1017,7 +1017,7 @@ apiRouter.post(
 apiRouter.put(
   '/academics/programmes/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'REGISTRAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const prog = db.getState().programmes.find((p) => p.id === id);
@@ -1933,6 +1933,14 @@ apiRouter.get(
   const { session, semester, studentId } = req.query;
   const state = db.getState();
   let list = state.registrations;
+  const actorRole = req.user!.role;
+  if (actorRole === 'EXAM_OFFICER') {
+    const departmentId = req.user!.departmentId;
+    const departmentCourseIds = new Set(state.courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+    list = departmentId
+      ? list.filter((registration) => registration.courseIds.some((courseId) => departmentCourseIds.has(courseId)))
+      : [];
+  }
   if (session) list = list.filter((r) => r.session === session);
   if (semester) list = list.filter((r) => r.semester === semester);
   if (studentId) list = list.filter((r) => r.studentId === studentId);
@@ -2138,7 +2146,7 @@ apiRouter.patch(
 apiRouter.put(
   '/registrations/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const reg = db.getState().registrations.find((r) => r.id === id);
@@ -2229,7 +2237,7 @@ apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTIT
 apiRouter.get(
   '/results/neon-attempts',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER'),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const state = db.getState();
@@ -2494,7 +2502,7 @@ apiRouter.patch(
 apiRouter.post(
   '/results/approve-bulk',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { resultIds, courseId } = req.body || {};
 
@@ -2553,7 +2561,7 @@ apiRouter.post(
 apiRouter.put(
   '/results/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
