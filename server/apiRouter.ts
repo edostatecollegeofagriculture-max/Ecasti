@@ -721,17 +721,27 @@ apiRouter.get(
 
 apiRouter.get('/academics/lecturers', authenticateToken,
   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'HOD'), (req: AuthenticatedRequest, res: Response) => {
-  const lecturers = db
-    .getState()
-    .users.filter((u) => ['LECTURER', 'HOD', 'DEAN'].includes(u.role) && u.isActive)
-    .map((u) => ({
-      id: u.id,
-      fullName: u.fullName,
-      email: u.email,
-      role: u.role,
-      departmentId: u.departmentId,
-      schoolId: u.schoolId,
-    }));
+  const state = db.getState();
+  let lecturerUsers = state.users.filter((u) => u.role === 'LECTURER' && u.isActive);
+  if (req.user!.role === 'HOD') {
+    const departmentId = req.user!.departmentId;
+    lecturerUsers = departmentId
+      ? lecturerUsers.filter((lecturer) => lecturer.departmentId === departmentId)
+      : [];
+  }
+  if (req.user!.role === 'DEAN') {
+    const schoolId = req.user!.schoolId;
+    const departmentIds = new Set(state.departments.filter((department) => department.schoolId === schoolId).map((department) => department.id));
+    lecturerUsers = schoolId
+      ? lecturerUsers.filter((lecturer) => Boolean(lecturer.departmentId && departmentIds.has(lecturer.departmentId)))
+      : [];
+  }
+  const lecturers = lecturerUsers.map((lecturer) => ({
+    id: lecturer.id,
+    fullName: lecturer.fullName,
+    role: lecturer.role,
+    departmentId: lecturer.departmentId,
+  }));
   return res.json({ success: true, lecturers });
 });
 
