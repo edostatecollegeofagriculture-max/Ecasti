@@ -16,14 +16,23 @@ export const SchoolLogo: React.FC<Props> = ({
 }) => {
   const { settings } = useAuth();
 
-  if (variant !== 'watermark' && settings?.logoUrl) {
+  if (settings?.logoUrl) {
     const resolvedSize = typeof size === 'number' ? `${size}px` : size;
+    const isWatermark = variant === 'watermark';
     return (
       <img
         src={settings.logoUrl}
-        alt={`${settings.shortName || 'EDOCASTI'} Official Crest`}
-        className={`object-contain rounded-full ${className}`}
-        style={{ width: resolvedSize, height: resolvedSize }}
+        alt={isWatermark ? '' : `${settings.shortName || 'EDOCASTI'} Official Crest`}
+        aria-hidden={isWatermark ? true : undefined}
+        draggable={false}
+        className={`object-contain ${isWatermark ? '' : 'rounded-full'} ${className}`}
+        style={{
+          width: resolvedSize,
+          height: resolvedSize,
+          opacity: isWatermark ? watermarkOpacity : 1,
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}
       />
     );
   }
