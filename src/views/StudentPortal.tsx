@@ -408,7 +408,7 @@ export const StudentPortal: React.FC<Props> = ({ onOpenPrintModal }) => {
               Registration Status:{' '}
               <strong className="text-emerald-800 dark:text-emerald-400">
                 {currentReg?.status === 'APPROVED_BY_EXAM_OFFICER' || currentReg?.status === 'APPROVED_BY_HOD'
-                  ? 'APPROVED BY EXAM OFFICER'
+                  ? (currentReg?.status === 'APPROVED_BY_HOD' ? 'APPROVED BY HOD' : 'APPROVED BY EXAM OFFICER')
                   : currentReg?.status || 'NOT_SUBMITTED'}
               </strong>
             </div>
