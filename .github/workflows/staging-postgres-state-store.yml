@@ -7,9 +7,11 @@ on:
       - feature/academic-progression-snapshot-readonly
       - staging-role-specific-workspaces
       - staging-role-responsibility-matrix
+      - staging-hod-result-approval
   pull_request:
     branches:
       - feature/academic-progression-snapshot-readonly
+      - staging-role-responsibility-matrix
 
 jobs:
   validate:
