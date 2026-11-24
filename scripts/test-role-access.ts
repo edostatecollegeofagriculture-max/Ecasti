@@ -37,11 +37,16 @@ for (const role of ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR']) {
 }
 
 assert.equal(canAccessWorkspace('ADMISSIONS_OFFICER', 'admissions-review'), true);
+assert.equal(canAccessWorkspace('SUPER_ADMIN', 'admissions-review'), false);
+assert.equal(canAccessWorkspace('RECTOR', 'admissions-review'), false);
 assert.equal(canAccessWorkspace('ADMISSIONS_OFFICER', 'admissions'), false);
 assert.equal(canAccessWorkspace('ADMISSIONS_OFFICER', 'admin'), false);
 assert.equal(canAccessWorkspace('APPLICANT', 'admissions'), true);
 assert.equal(canAccessWorkspace('APPLICANT', 'admissions-review'), false);
 assert.equal(canAccessWorkspace('HOD', 'builder'), false);
+assert.equal(canAccessWorkspace('INSTITUTION_ADMIN', 'builder'), false);
+assert.equal(canAccessWorkspace('SUPER_ADMIN', 'builder'), true);
+assert.equal(canAccessWorkspace('RECTOR', 'builder'), true);
 assert.equal(canAccessWorkspace('HOD', 'lecturer'), false);
 assert.equal(canAccessWorkspace('DEAN', 'lecturer'), false);
 assert.equal(canAccessWorkspace('STUDENT', 'student'), true);
