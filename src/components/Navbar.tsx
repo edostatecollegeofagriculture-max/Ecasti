@@ -37,36 +37,6 @@ export const Navbar: React.FC<Props> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-xs transition-colors duration-200">
-      {/* Top Institutional Notification Bar */}
-      <div className="bg-linear-to-r from-emerald-950 via-emerald-900 to-emerald-950 text-white text-xs px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 border-b border-emerald-800/40">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1 font-semibold text-amber-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            {settings?.shortName || 'EDOCASTI'} PORTAL
-          </span>
-          <span className="hidden sm:inline text-emerald-200/60">•</span>
-          <span className="hidden sm:inline text-emerald-100">
-            {pageContent?.portalBannerText || 'Edo State College of Agriculture, Science and Technology, Iguoriakhi'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 text-[11px]">
-          <span className="bg-emerald-800/80 px-2 py-0.5 rounded border border-emerald-700 text-emerald-100">
-            Session: <strong>{settings?.currentSession || '2025/2026'}</strong>
-          </span>
-          <span className="bg-emerald-800/80 px-2 py-0.5 rounded border border-emerald-700 text-emerald-100 hidden md:inline">
-            {settings?.currentSemester || 'First Semester'}
-          </span>
-          {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role) && <button
-            onClick={onOpenPersonaModal}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-0.5 rounded shadow-xs flex items-center gap-1 cursor-pointer transition"
-            title="Fast switch between roles (Rector, Bursar, Lecturer, Student, etc.)"
-          >
-            <KeyRound className="w-3 h-3" /> Quick Switch Role
-          </button>}
-        </div>
-      </div>
-
       {/* Main Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3 sm:gap-6">
         {/* Logo and Brand */}
@@ -84,6 +54,11 @@ export const Navbar: React.FC<Props> = ({
             <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden xl:block">
               {settings?.institutionName || 'Edo State College of Agriculture, Science and Technology'}
             </p>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-300">
+              <span>Session: <strong className="font-bold text-emerald-800 dark:text-emerald-400">{settings?.currentSession || '2025/2026'}</strong></span>
+              <span className="text-slate-300 dark:text-slate-600">•</span>
+              <span className="font-semibold">{settings?.currentSemester || 'First Semester'}</span>
+            </div>
           </div>
         </div>
 
@@ -169,6 +144,13 @@ export const Navbar: React.FC<Props> = ({
 
         {/* Right Tools: Page Builder (sm-md quick access), Theme Toggle & User Account */}
         <div className="flex items-center gap-2 shrink-0">
+          {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role) && <button
+            onClick={onOpenPersonaModal}
+            className="hidden xl:flex bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1 rounded-lg shadow-xs items-center gap-1 cursor-pointer transition text-xs"
+            title="Fast switch between roles (Rector, Bursar, Lecturer, Student, etc.)"
+          >
+            <KeyRound className="w-3 h-3" /> Quick Switch Role
+          </button>}
           {user && canAccessWorkspace(user.role, 'builder') && <button
             onClick={() => setActiveTab('builder')}
             className={`lg:hidden hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap ${
