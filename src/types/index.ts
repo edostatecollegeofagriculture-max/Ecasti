@@ -283,6 +283,7 @@ export interface HeroSlide {
   secondaryBtnTextColor?: string;
   footerBarBgColor?: string;
   imageUrl?: string;
+  imageOpacity?: number;
   ctaText: string;
   ctaTab: string;
   ctaSubSection: string;
