@@ -9,7 +9,7 @@ import { SchoolLogo } from './components/SchoolLogo';
 import { canAccessWorkspace, getRoleHome } from './utils/roleAccess';
 
 const PublicPortal = lazy(() => import('./views/PublicPortal').then((module) => ({ default: module.PublicPortal })));
-const AdmissionsPortal = lazy(() => import('./views/AdmissionsPortal').then((module) => ({ default: module.AdmissionsPortal })));
+const AdmissionsPortal = lazy(() => import('./views/AdmissionsPortal').then((module) => ({ default: module.AdmissionsPortal })));\nconst AdmissionsOfficerWorkspace = lazy(() => import('./views/AdmissionsOfficerWorkspace').then((module) => ({ default: module.AdmissionsOfficerWorkspace })));
 const StudentPortal = lazy(() => import('./views/StudentPortal').then((module) => ({ default: module.StudentPortal })));
 const LecturerPortal = lazy(() => import('./views/LecturerPortal').then((module) => ({ default: module.LecturerPortal })));
 const AdminPortal = lazy(() => import('./views/AdminPortal').then((module) => ({ default: module.AdminPortal })));
@@ -110,7 +110,7 @@ const MainApp: React.FC = () => {
           />
         )}
 
-        {activeTab === 'admissions' && (
+        {activeTab === 'admissions-review' && canAccessWorkspace(user?.role, 'admissions-review') && (\n          <AdmissionsOfficerWorkspace />\n        )}\n\n        {activeTab === 'admissions' && (
           <AdmissionsPortal
             onOpenPrintModal={openPrintModal}
             onGoToStudentWorkspace={() => handleNavigate('student', 'courses')}
