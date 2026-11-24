@@ -1352,7 +1352,6 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           className={`${
             sidebarOpenMobile ? 'block' : 'hidden'
           } lg:block w-full lg:w-64 shrink-0 rounded-2xl border p-3 space-y-5 lg:sticky lg:top-24 max-h-[calc(100vh-7rem)] overflow-y-auto shadow-xs`}
-        >
           style={{
             backgroundColor: pageContent?.headerBgColor || '#047857',
             backgroundImage: pageContent?.headerBackgroundImageUrl
@@ -1364,6 +1363,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
             scrollbarWidth: 'thin',
             scrollbarColor: 'rgba(255,255,255,0.55) transparent',
           }}
+        >
           {sidebarGroups.map((group) => {
             const visibleItems = group.items.filter((item) => canAccessAdminTab(role, item.id));
             if (visibleItems.length === 0) return null;
