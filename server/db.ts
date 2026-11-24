@@ -537,29 +537,39 @@ export class DatabaseEngine {
         throw new Error('STOP: DATABASE_URL is not connected to the dedicated Ecasti staging database.');
       }
 
-      await client.query("SELECT pg_advisory_lock(hashtext('ecasti-staging-json-state-v1'))");
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS ecasti_application_state (
-          singleton_id SMALLINT PRIMARY KEY CHECK (singleton_id = 1),
-          state JSONB NOT NULL,
-          revision BIGINT NOT NULL DEFAULT 1 CHECK (revision > 0),
-          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        )
-      `);
+      // Use a transaction-scoped advisory lock. A session-scoped lock here
+      // would remain held by the old instance during a rolling deploy and
+      // deadlock the replacement instance before it can bind its HTTP port.
+      await client.query('BEGIN');
+      try {
+        await client.query("SELECT pg_advisory_xact_lock(hashtext('ecasti-staging-json-state-v1'))");
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS ecasti_application_state (
+            singleton_id SMALLINT PRIMARY KEY CHECK (singleton_id = 1),
+            state JSONB NOT NULL,
+            revision BIGINT NOT NULL DEFAULT 1 CHECK (revision > 0),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+          )
+        `);
 
-      const stored = await client.query(
-        'SELECT state FROM ecasti_application_state WHERE singleton_id = 1'
-      );
-
-      if (stored.rowCount === 1) {
-        this.state = stored.rows[0].state as DatabaseState;
-        console.log('[EDOCASTI] loaded durable application state from staging PostgreSQL.');
-      } else {
-        await client.query(
-          'INSERT INTO ecasti_application_state (singleton_id, state) VALUES (1, $1::jsonb)',
-          [JSON.stringify(this.state)]
+        const stored = await client.query(
+          'SELECT state FROM ecasti_application_state WHERE singleton_id = 1'
         );
-        console.log('[EDOCASTI] initialized staging PostgreSQL from the isolated staging JSON snapshot.');
+
+        if (stored.rowCount === 1) {
+          this.state = stored.rows[0].state as DatabaseState;
+          console.log('[EDOCASTI] loaded durable application state from staging PostgreSQL.');
+        } else {
+          await client.query(
+            'INSERT INTO ecasti_application_state (singleton_id, state) VALUES (1, $1::jsonb)',
+            [JSON.stringify(this.state)]
+          );
+          console.log('[EDOCASTI] initialized staging PostgreSQL from the isolated staging JSON snapshot.');
+        }
+        await client.query('COMMIT');
+      } catch (initializationError) {
+        await client.query('ROLLBACK');
+        throw initializationError;
       }
 
       this.persistentClient = client;
