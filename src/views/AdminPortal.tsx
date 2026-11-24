@@ -832,10 +832,20 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
     }
   };
 
+  const handleHodApproveResult = async (resultId: string) => {
+    try {
+      await api.approveResultByHod(resultId);
+      notify('Result approved by HOD and forwarded to the Exam Officer for moderation.');
+      await loadData();
+    } catch (err: any) {
+      notify(err.message || 'Failed to approve result', 'error');
+    }
+  };
+
   const handlePublishResult = async (resultId: string) => {
     try {
       await api.publishResult(resultId);
-      notify('Result verified & published to student portal.');
+      notify('Exam Officer moderation completed; result published to the student portal.');
       loadData();
     } catch (err: any) {
       notify(err.message || 'Failed to publish result', 'error');
@@ -844,7 +854,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
 
   const handleBulkPublishResults = async (resultIds: string[]) => {
     const submittedIds = [...new Set(resultIds)].filter((id) =>
-      results.some((result) => result.id === id && result.status === 'SUBMITTED')
+      results.some((result) => result.id === id && result.status === 'HOD_APPROVED')
     );
     if (submittedIds.length === 0 || publishingResults) return;
 
@@ -852,7 +862,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
     try {
       const res = await api.approveResultsBulk({ resultIds: submittedIds });
       if (res.approvedCount > 0) {
-        notify(`Approved & published ${res.approvedCount} submitted result record(s) to students.`);
+        notify(`Moderated and published ${res.approvedCount} HOD-approved result record(s) to students.`);
       } else {
         notify('No submitted results were available to publish.', 'error');
       }
@@ -1866,34 +1876,34 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
               </div>}
 
               {/* Panel B: Exam Officer result moderation and publication */}
-              {user?.role !== 'HOD' && <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+              {<div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                      Examination Officer Gate 2
+                      {user?.role === 'HOD' ? 'HOD Approval Gate 1' : 'Examination Officer Gate 2'}
                     </span>
                     <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                      Lecturer CA &amp; Exam Score Moderation &amp; Publishing
+                      {user?.role === 'HOD' ? 'Departmental Result Review & Approval' : 'Lecturer CA &amp; Exam Score Moderation &amp; Publishing'}
                     </h2>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Results entered by lecturers remain hidden from students until approved and published here by the Exam Officer.
+                      {user?.role === 'HOD' ? 'Review results submitted by lecturers in your department and approve them for Exam Officer moderation. Students cannot see results at this stage.' : 'Only HOD-approved results are eligible for Exam Officer moderation and publication. Students see results only after publication.'}
                     </p>
                   </div>
 
-                  {filteredExamResults.some((r) => r.status === 'SUBMITTED') && (
+                  {user?.role !== 'HOD' && filteredExamResults.some((r) => r.status === 'HOD_APPROVED') && (
                     <button
                       type="button"
                       disabled={publishingResults}
                       onClick={() =>
                         handleBulkPublishResults(
-                          filteredExamResults.filter((r) => r.status === 'SUBMITTED').map((r) => r.id)
+                          filteredExamResults.filter((r) => r.status === 'HOD_APPROVED').map((r) => r.id)
                         )
                       }
                       className="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
                     >
                       <CheckCheck className="w-4 h-4 text-amber-300" />
-                      {publishingResults ? 'Publishing...' : 'Approve & Publish All Filtered Pending'}
-                      {' '}({filteredExamResults.filter((r) => r.status === 'SUBMITTED').length})
+                      {publishingResults ? 'Publishing...' : 'Moderate & Publish All HOD-Approved'}
+                      {' '}({filteredExamResults.filter((r) => r.status === 'HOD_APPROVED').length})
                     </button>
                   )}
                 </div>
@@ -1918,7 +1928,8 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                       value: examResStatusFilter,
                       onChange: setExamResStatusFilter,
                       options: [
-                        { value: 'SUBMITTED', label: 'Pending HOD (SUBMITTED)' },
+                        { value: 'SUBMITTED', label: 'Awaiting HOD Approval' },
+                        { value: 'HOD_APPROVED', label: 'Awaiting Exam Officer Moderation' },
                         { value: 'PUBLISHED', label: 'Published to Students' },
                         { value: 'DRAFT', label: 'Draft' },
                       ],
@@ -1937,7 +1948,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                         <th className="p-3 text-center">Total</th>
                         <th className="p-3 text-center">Grade</th>
                         <th className="p-3">Approval Status</th>
-                        <th className="p-3 text-right">Exam Officer Action</th>
+                        <th className="p-3 text-right">{user?.role === 'HOD' ? 'HOD Action' : 'Exam Officer Action'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -1971,7 +1982,14 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                               </span>
                             </td>
                             <td className="p-3 text-right">
-                              {r.status === 'SUBMITTED' ? (
+                              {user?.role === 'HOD' && r.status === 'SUBMITTED' ? (
+                                <button
+                                  onClick={() => handleHodApproveResult(r.id)}
+                                  className="px-3 py-1 bg-emerald-800 hover:bg-emerald-900 text-white font-semibold rounded text-xs cursor-pointer shadow-2xs whitespace-nowrap"
+                                >
+                                  Approve for Exam Moderation
+                                </button>
+                              ) : user?.role !== 'HOD' && r.status === 'HOD_APPROVED' ? (
                                 <button
                                   onClick={() => handlePublishResult(r.id)}
                                   className="px-3 py-1 bg-emerald-800 hover:bg-emerald-900 text-white font-semibold rounded text-xs cursor-pointer shadow-2xs whitespace-nowrap"
@@ -1980,7 +1998,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                                 </button>
                               ) : (
                                 <span className={`text-[11px] font-semibold ${r.status === 'PUBLISHED' ? 'text-emerald-700' : 'text-slate-500'}`}>
-                                  {r.status === 'PUBLISHED' ? 'Published' : 'Draft — not eligible'}
+                                  {r.status === 'PUBLISHED' ? 'Published' : r.status === 'HOD_APPROVED' ? 'Awaiting Exam Officer' : r.status === 'SUBMITTED' ? 'Awaiting HOD' : 'Draft — not eligible'}
                                 </span>
                               )}
                             </td>
@@ -1990,7 +2008,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                     </tbody>
                   </table>
                 </div>
-              </div>}
+              </div>
             </div>
           )}
 
