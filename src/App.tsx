@@ -145,16 +145,6 @@ const MainApp: React.FC = () => {
         </Suspense>
       </main>
 
-      {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role) && <div className="fixed bottom-5 right-5 z-40 no-print">
-        <button
-          onClick={() => setIsPersonaModalOpen(true)}
-          className="bg-emerald-900 hover:bg-emerald-800 dark:bg-emerald-800 dark:hover:bg-emerald-700 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-xl hover:shadow-2xl flex items-center gap-2 border-2 border-amber-400 transition transform hover:-translate-y-0.5 cursor-pointer"
-        >
-          <KeyRound className="w-4 h-4 text-amber-400" />
-          <span>Test as Rector / HOD / Student</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        </button>
-      </div>}
 
       <PersonaSwitcherModal
         isOpen={isPersonaModalOpen}
