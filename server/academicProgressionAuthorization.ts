@@ -41,7 +41,7 @@ export function canSubmitOwnStudentException(
 ): boolean {
   if (!actor) return false;
   if (actor.role === 'STUDENT') return actor.id === student.userId;
-  return ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'].includes(actor.role);
+  return ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR'].includes(actor.role);
 }
 
 /** Rector and SUPER_ADMIN may approve; SUPER_ADMIN acts on behalf of the Rector. */
@@ -51,11 +51,11 @@ export function canApproveExtensionYearThreeManagementPass(
   return actor?.role === 'RECTOR' || actor?.role === 'SUPER_ADMIN';
 }
 
-/** Shared requireRoles middleware grants SUPER_ADMIN a global bypass. */
+/** Rector and Super Admin share the institution-wide authorization bypass. */
 export function hasRequiredAcademicRole(
   actor: AcademicActor | undefined,
   allowedRoles: readonly string[]
 ): boolean {
   if (!actor) return false;
-  return actor.role === 'SUPER_ADMIN' || allowedRoles.includes(actor.role);
+  return actor.role === 'SUPER_ADMIN' || actor.role === 'RECTOR' || allowedRoles.includes(actor.role);
 }
