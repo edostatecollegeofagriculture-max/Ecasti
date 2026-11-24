@@ -71,7 +71,7 @@ export const Navbar: React.FC<Props> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3 sm:gap-6">
         {/* Logo and Brand */}
         <div
-          onClick={() => setActiveTab('public')}
+          onClick={() => { if (!user) setActiveTab('public'); }}
           className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group shrink-0"
         >
           <SchoolLogo size={44} className="group-hover:scale-105 transition shrink-0" />
@@ -97,7 +97,7 @@ export const Navbar: React.FC<Props> = ({
 
         {/* Dynamic Navigation Tabs */}
         <nav className="hidden lg:flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
-          <button
+          {!user && <button
             onClick={() => setActiveTab('public')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'public'
@@ -106,9 +106,9 @@ export const Navbar: React.FC<Props> = ({
             }`}
           >
             Public Info
-          </button>
+          </button>}
 
-          <button
+          {(!user || canAccessWorkspace(user.role, 'admissions')) && <button
             onClick={() => setActiveTab('admissions')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'admissions'
@@ -117,7 +117,7 @@ export const Navbar: React.FC<Props> = ({
             }`}
           >
             Admissions
-          </button>
+          </button>}
 
           {user && canAccessWorkspace(user.role, 'student') && (
             <button
@@ -235,7 +235,7 @@ export const Navbar: React.FC<Props> = ({
 
       {/* Mobile Nav Tabs */}
       <div className="lg:hidden flex items-center overflow-x-auto px-4 py-2 border-t border-slate-100 dark:border-slate-800 gap-1 bg-slate-50 dark:bg-slate-900/90 text-xs">
-        <button
+        {!user && <button
           onClick={() => setActiveTab('public')}
           className={`px-3 py-1 rounded-md shrink-0 font-medium ${
             activeTab === 'public'
@@ -244,8 +244,8 @@ export const Navbar: React.FC<Props> = ({
           }`}
         >
           College Info
-        </button>
-        <button
+        </button>}
+        {(!user || canAccessWorkspace(user.role, 'admissions')) && <button
           onClick={() => setActiveTab('admissions')}
           className={`px-3 py-1 rounded-md shrink-0 font-medium ${
             activeTab === 'admissions'
@@ -254,7 +254,7 @@ export const Navbar: React.FC<Props> = ({
           }`}
         >
           Admissions
-        </button>
+        </button>}
         {user && canAccessWorkspace(user.role, 'student') && (
           <button
             onClick={() => setActiveTab('student')}
