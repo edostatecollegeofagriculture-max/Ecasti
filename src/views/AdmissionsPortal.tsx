@@ -48,28 +48,28 @@ export const AdmissionsPortal: React.FC<Props> = ({
 
   // Form State
   const [formData, setFormData] = useState({
-    firstName: user?.fullName.split(' ')[0] || '',
-    lastName: user?.fullName.split(' ')[1] || '',
+    firstName: '',
+    lastName: '',
     otherNames: '',
-    gender: 'Male',
-    dob: '2005-06-15',
-    phone: user?.phone || '+234 810 000 0000',
-    photoUrl: user?.photoUrl || '',
-    programmeId: 'prog-nd-agric',
-    stateOfOrigin: 'Edo State',
-    lga: 'Oredo',
-    residentialAddress: 'Benin City, Edo State',
-    examType: 'WAEC',
-    examNumber: '420199201',
+    gender: '',
+    dob: '',
+    phone: '',
+    photoUrl: '',
+    programmeId: '',
+    stateOfOrigin: '',
+    lga: '',
+    residentialAddress: '',
+    examType: '',
+    examNumber: '',
   });
 
-  // Applicants can add as many O-Level subjects as they need.
+  // Start with empty rows so applicants enter their own verified O-Level results.
   const [oLevelResults, setOLevelResults] = useState([
-    { id: 1, subject: 'English Language', grade: 'C4' },
-    { id: 2, subject: 'Mathematics', grade: 'B3' },
-    { id: 3, subject: 'Agricultural Science', grade: 'A1' },
-    { id: 4, subject: 'Biology', grade: 'B2' },
-    { id: 5, subject: 'Chemistry', grade: 'C5' },
+    { id: 1, subject: '', grade: '' },
+    { id: 2, subject: '', grade: '' },
+    { id: 3, subject: '', grade: '' },
+    { id: 4, subject: '', grade: '' },
+    { id: 5, subject: '', grade: '' },
   ]);
 
   const oLevelSubjects = [
