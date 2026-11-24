@@ -7,6 +7,7 @@ import { PersonaSwitcherModal } from './components/PersonaSwitcherModal';
 import { LoginModal } from './components/LoginModal';
 import { PrintSlipModal } from './components/PrintSlipModal';
 import { SchoolLogo } from './components/SchoolLogo';
+import { LogoWatermarkOpacityControl } from './components/LogoWatermarkOpacityControl';
 import { KeyRound, Phone, MapPin, Mail } from 'lucide-react';
 import { canAccessWorkspace, getRoleHome } from './utils/roleAccess';
 
@@ -78,7 +79,7 @@ const MainApp: React.FC = () => {
         <SchoolLogo
           variant="watermark"
           size="min(75vw, 700px)"
-          watermarkOpacity={0.04}
+          watermarkOpacity={settings?.logoWatermarkOpacity ?? 0.04}
           className="transition-opacity duration-300"
         />
       </div>
@@ -137,10 +138,13 @@ const MainApp: React.FC = () => {
         )}
 
         {activeTab === 'builder' && canAccessWorkspace(user?.role, 'builder') && (
-          <PageBuilder
-            onExitBuilder={() => handleNavigate('public')}
-            onOpenLoginModal={() => setIsLoginModalOpen(true)}
-          />
+          <>
+            <PageBuilder
+              onExitBuilder={() => handleNavigate('public')}
+              onOpenLoginModal={() => setIsLoginModalOpen(true)}
+            />
+            <LogoWatermarkOpacityControl />
+          </>
         )}
         </Suspense>
       </main>
