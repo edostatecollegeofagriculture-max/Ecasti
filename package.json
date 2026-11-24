@@ -22,7 +22,8 @@
     "apply:core-schema:temporary": "tsx scripts/apply-core-schema-temporary.ts",
     "verify:core-schema:temporary:readonly": "tsx scripts/verify-core-schema-temporary-readonly.ts",
     "test:role-access": "tsx scripts/test-role-access.ts",
-    "test:result-approval-authorization": "tsx scripts/test-result-approval-authorization.ts"
+    "test:result-approval-authorization": "tsx scripts/test-result-approval-authorization.ts",
+    "test:demo-data-authorization": "tsx scripts/test-demo-data-authorization.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
