@@ -526,10 +526,10 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
     if (sectionKey === 'calendar') {
       return (
         <section key="calendar" className="portal-section">
-          <div style={{ backgroundImage: `linear-gradient(135deg, ${content.calendarBgColor || '#073f31'}, ${content.calendarBgSecondaryColor || '#0b5b43'})`, color: content.calendarTextColor || '#ffffff' }} className="rounded-2xl sm:rounded-3xl p-6 sm:p-9 lg:p-10 border border-emerald-800 shadow-lg">
+          <div style={{ backgroundImage: content.calendarBackgroundImageUrl ? `linear-gradient(rgba(3,35,27,0.72), rgba(3,35,27,0.72)), url(${content.calendarBackgroundImageUrl})` : `linear-gradient(135deg, ${content.calendarBgColor || '#073f31'}, ${content.calendarBgSecondaryColor || '#0b5b43'})`, backgroundSize: 'cover', backgroundPosition: 'center', color: content.calendarTextColor || '#ffffff' }} className="rounded-2xl sm:rounded-3xl p-6 sm:p-9 lg:p-10 border border-emerald-800 shadow-lg">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: content.calendarAccentColor || "#fbbf24" }}>
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: content.calendarKickerColor || content.calendarAccentColor || "#fbbf24" }}>
                   {content.calendarSectionKicker}
                 </span>
                 <h2 className="text-2xl font-bold mt-1">{content.calendarSectionHeading}</h2>

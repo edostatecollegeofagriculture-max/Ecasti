@@ -356,6 +356,11 @@ export interface PageContent {
   calendarCurrentPeriodLabel?: string;
   calendarCurrentPeriodText?: string;
   calendarAddHighlightLabel?: string;
+  calendarBackgroundImageUrl?: string;
+  calendarKickerColor?: string;
+  calendarHeadingColor?: string;
+  calendarButtonBgColor?: string;
+  calendarButtonTextColor?: string;
   calendarBgColor?: string;
   calendarBgSecondaryColor?: string;
   calendarTextColor?: string;

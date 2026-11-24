@@ -2667,6 +2667,26 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
           <div><label className={labelCls}>Current Period Label</label><input type="text" value={pageContent.calendarCurrentPeriodLabel ?? 'Current Period'} onChange={(e) => setPageContent({ ...pageContent, calendarCurrentPeriodLabel: e.target.value })} className={inputCls} /></div>
           <div><label className={labelCls}>Current Period Text (blank uses active semester)</label><input type="text" value={pageContent.calendarCurrentPeriodText ?? ''} onChange={(e) => setPageContent({ ...pageContent, calendarCurrentPeriodText: e.target.value })} className={inputCls} /></div>
           <div><label className={labelCls}>Add Highlight Button Text</label><input type="text" value={pageContent.calendarAddHighlightLabel ?? 'Add Highlight'} onChange={(e) => setPageContent({ ...pageContent, calendarAddHighlightLabel: e.target.value })} className={inputCls} /></div>
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-3">
+            <h4 className="text-xs font-black text-slate-900 dark:text-white">Calendar Heading & Button Appearance</h4>
+            {renderImageEditor('Section Background Image', pageContent.calendarBackgroundImageUrl, (v) => setPageContent({ ...pageContent, calendarBackgroundImageUrl: v }), { maxDimension: 1800 })}
+            <div className="grid grid-cols-2 gap-2.5">
+              {([
+                ['Kicker Text Colour','calendarKickerColor','#fbbf24'],
+                ['Heading Text Colour','calendarHeadingColor','#ffffff'],
+                ['Add Highlight Button','calendarButtonBgColor','#f59e0b'],
+                ['Button Text Colour','calendarButtonTextColor','#0f172a'],
+              ] as const).map(([label,key,fallback]) => (
+                <label key={key} className="space-y-1">
+                  <span className={labelCls}>{label}</span>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={(pageContent as any)[key] || fallback} onChange={(e) => setPageContent({ ...pageContent, [key]: e.target.value })} className="h-9 w-11 rounded border border-slate-300 dark:border-slate-700 bg-white p-1 cursor-pointer" />
+                    <input type="text" value={(pageContent as any)[key] || ''} onChange={(e) => setPageContent({ ...pageContent, [key]: e.target.value })} placeholder={fallback} className={inputCls} />
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             {([
               ['calendarBgColor','Section Background','#073f31'],
@@ -4472,7 +4492,7 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                     return (
                       <div
                         key="calendar"
-                        style={{ backgroundImage: `linear-gradient(135deg, ${pageContent.calendarBgColor || '#073f31'}, ${pageContent.calendarBgSecondaryColor || '#0b5b43'})`, color: pageContent.calendarTextColor || '#ffffff' }}
+                        style={{ backgroundImage: pageContent.calendarBackgroundImageUrl ? `linear-gradient(rgba(3,35,27,0.72), rgba(3,35,27,0.72)), url(${pageContent.calendarBackgroundImageUrl})` : `linear-gradient(135deg, ${pageContent.calendarBgColor || '#073f31'}, ${pageContent.calendarBgSecondaryColor || '#0b5b43'})`, backgroundSize: 'cover', backgroundPosition: 'center', color: pageContent.calendarTextColor || '#ffffff' }}
                         className={`rounded-3xl p-6 sm:p-8 border space-y-5 ${isHidden ? 'opacity-50' : ''}`}
                       >
                         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -4480,14 +4500,14 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                             onClick={() => setSelected({ type: 'calendarHeader' })}
                             className={`p-2 -m-2 rounded-xl transition ${outlineCls(isSelected('calendarHeader'))}`}
                           >
-                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: pageContent.calendarAccentColor || "#fbbf24" }}>
+                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: pageContent.calendarKickerColor || pageContent.calendarAccentColor || "#fbbf24" }}>
                               {pageContent.calendarSectionKicker}
                             </span>
-                            <h2 className="text-xl font-bold mt-0.5">{pageContent.calendarSectionHeading}</h2>
+                            <h2 className="text-xl font-bold mt-0.5" style={{ color: pageContent.calendarHeadingColor || pageContent.calendarTextColor || "#ffffff" }}>{pageContent.calendarSectionHeading}</h2>
                           </div>
                           <button
                             onClick={handleAddCalendarItem}
-                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-lg flex items-center gap-1 cursor-pointer"
+                            style={{ backgroundColor: pageContent.calendarButtonBgColor || "#f59e0b", color: pageContent.calendarButtonTextColor || "#0f172a" }} className="px-3 py-1.5 hover:brightness-110 text-xs font-bold rounded-lg flex items-center gap-1 cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" /> {pageContent.calendarAddHighlightLabel || "Add Highlight"}
                           </button>
