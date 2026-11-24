@@ -58,9 +58,13 @@ export function seedDemoAcademicData(actor: { id: string; email: string }) {
 
   const courseIds = Array.from({ length: 8 }, (_, index) => index === 0 ? 'demo-e2e-course-agric' : `demo-e2e-course-agric-${String(index + 1).padStart(2, '0')}`);
   const ids = ['sch-agric', 'dept-agric', 'demo-e2e-programme-agric', ...courseIds, 'demo-e2e-student-agric', 'demo-e2e-registration-agric', 'demo-e2e-result-agric'];
+  const preservedStudent = state.students.find((record) => record.id === 'demo-e2e-student-agric');
+  if (preservedStudent && preservedStudent.userId !== required.student!.id) {
+    throw new Error('The existing demo student record is linked to a different account. Refusing to overwrite it.');
+  }
   const existingIds = [
     ...state.schools, ...state.departments, ...state.programmes, ...state.courses,
-    ...state.students, ...state.registrations, ...state.results,
+    ...state.students.filter((record) => record.id !== 'demo-e2e-student-agric'), ...state.registrations, ...state.results,
   ].map((record: any) => record.id);
   if (ids.some((id) => existingIds.includes(id))) throw new Error('A demo seed identifier already exists without a matching seed manifest. Refusing to overwrite existing data.');
 
@@ -91,7 +95,7 @@ export function seedDemoAcademicData(actor: { id: string; email: string }) {
     isCompulsory: true,
   }));
   const course = courses[0];
-  const student = { id: 'demo-e2e-student-agric', matricNumber: 'E2E/ND/2026/001', userId: required.student!.id, programmeId: programme.id, departmentId: department.id, schoolId: school.id, level: 'ND I', sessionAdmitted: state.settings.currentSession || '2026/2027', academicStatus: 'Good Standing' as const, gender: 'Not specified', dob: '2000-01-01', emergencyContact: 'Staging demo only', nextOfKin: 'Staging demo only', cgpa: 0, totalCreditsEarned: 0 };
+  const student = preservedStudent ?? { id: 'demo-e2e-student-agric', matricNumber: 'E2E/ND/2026/001', userId: required.student!.id, programmeId: programme.id, departmentId: department.id, schoolId: school.id, level: 'ND I', sessionAdmitted: state.settings.currentSession || '2026/2027', academicStatus: 'Good Standing' as const, gender: 'Not specified', dob: '2000-01-01', emergencyContact: 'Staging demo only', nextOfKin: 'Staging demo only', cgpa: 0, totalCreditsEarned: 0 };
   const registration = { id: 'demo-e2e-registration-agric', studentId: student.id, session: state.settings.currentSession || '2026/2027', semester: 'First Semester', level: 'ND I', courseIds: courses.map((item) => item.id), totalCredits: courses.reduce((sum, item) => sum + item.creditUnits, 0), status: 'SUBMITTED' as const, createdAt: now };
   const result = { id: 'demo-e2e-result-agric', courseId: course.id, studentId: student.id, matricNumber: student.matricNumber, studentName: required.student!.fullName, session: registration.session, semester: registration.semester, caScore: 24, examScore: 56, totalScore: 80, grade: 'A', gradePoint: 5, status: 'SUBMITTED' as const, submittedBy: required.lecturer!.id };
 
@@ -99,7 +103,7 @@ export function seedDemoAcademicData(actor: { id: string; email: string }) {
   add('departments', department);
   add('programmes', programme);
   courses.forEach((item) => add('courses', item));
-  add('students', student);
+  if (!preservedStudent) add('students', student);
   add('registrations', registration);
   add('results', result);
 
@@ -140,4 +144,71 @@ export function unseedDemoAcademicData(actor: { id: string; email: string }) {
   db.saveState();
   db.logAudit({ userId: actor.id, userEmail: actor.email, action: 'STAGING_DEMO_DATA_UNSEEDED', resource: 'STAGING_DEMO_DATA', details: { recordCount: manifest.changes.length, ids: manifest.changes.map((change) => change.id) } });
   return { success: true, message: 'Tracked staging demo data removed; pre-existing account settings restored.', recordCount: manifest.changes.length };
+}
+
+/**
+ * Removes only unchanged demo records while retaining the one supported user edit:
+ * photoUrl on the seeded demo student. Every other tracked record must still match
+ * its original snapshot, and the student's remaining fields must be unchanged.
+ */
+export function preserveEditedDemoStudentAndClean(actor: { id: string; email: string }) {
+  assertStagingOnly();
+  const state = db.getState() as DatabaseState & { [MANIFEST_KEY]?: Manifest };
+  const manifest = state[MANIFEST_KEY];
+  if (!manifest) throw new Error('No tracked demo data is currently seeded.');
+
+  const studentChange = manifest.changes.find((change) =>
+    change.collection === 'students' && change.id === 'demo-e2e-student-agric'
+  );
+  if (!studentChange || studentChange.before !== null) {
+    throw new Error('The tracked demo student is not in the expected seed-created state. No records were changed.');
+  }
+
+  const currentStudent = state.students.find((record) => record.id === studentChange.id);
+  if (!currentStudent || currentStudent.userId !== 'usr-student-1') {
+    throw new Error('The demo student record is missing or linked to an unexpected account. No records were changed.');
+  }
+
+  const originalStudent = studentChange.after;
+  const currentWithoutPhoto = { ...currentStudent } as Record<string, unknown>;
+  const originalWithoutPhoto = { ...originalStudent } as Record<string, unknown>;
+  delete currentWithoutPhoto.photoUrl;
+  delete originalWithoutPhoto.photoUrl;
+  if (snapshot(currentWithoutPhoto) !== snapshot(originalWithoutPhoto)) {
+    throw new Error('The demo student has changes beyond photoUrl. No records were changed.');
+  }
+
+  const otherConflicts = manifest.changes.filter((change) => change !== studentChange).filter((change) => {
+    const current = (state[change.collection] as any[]).find((record) => record.id === change.id);
+    return !current || snapshot(current) !== snapshot(change.after);
+  });
+  if (otherConflicts.length) {
+    throw new Error('Other seeded records have also changed or are missing. No records were changed; review the conflict report first.');
+  }
+
+  // Validation is complete before the first mutation. Keep the student record
+  // byte-for-byte intact, remove only unchanged demo-created records, and restore
+  // the pre-seed Exam Officer account fields.
+  for (const change of [...manifest.changes].reverse()) {
+    if (change === studentChange) continue;
+    const records = state[change.collection] as any[];
+    const index = records.findIndex((record) => record.id === change.id);
+    if (change.before === null) records.splice(index, 1);
+    else records[index] = change.before;
+  }
+  delete state[MANIFEST_KEY];
+  db.saveState();
+  db.logAudit({
+    userId: actor.id,
+    userEmail: actor.email,
+    action: 'STAGING_DEMO_DATA_CLEANED_PRESERVING_STUDENT',
+    resource: 'STAGING_DEMO_DATA',
+    details: { preservedStudentId: studentChange.id, preservedField: 'photoUrl', removedChangeCount: manifest.changes.length - 1 },
+  });
+  return {
+    success: true,
+    message: 'Unchanged demo records were removed. The edited student record and photo were preserved; Seed can now recreate the academic workflow around that student.',
+    recordCount: manifest.changes.length - 1,
+    preservedStudentId: studentChange.id,
+  };
 }
