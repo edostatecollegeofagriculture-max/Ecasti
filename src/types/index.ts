@@ -45,6 +45,8 @@ export interface InstitutionSettings {
   caMaxMarks: number;
   examMaxMarks: number;
   logoUrl?: string;
+  /** Global application background logo opacity, stored as a 0–1 value. */
+  logoWatermarkOpacity?: number;
   registrarSignatureUrl?: string;
   rectorSignatureUrl?: string;
   bursarSignatureUrl?: string;
