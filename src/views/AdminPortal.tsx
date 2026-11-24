@@ -113,7 +113,7 @@ const ROLE_DEFAULT_TAB: Record<string, AdminTab> = {
 };
 
 export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuilder }) => {
-  const { user, settings, refreshSettings } = useAuth();
+  const { user, settings, pageContent, refreshSettings } = useAuth();
   const [activeSubTab, setActiveSubTab] = useState<AdminTab>(
     (user?.role && ROLE_DEFAULT_TAB[user.role]) || 'analytics'
   );
@@ -1351,14 +1351,28 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
         <aside
           className={`${
             sidebarOpenMobile ? 'block' : 'hidden'
-          } lg:block w-full lg:w-64 shrink-0 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3 space-y-5 lg:sticky lg:top-24 shadow-xs`}
+          } lg:block w-full lg:w-64 shrink-0 rounded-2xl border p-3 space-y-5 lg:sticky lg:top-24 max-h-[calc(100vh-7rem)] overflow-y-auto shadow-xs`}
         >
+          style={{
+            backgroundColor: pageContent?.headerBgColor || '#047857',
+            backgroundImage: pageContent?.headerBackgroundImageUrl
+              ? `linear-gradient(110deg, ${pageContent?.headerBgColor || '#047857'}ef, ${pageContent?.headerBgSecondaryColor || '#065f46'}ef), url(${pageContent.headerBackgroundImageUrl})`
+              : `linear-gradient(110deg, ${pageContent?.headerBgColor || '#047857'}, ${pageContent?.headerBgSecondaryColor || '#065f46'})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            borderColor: pageContent?.headerBorderColor || '#065f46',
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(255,255,255,0.55) transparent',
+          }}
           {sidebarGroups.map((group) => {
             const visibleItems = group.items.filter((item) => canAccessAdminTab(role, item.id));
             if (visibleItems.length === 0) return null;
             return (
               <div key={group.group} className="space-y-1">
-                <div className="px-2.5 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                <div
+                  className="px-2.5 text-[10px] font-black uppercase tracking-wider"
+                  style={{ color: pageContent?.headerSubtitleColor || 'rgba(255,255,255,0.72)' }}
+                >
                   {group.group}
                 </div>
                 {visibleItems.map((item) => {
@@ -1372,11 +1386,13 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                       }}
                       className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition cursor-pointer text-left ${
                         active
-                          ? 'bg-emerald-900 text-amber-300 shadow-xs'
-                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          ? 'bg-white text-emerald-900 shadow-xs'
+                          : 'text-white/95 hover:bg-white/15'
                       }`}
                     >
-                      <span className={active ? 'text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}>
+                      <span
+                        style={{ color: active ? (pageContent?.headerAccentColor || '#d97706') : (pageContent?.headerSubtitleColor || '#d1fae5') }}
+                      >
                         {item.icon}
                       </span>
                       <span className="truncate">{item.label}</span>
