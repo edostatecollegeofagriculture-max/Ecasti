@@ -24,6 +24,7 @@ import { matchesWildcard } from '../utils/wildcard';
 import { readImageFileAsDataUrl } from '../utils/imageUpload';
 import { WildcardFilterBar } from '../components/WildcardFilterBar';
 import { ContentManagementModule } from '../components/ContentManagementModule';
+import { SuperAdminDemoDataControls } from '../components/SuperAdminDemoDataControls';
 const AdminAnalyticsCharts = lazy(() => import('../components/AdminAnalyticsCharts'));
 import {
   Shield,
@@ -3383,6 +3384,8 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                   </button>
                 )}
               </div>
+
+              {user?.role === 'SUPER_ADMIN' && <SuperAdminDemoDataControls />}
 
               {/* Entity Selector Pills */}
               <div className="flex flex-wrap gap-1.5">

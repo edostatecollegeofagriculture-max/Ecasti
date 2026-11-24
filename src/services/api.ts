@@ -101,6 +101,18 @@ class ApiService {
     localStorage.removeItem('edocas_token');
   }
 
+  getStagingDemoDataStatus() {
+    return this.request<{ success: boolean; seeded: boolean; createdAt: string | null; recordCount: number }>('/staging/demo-data/status');
+  }
+
+  seedStagingDemoData() {
+    return this.request<{ success: boolean; message: string; recordCount: number }>('/staging/demo-data/seed', { method: 'POST' });
+  }
+
+  unseedStagingDemoData() {
+    return this.request<{ success: boolean; message: string; recordCount: number }>('/staging/demo-data/unseed', { method: 'POST' });
+  }
+
   public getToken(): string | null {
     return this.token;
   }
