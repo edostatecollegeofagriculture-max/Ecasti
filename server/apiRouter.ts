@@ -1738,7 +1738,8 @@ apiRouter.get(
         (s) => s.fullName.toLowerCase().includes(q) || s.matricNumber.toLowerCase().includes(q)
       );
     }
-    if (req.user!.role === 'LECTURER') {
+    const role = req.user!.role;
+    if (role === 'LECTURER') {
       const assignedCourseIds = new Set(state.courses.filter((c) => c.lecturerId === req.user!.id).map((c) => c.id));
       const enrolledStudentIds = new Set(
         state.registrations
@@ -1746,6 +1747,24 @@ apiRouter.get(
           .map((r) => r.studentId)
       );
       list = list.filter((s) => enrolledStudentIds.has(s.id));
+    }
+    if (role === 'HOD' || role === 'EXAM_OFFICER') {
+      const departmentId = req.user!.departmentId;
+      list = departmentId ? list.filter((s) => s.departmentId === departmentId) : [];
+    }
+    if (role === 'DEAN') {
+      const schoolId = req.user!.schoolId;
+      list = schoolId ? list.filter((s) => s.schoolId === schoolId) : [];
+    }
+    if (['HOD', 'DEAN', 'EXAM_OFFICER', 'LECTURER', 'BURSAR'].includes(role)) {
+      list = list.map((student) => {
+        const {
+          email: _email, phone: _phone, photoUrl: _photoUrl, gender: _gender,
+          dob: _dob, emergencyContact: _emergencyContact, nextOfKin: _nextOfKin,
+          ...limitedStudent
+        } = student;
+        return limitedStudent;
+      });
     }
 
     return res.json({ success: true, students: list });
@@ -2066,7 +2085,7 @@ apiRouter.patch(
 apiRouter.post(
   '/registrations/approve-bulk',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { registrationIds, session, semester } = req.body;
     const state = db.getState();
@@ -2183,7 +2202,7 @@ function recalculateStudentAcademicTotals(state: ReturnType<typeof db.getState>,
   }
 }
 
-apiRouter.get('/results', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'HOD', 'EXAM_OFFICER', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
   const { courseId, session, semester, studentId, status } = req.query;
   let list = db.getState().results;
 
@@ -2192,9 +2211,16 @@ apiRouter.get('/results', authenticateToken, (req: AuthenticatedRequest, res: Re
   if (semester) list = list.filter((r) => r.semester === semester);
   if (studentId) list = list.filter((r) => r.studentId === studentId);
   if (status) list = list.filter((r) => r.status === status);
-  if (req.user!.role === 'LECTURER') {
-    const assignedCourseIds = new Set(db.getState().courses.filter((c) => c.lecturerId === req.user!.id).map((c) => c.id));
+  const state = db.getState();
+  const role = req.user!.role;
+  if (role === 'LECTURER') {
+    const assignedCourseIds = new Set(state.courses.filter((c) => c.lecturerId === req.user!.id).map((c) => c.id));
     list = list.filter((r) => assignedCourseIds.has(r.courseId));
+  }
+  if (role === 'HOD' || role === 'EXAM_OFFICER') {
+    const departmentId = req.user!.departmentId;
+    const departmentCourseIds = new Set(state.courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+    list = departmentId ? list.filter((result) => departmentCourseIds.has(result.courseId)) : [];
   }
 
   return res.json({ success: true, results: list });
