@@ -512,36 +512,33 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
             color: content.headerTextColor || '#ffffff',
             borderColor: content.headerBorderColor || '#065f46',
           }}
-          className="w-full border-t-4 text-white"
+          className="w-full border-t"
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <SchoolLogo size={44} />
-                <div>
-                  <span className="font-black text-amber-400 text-lg" style={{ color: content.headerAccentColor || '#fbbf24' }}>{content.footerBrandTitle}</span>
-                  <p className="text-[10px] text-emerald-300" style={{ color: content.headerSubtitleColor || '#d1fae5' }}>{content.footerBrandSubtitle}</p>
-                </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-6">
+            <div className="flex items-center gap-2.5 min-w-0 md:flex-1">
+              <SchoolLogo size={44} />
+              <div className="min-w-0">
+                <div className="font-black text-base sm:text-lg tracking-tight" style={{ color: content.headerAccentColor || '#fbbf24' }}>{content.footerBrandTitle}</div>
+                <p className="text-[10px] leading-tight" style={{ color: content.headerSubtitleColor || '#d1fae5' }}>{content.footerBrandSubtitle}</p>
               </div>
-              <p className="text-xs text-emerald-200 leading-relaxed" style={{ color: content.headerSubtitleColor || '#d1fae5' }}>{content.footerDescription}</p>
             </div>
 
-            <div className="space-y-2 text-xs text-emerald-200" style={{ color: content.headerSubtitleColor || '#d1fae5' }}>
-              <h4 className="font-bold text-white text-sm uppercase" style={{ color: content.headerTextColor || '#ffffff' }}>{content.footerLocationHeading}</h4>
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" style={{ color: content.headerAccentColor || '#fbbf24' }} />
+            <div className="flex items-start gap-2 text-[10px] md:flex-1" style={{ color: content.headerSubtitleColor || '#d1fae5' }}>
+              <MapPin className="w-4 h-4 shrink-0 mt-0.5" style={{ color: content.headerAccentColor || '#fbbf24' }} />
+              <div className="min-w-0">
+                <h4 className="font-bold text-[11px] uppercase" style={{ color: content.headerTextColor || '#ffffff' }}>{content.footerLocationHeading}</h4>
                 <span>{content.footerLocationAddress}</span>
               </div>
             </div>
 
-            <div className="space-y-2 text-xs text-emerald-200" style={{ color: content.headerSubtitleColor || '#d1fae5' }}>
-              <h4 className="font-bold text-white text-sm uppercase" style={{ color: content.headerTextColor || '#ffffff' }}>{content.footerContactHeading}</h4>
+            <div className="flex flex-col gap-1 text-[10px] md:flex-1" style={{ color: content.headerSubtitleColor || '#d1fae5' }}>
+              <h4 className="font-bold text-[11px] uppercase" style={{ color: content.headerTextColor || '#ffffff' }}>{content.footerContactHeading}</h4>
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-amber-400 shrink-0" style={{ color: content.headerAccentColor || '#fbbf24' }} />
+                <Phone className="w-3.5 h-3.5 shrink-0" style={{ color: content.headerAccentColor || '#fbbf24' }} />
                 <span>{content.footerContactPhone || settings?.contactPhone || '+234 803 000 1234'}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-amber-400 shrink-0" style={{ color: content.headerAccentColor || '#fbbf24' }} />
+                <Mail className="w-3.5 h-3.5 shrink-0" style={{ color: content.headerAccentColor || '#fbbf24' }} />
                 <span>{content.footerContactEmail || settings?.contactEmail || 'admissions@edocasti.edu.ng'}</span>
               </div>
             </div>
