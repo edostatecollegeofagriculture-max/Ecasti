@@ -1306,7 +1306,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
               {user?.role === 'HOD' ? 'HOD · Departmental Academic Workflow' : user?.role?.replace(/_/g, ' ') + ' · Institutional Management'}
             </span>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-0.5">
-              {user?.role === 'HOD' ? 'Departmental Academic Workspace' : 'EDOCASTI Governance &amp; Workflow Console'}
+              {user?.role === 'HOD' ? 'Departmental Academic Workspace' : 'EDOCASTI Governance & Workflow Console'}
             </h1>
           </div>
         </div>
