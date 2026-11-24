@@ -492,7 +492,7 @@ apiRouter.put(
 apiRouter.get(
   '/users',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { role, search } = req.query;
     let list = db.getState().users.map((u) => ({
@@ -612,7 +612,7 @@ apiRouter.patch(
 apiRouter.put(
   '/users/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const { fullName, email, role, phone, photoUrl, departmentId, schoolId, isActive, isLocked } = req.body;
@@ -719,7 +719,8 @@ apiRouter.get(
   }
 );
 
-apiRouter.get('/academics/lecturers', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+apiRouter.get('/academics/lecturers', authenticateToken,
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'HOD'), (req: AuthenticatedRequest, res: Response) => {
   const lecturers = db
     .getState()
     .users.filter((u) => ['LECTURER', 'HOD', 'DEAN'].includes(u.role) && u.isActive)
@@ -874,7 +875,7 @@ apiRouter.delete(
 apiRouter.post(
   '/academics/schools',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { code, name, description, imageUrl } = req.body;
     if (!code || !name) {
@@ -896,7 +897,7 @@ apiRouter.post(
 apiRouter.put(
   '/academics/schools/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const school = db.getState().schools.find((s) => s.id === id);
@@ -984,7 +985,7 @@ apiRouter.delete(
 apiRouter.post(
   '/academics/programmes',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { departmentId, code, name, qualification, durationYears, description, requirements } = req.body;
     if (!departmentId || !code || !name) {
@@ -1017,7 +1018,7 @@ apiRouter.post(
 apiRouter.put(
   '/academics/programmes/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const prog = db.getState().programmes.find((p) => p.id === id);
@@ -3024,7 +3025,7 @@ apiRouter.get(
 apiRouter.post(
   '/finance/invoices',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { studentId, title, amount, session, dueDate, status } = req.body;
     if (!studentId || !title || amount === undefined) {
@@ -3148,7 +3149,7 @@ apiRouter.post(
 apiRouter.put(
   '/attendance/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'HOD', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const session = db.getState().attendance.find((a) => a.id === id);
@@ -3404,7 +3405,7 @@ apiRouter.get('/cms/news/:id', (req, res) => {
 apiRouter.post(
   '/cms/news',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { title, summary, content, category, imageUrl, isFeaturedInSlider, status, author } = req.body;
 
@@ -3453,7 +3454,7 @@ apiRouter.post(
 apiRouter.put(
   '/cms/news/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const { title, summary, content, category, imageUrl, isFeaturedInSlider, status, author } = req.body;
@@ -3521,7 +3522,7 @@ apiRouter.delete(
 apiRouter.patch(
   '/cms/news/:id/toggle-slider',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -3555,7 +3556,7 @@ apiRouter.get('/cms/slides', (req, res) => {
 apiRouter.post(
   '/cms/slides',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const {
       title,
@@ -3632,7 +3633,7 @@ apiRouter.post(
 apiRouter.put(
   '/cms/slides/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -3743,7 +3744,7 @@ apiRouter.get('/cms/page-content', (req, res) => {
 apiRouter.put(
   '/cms/page-content',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const current = db.getState().pageContent;
     const updated = { ...current, ...req.body };
