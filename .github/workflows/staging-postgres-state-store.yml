@@ -1,0 +1,26 @@
+name: Staging PostgreSQL state-store preflight
+
+on:
+  push:
+    branches:
+      - staging-postgres-state-store
+  pull_request:
+    branches:
+      - feature/academic-progression-snapshot-readonly
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run test:academic-progression-authorization
+      - run: npm run test:academic-progression-http-authorization
+      - run: npm run test:academic-result-evaluation

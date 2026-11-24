@@ -502,6 +502,77 @@ function computeGradeAndPoints(total: number): { grade: string; gradePoint: numb
 
 export class DatabaseEngine {
   private state: DatabaseState;
+  private persistentClient: any = null;
+  private pendingPersistentWrite: Promise<void> = Promise.resolve();
+  private persistentWriteError: Error | null = null;
+
+  /**
+   * Staging-only durable state store. A single advisory lock prevents two
+   * application instances from overwriting one another's full-state snapshot.
+   * The first boot imports the already-sanitized staging JSON state exactly
+   * once; later boots load PostgreSQL and never reseed from the filesystem.
+   */
+  public async initializePersistentStore(): Promise<void> {
+    if (!STAGING_DEMO_ONLY) return;
+
+    if (process.env.RENDER_SERVICE_ID !== STAGING_RENDER_SERVICE_ID) {
+      throw new Error('Persistent staging storage is restricted to the Ecasti staging Render service.');
+    }
+
+    const { neonPool } = await import('./neon');
+    const client = await neonPool.connect();
+
+    try {
+      const identity = await client.query(
+        'SELECT current_database() AS database_name'
+      );
+      if (identity.rows[0]?.database_name !== 'ecasti_staging_db') {
+        throw new Error('STOP: DATABASE_URL is not connected to the dedicated Ecasti staging database.');
+      }
+
+      await client.query("SELECT pg_advisory_lock(hashtext('ecasti-staging-json-state-v1'))");
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS ecasti_application_state (
+          singleton_id SMALLINT PRIMARY KEY CHECK (singleton_id = 1),
+          state JSONB NOT NULL,
+          revision BIGINT NOT NULL DEFAULT 1 CHECK (revision > 0),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `);
+
+      const stored = await client.query(
+        'SELECT state FROM ecasti_application_state WHERE singleton_id = 1'
+      );
+
+      if (stored.rowCount === 1) {
+        this.state = stored.rows[0].state as DatabaseState;
+        console.log('[EDOCASTI] loaded durable application state from staging PostgreSQL.');
+      } else {
+        await client.query(
+          'INSERT INTO ecasti_application_state (singleton_id, state) VALUES (1, $1::jsonb)',
+          [JSON.stringify(this.state)]
+        );
+        console.log('[EDOCASTI] initialized staging PostgreSQL from the isolated staging JSON snapshot.');
+      }
+
+      this.persistentClient = client;
+    } catch (error) {
+      client.release();
+      throw error;
+    }
+  }
+
+  /**
+   * Wait for all queued durable writes before an HTTP response is completed.
+   * A failed database write therefore fails the request instead of reporting
+   * success while leaving the only durable copy stale.
+   */
+  public async flushPersistentWrites(): Promise<void> {
+    await this.pendingPersistentWrite;
+    if (this.persistentWriteError) {
+      throw this.persistentWriteError;
+    }
+  }
 
   private ensureDataDir(): void {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -725,7 +796,37 @@ export class DatabaseEngine {
   public saveState(customState?: DatabaseState) {
     this.ensureDataDir();
     const toSave = customState || this.state;
-    fs.writeFileSync(DB_FILE, JSON.stringify(toSave, null, 2), 'utf-8');
+    const snapshot = JSON.stringify(toSave);
+    const temporaryFile = `${DB_FILE}.tmp`;
+
+    // Keep a local cache for development and emergency diagnostics. PostgreSQL
+    // is authoritative on the staging service after initialization.
+    fs.writeFileSync(temporaryFile, snapshot, { encoding: 'utf-8', mode: 0o600 });
+    fs.renameSync(temporaryFile, DB_FILE);
+
+    if (this.persistentClient) {
+      const client = this.persistentClient;
+      this.pendingPersistentWrite = this.pendingPersistentWrite
+        .then(async () => {
+          const result = await client.query(
+            `UPDATE ecasti_application_state
+             SET state = $1::jsonb, revision = revision + 1, updated_at = NOW()
+             WHERE singleton_id = 1
+             RETURNING revision`,
+            [snapshot]
+          );
+          if (result.rowCount !== 1) {
+            throw new Error('Durable staging state row is missing; refusing to acknowledge the write.');
+          }
+          this.persistentWriteError = null;
+        })
+        .catch((error: unknown) => {
+          this.persistentWriteError = error instanceof Error
+            ? error
+            : new Error('Unknown PostgreSQL persistence failure.');
+          console.error('[EDOCASTI] durable staging write failed.');
+        });
+    }
   }
 
   public getState(): DatabaseState {

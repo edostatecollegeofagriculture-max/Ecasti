@@ -5,6 +5,7 @@ import { createServer as createViteServer } from 'vite';
 import { apiRouter } from './server/apiRouter';
 import { feeApiRouter } from './server/feeApiRouter';
 import { neonPool } from './server/neon';
+import { db } from './server/db';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,6 +39,8 @@ function configureCors(app: express.Express) {
 }
 
 async function startServer() {
+  await db.initializePersistentStore();
+
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
@@ -47,6 +50,36 @@ async function startServer() {
 
   // JSON request body parser (supports image uploads)
   app.use(express.json({ limit: '15mb' }));
+
+  // Do not acknowledge a mutation until its queued PostgreSQL snapshot is durable.
+  // This is a no-op for local development and non-staging environments.
+  app.use((req, res, next) => {
+    const originalEnd = res.end.bind(res);
+    let ending = false;
+
+    (res as any).end = (...args: any[]) => {
+      if (ending) return res;
+      ending = true;
+
+      void db.flushPersistentWrites()
+        .then(() => originalEnd(...args))
+        .catch((error: unknown) => {
+          console.error('[EDOCASTI] refusing to acknowledge an unpersisted request.');
+          if (!res.headersSent) {
+            res.statusCode = 503;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          }
+          originalEnd(JSON.stringify({
+            success: false,
+            message: 'The request could not be safely persisted. Please retry.',
+          }));
+        });
+
+      return res;
+    };
+
+    next();
+  });
 
   // Mount API endpoints
   app.use('/api/v1', apiRouter);
