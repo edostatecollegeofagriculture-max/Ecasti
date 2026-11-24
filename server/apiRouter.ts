@@ -3219,7 +3219,13 @@ apiRouter.get('/support', authenticateToken, (req: AuthenticatedRequest, res: Re
   let list = db.getState().supportTickets;
   if (user.role === 'STUDENT' || user.role === 'APPLICANT') {
     list = list.filter((ticket) => ticket.userId === user.id);
-  } else if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER', 'BURSAR'].includes(user.role)) {
+  } else if (user.role === 'BURSAR') {
+    list = list.filter((ticket) => ticket.category === 'Bursary & Payments');
+  } else if (user.role === 'ADMISSIONS_OFFICER') {
+    list = list.filter((ticket) => ticket.category === 'Admissions');
+  } else if (user.role === 'REGISTRAR') {
+    list = list.filter((ticket) => ['Course Registration', 'Results'].includes(ticket.category));
+  } else if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role)) {
     return res.status(403).json({ success: false, message: 'You do not have permission to view support queues.' });
   }
   return res.json({ success: true, tickets: list });
@@ -3318,6 +3324,15 @@ apiRouter.patch(
     const { id } = req.params;
     const ticket = db.getState().supportTickets.find((t) => t.id === id);
     if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found.' });
+    if (req.user!.role === 'BURSAR' && ticket.category !== 'Bursary & Payments') {
+      return res.status(403).json({ success: false, message: 'This ticket is outside the Bursar support queue.' });
+    }
+    if (req.user!.role === 'ADMISSIONS_OFFICER' && ticket.category !== 'Admissions') {
+      return res.status(403).json({ success: false, message: 'This ticket is outside the Admissions support queue.' });
+    }
+    if (req.user!.role === 'REGISTRAR' && !['Course Registration', 'Results'].includes(ticket.category)) {
+      return res.status(403).json({ success: false, message: 'This ticket is outside the Registry support queue.' });
+    }
     const { status, priority, subject, category } = req.body;
     if (status !== undefined) ticket.status = status;
     if (priority !== undefined) ticket.priority = priority;
