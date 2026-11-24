@@ -8,10 +8,12 @@ on:
       - staging-role-specific-workspaces
       - staging-role-responsibility-matrix
       - staging-hod-result-approval
+      - staging-superadmin-demo-data-controls
   pull_request:
     branches:
       - feature/academic-progression-snapshot-readonly
       - staging-role-responsibility-matrix
+      - staging-superadmin-demo-data-controls
 
 jobs:
   validate:
