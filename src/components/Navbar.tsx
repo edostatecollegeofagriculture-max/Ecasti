@@ -63,7 +63,7 @@ export const Navbar: React.FC<Props> = ({
             title="Fast switch between roles (Rector, Bursar, Lecturer, Student, etc.)"
           >
             <KeyRound className="w-3 h-3" /> Quick Switch Role
-          </button>
+          </button>}
         </div>
       </div>
 
