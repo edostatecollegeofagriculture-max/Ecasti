@@ -3121,7 +3121,7 @@ apiRouter.delete(
 
 apiRouter.get('/attendance', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
   const user = req.user!;
-  if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'HOD'].includes(user.role)) {
+  if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER'].includes(user.role)) {
     return res.status(403).json({ success: false, message: 'You do not have permission to view attendance records.' });
   }
   const state = db.getState();
@@ -3129,10 +3129,6 @@ apiRouter.get('/attendance', authenticateToken, (req: AuthenticatedRequest, res:
   if (user.role === 'LECTURER') {
     const assignedCourseIds = new Set(state.courses.filter((course) => course.lecturerId === user.id).map((course) => course.id));
     list = list.filter((record) => assignedCourseIds.has(record.courseId));
-  } else if (user.role === 'HOD') {
-    const departmentId = user.departmentId;
-    const departmentCourseIds = new Set(state.courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
-    list = departmentId ? list.filter((record) => departmentCourseIds.has(record.courseId)) : [];
   }
   if (courseId) list = list.filter((record) => record.courseId === courseId);
   return res.json({ success: true, attendance: list });
@@ -3141,7 +3137,7 @@ apiRouter.get('/attendance', authenticateToken, (req: AuthenticatedRequest, res:
 apiRouter.post(
   '/attendance',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'HOD'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { courseId, type, topic, records } = req.body;
     if (!courseId || !topic) {
@@ -3149,6 +3145,11 @@ apiRouter.post(
     }
 
     const state = db.getState();
+    const assignedCourse = state.courses.find((course) => course.id === courseId);
+    if (!assignedCourse) return res.status(404).json({ success: false, message: 'Course not found.' });
+    if (req.user!.role === 'LECTURER' && assignedCourse.lecturerId !== req.user!.id) {
+      return res.status(403).json({ success: false, message: 'You can only record attendance for courses assigned to you.' });
+    }
     const newSession: AttendanceSession = {
       id: 'att-' + Date.now(),
       courseId,
@@ -3181,8 +3182,12 @@ apiRouter.put(
   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
-    const session = db.getState().attendance.find((a) => a.id === id);
+    const state = db.getState();
+    const session = state.attendance.find((a) => a.id === id);
     if (!session) return res.status(404).json({ success: false, message: 'Attendance session not found.' });
+    if (req.user!.role === 'LECTURER' && session.lecturerId !== req.user!.id) {
+      return res.status(403).json({ success: false, message: 'You can only update attendance sessions you recorded.' });
+    }
     const { topic, type, date } = req.body;
     if (topic !== undefined) session.topic = String(topic).trim();
     if (type !== undefined) session.type = type;
@@ -3276,6 +3281,19 @@ apiRouter.post('/support/:id/reply', authenticateToken, (req: AuthenticatedReque
   if (!ticket) {
     return res.status(404).json({ success: false, message: 'Ticket not found.' });
   }
+  const supportRoles = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER', 'BURSAR'];
+  if (ticket.userId !== user.id && !supportRoles.includes(user.role)) {
+    return res.status(403).json({ success: false, message: 'You can only reply to your own ticket or an authorized support queue.' });
+  }
+  if (ticket.userId !== user.id && user.role === 'BURSAR' && ticket.category !== 'Bursary & Payments') {
+    return res.status(403).json({ success: false, message: 'This ticket is outside the Bursar support queue.' });
+  }
+  if (ticket.userId !== user.id && user.role === 'ADMISSIONS_OFFICER' && ticket.category !== 'Admissions') {
+    return res.status(403).json({ success: false, message: 'This ticket is outside the Admissions support queue.' });
+  }
+  if (ticket.userId !== user.id && user.role === 'REGISTRAR' && !['Course Registration', 'Results'].includes(ticket.category)) {
+    return res.status(403).json({ success: false, message: 'This ticket is outside the Registry support queue.' });
+  }
 
   ticket.messages.push({
     sender: user.fullName,
@@ -3295,7 +3313,7 @@ apiRouter.post('/support/:id/reply', authenticateToken, (req: AuthenticatedReque
 apiRouter.patch(
   '/support/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER', 'BURSAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER', 'BURSAR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const ticket = db.getState().supportTickets.find((t) => t.id === id);
