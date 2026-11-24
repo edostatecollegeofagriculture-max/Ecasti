@@ -78,7 +78,7 @@ const MainApp: React.FC = () => {
       >
         <SchoolLogo
           variant="watermark"
-          size="min(75vw, 700px)"
+          size="100vw,100vh"
           watermarkOpacity={settings?.logoWatermarkOpacity ?? 0.04}
           className="transition-opacity duration-300"
         />
