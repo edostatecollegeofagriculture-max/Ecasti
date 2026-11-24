@@ -44,14 +44,14 @@ export const LecturerPortal: React.FC = () => {
     setLoading(true);
     setLoadError(null);
     try {
-      const courseRequest =
-        user?.role === 'LECTURER' ? api.getMyCourses() : api.getCourses();
+      const isLecturer = user?.role === 'LECTURER';
+      const courseRequest = isLecturer ? api.getMyCourses() : api.getCourses();
 
       const [crsRes, stdRes, deptRes, progRes, regRes] = await Promise.all([
         courseRequest,
         api.getStudents(),
-        api.getDepartments(),
-        api.getProgrammes(),
+        isLecturer ? Promise.resolve({ success: true, departments: [] }) : api.getDepartments(),
+        isLecturer ? Promise.resolve({ success: true, programmes: [] }) : api.getProgrammes(),
         api.getRegistrations().catch(() => ({ success: false, registrations: [] })),
       ]);
 
@@ -157,7 +157,7 @@ export const LecturerPortal: React.FC = () => {
       if (res.success) {
         await loadCourseResults(selectedCourse.id);
         setSaveSuccess(
-          `Score submitted for ${student.fullName} (${student.matricNumber}) — Pending Examination Officer approval.`
+          `Score submitted for ${student.fullName} (${student.matricNumber}) — Pending HOD review and approval before Exam Officer moderation.`
         );
         setTimeout(() => setSaveSuccess(null), 3500);
       }
@@ -191,7 +191,7 @@ export const LecturerPortal: React.FC = () => {
       }
       await loadCourseResults(selectedCourse.id);
       setSaveSuccess(
-        `Saved ${savedCount} student scores for ${selectedCourse.code} — forwarded to Examination Officer.`
+        `Saved ${savedCount} student scores for ${selectedCourse.code} — submitted for HOD review before Exam Officer moderation.`
       );
       setTimeout(() => setSaveSuccess(null), 4000);
     } catch (err: any) {
@@ -323,20 +323,22 @@ export const LecturerPortal: React.FC = () => {
             totalCount={students.length}
             filteredCount={filteredStudents.length}
             facets={[
-              {
-                key: 'dept',
-                label: 'Department',
-                value: filterDeptId,
-                onChange: setFilterDeptId,
-                options: departments.map((department) => ({ value: department.id, label: department.name })),
-              },
-              {
-                key: 'prog',
-                label: 'Programme',
-                value: filterProgId,
-                onChange: setFilterProgId,
-                options: programmes.map((programme) => ({ value: programme.id, label: programme.name })),
-              },
+              ...(user?.role === 'LECTURER' ? [] : [
+                {
+                  key: 'dept',
+                  label: 'Department',
+                  value: filterDeptId,
+                  onChange: setFilterDeptId,
+                  options: departments.map((department) => ({ value: department.id, label: department.name })),
+                },
+                {
+                  key: 'prog',
+                  label: 'Programme',
+                  value: filterProgId,
+                  onChange: setFilterProgId,
+                  options: programmes.map((programme) => ({ value: programme.id, label: programme.name })),
+                },
+              ]),
               {
                 key: 'level',
                 label: 'Class/Level',
@@ -396,7 +398,7 @@ export const LecturerPortal: React.FC = () => {
                     Grade Roster: {selectedCourse?.code} ({selectedCourse?.title})
                   </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    CA Max: {settings?.caMaxMarks || 40} | Exam Max: {settings?.examMaxMarks || 60}. Submitted scores require Examination Officer approval before student release.
+                    CA Max: {settings?.caMaxMarks || 40} | Exam Max: {settings?.examMaxMarks || 60}. Submitted scores must be approved by the HOD, then moderated and published by the Exam Officer before student release.
                   </p>
                 </div>
                 <span className="text-xs font-bold px-3 py-1 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 rounded-lg tabular-nums">
