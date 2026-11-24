@@ -19,6 +19,30 @@ export const SuperAdminDemoDataControls: React.FC = () => {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
+  const canPreserveStudent = status?.conflicts.length === 1
+    && status.conflicts[0].collection === 'students'
+    && status.conflicts[0].id === 'demo-e2e-student-agric'
+    && status.conflicts[0].issue === 'changed'
+    && status.conflicts[0].changedFields.length === 1
+    && status.conflicts[0].changedFields[0] === 'photoUrl';
+
+  const preserveStudentAndClean = async () => {
+    const prompt = 'Preserve the edited demo student record and photo, remove only unchanged demo records, and restore the Exam Officer account fields? This cannot be undone automatically.';
+    if (!window.confirm(prompt)) return;
+    setBusy(true);
+    setMessage('');
+    try {
+      const result = await api.preserveEditedDemoStudentAndClean();
+      setMessage(result.message);
+      await refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The selective cleanup was stopped safely.');
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const run = async (action: 'seed' | 'unseed') => {
     const prompt = action === 'seed'
       ? 'Create the clearly labelled staging-only academic workflow test records?'
@@ -51,6 +75,7 @@ export const SuperAdminDemoDataControls: React.FC = () => {
         </span>
         <button type="button" disabled={busy || status?.seeded !== false} onClick={() => void run('seed')} className="rounded-lg bg-emerald-800 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">{busy ? 'Working…' : 'Seed test data'}</button>
         <button type="button" disabled={busy || status?.seeded !== true} onClick={() => void run('unseed')} className="rounded-lg bg-rose-700 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">Unseed test data</button>
+        <button type="button" disabled={busy || !canPreserveStudent} onClick={() => void preserveStudentAndClean()} className="rounded-lg border border-amber-500 px-4 py-2 text-xs font-bold text-amber-900 dark:text-amber-200 disabled:opacity-50">Preserve student & clean demo data</button>
         <button type="button" disabled={busy} onClick={() => void refresh()} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200">Refresh</button>
       </div>
       {status?.createdAt && <p className="text-xs text-slate-500">Seeded at {new Date(status.createdAt).toLocaleString()}</p>}
@@ -58,6 +83,7 @@ export const SuperAdminDemoDataControls: React.FC = () => {
         <div role="status" className="rounded-lg border border-amber-400 bg-white/70 p-3 text-xs text-slate-800 dark:bg-slate-900 dark:text-slate-200">
           <p className="font-bold">Read-only conflict report · {status.conflicts.length} record(s)</p>
           <p className="mt-1">No records were changed by this check. Unseed remains protected until these differences are reviewed.</p>
+          {canPreserveStudent && <p className="mt-2 font-semibold">The selective cleanup is available because the only difference is the student's photoUrl. It will keep that student record intact and remove only other unchanged demo records.</p>}
           <ul className="mt-2 space-y-1">
             {status.conflicts.map((conflict) => (
               <li key={conflict.collection + ':' + conflict.id}>
