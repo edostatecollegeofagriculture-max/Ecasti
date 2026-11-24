@@ -108,8 +108,7 @@ apiRouter.get(
         canSearchStudents && (!q ||
         s.fullName.toLowerCase().includes(q) ||
         s.matricNumber.toLowerCase().includes(q) ||
-        s.programmeName.toLowerCase().includes(q) ||
-        s.email.toLowerCase().includes(q))
+        s.programmeName.toLowerCase().includes(q))
     )
     .slice(0, 6);
 
@@ -130,8 +129,7 @@ apiRouter.get(
         canSearchApplicantsForActor && (!q ||
         a.fullName.toLowerCase().includes(q) ||
         a.applicationNumber.toLowerCase().includes(q) ||
-        a.programmeName.toLowerCase().includes(q) ||
-        a.email.toLowerCase().includes(q))
+        a.programmeName.toLowerCase().includes(q))
     )
     .slice(0, 6);
 
