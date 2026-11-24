@@ -416,7 +416,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
       if (attRes.success && attRes.attendance) setAttendance(attRes.attendance);
       if (tktRes.success && tktRes.tickets) setTickets(tktRes.tickets);
 
-      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role)) {
+      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role)) {
         const [uRes, aRes, appRes] = await Promise.all([
           api.getUsers().catch(() => ({ success: false, users: [] })),
           api.getAuditLogs({ limit: 80 }).catch(() => ({ success: false, logs: [] })),
@@ -453,7 +453,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
     'REGISTRAR',
     'ADMISSIONS_OFFICER',
   ].includes(role);
-  const isSuperAdmin = ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(role);
+  const isSuperAdmin = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(role);
 
   const sidebarGroups: Array<{
     group: string;
@@ -500,7 +500,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'registrar_docs',
           label: 'Registrar: Transcripts & Certs',
           icon: <FileText className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'],
         },
         {
           id: 'finance',
@@ -517,7 +517,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'global_crud',
           label: 'Super Admin Global CRUD',
           icon: <Database className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'],
         },
         {
           id: 'users',
@@ -529,7 +529,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'settings',
           label: 'Branding, Stamp & Rules',
           icon: <Settings className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'],
         },
         {
           id: 'cms',
@@ -2319,7 +2319,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                     </div>
                   )}
 
-                  {['SUPER_ADMIN', 'BURSAR'].includes(role) && (
+                  {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && (
                     <form
                       className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-4"
                       onSubmit={async (event) => {
@@ -2458,7 +2458,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                           <th className="p-3">Type</th>
                           <th className="p-3">Category</th>
                           <th className="p-3">Status</th>
-                          {['SUPER_ADMIN', 'BURSAR'].includes(role) && <th className="p-3">Actions</th>}
+                          {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && <th className="p-3">Actions</th>}
                         </tr>
                       </thead>
                       <tbody>
@@ -2472,7 +2472,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                             <td className="p-3">{item.feeType === 'ONE_TIME' ? 'One Time' : 'Per Session'}</td>
                             <td className="p-3">{item.category}</td>
                             <td className="p-3">{item.isActive ? 'Active' : 'Inactive'}</td>
-                            {['SUPER_ADMIN', 'BURSAR'].includes(role) && (
+                            {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && (
                               <td className="p-3">
                                 <div className="flex flex-wrap gap-2">
                                   <button
@@ -2542,7 +2542,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                         ))}
                         {newFeeCatalog.length === 0 && (
                           <tr>
-                            <td colSpan={['SUPER_ADMIN', 'BURSAR'].includes(role) ? 6 : 5} className="p-5 text-center text-slate-500">
+                            <td colSpan={['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) ? 6 : 5} className="p-5 text-center text-slate-500">
                               No fee catalog records loaded. Use Refresh Catalog to load records.
                             </td>
                           </tr>
@@ -2588,7 +2588,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                     </div>
                   )}
 
-                  {['SUPER_ADMIN', 'BURSAR'].includes(role) && (
+                  {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && (
                     <form
                       className="grid grid-cols-1 md:grid-cols-4 gap-2 rounded-xl border border-slate-200 dark:border-slate-700 p-4"
                       onSubmit={async (event) => {
@@ -2699,7 +2699,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                                 >
                                   View Items
                                 </button>
-                                {['SUPER_ADMIN', 'BURSAR'].includes(role) && (
+                                {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && (
                                   <>
                                     <button
                                       type="button"
@@ -2802,7 +2802,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                         </button>
                       </div>
 
-                      {['SUPER_ADMIN', 'BURSAR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && selectedNewSchedule.isActive && (
+                      {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && selectedNewSchedule.isActive && (
                         <form
                           className="grid grid-cols-1 md:grid-cols-4 gap-2"
                           onSubmit={async (event) => {
@@ -2891,7 +2891,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                               <th className="p-2">Override</th>
                               <th className="p-2">Effective</th>
                               <th className="p-2">Priority</th>
-                              {['SUPER_ADMIN', 'BURSAR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && <th className="p-2">Action</th>}
+                              {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && <th className="p-2">Action</th>}
                             </tr>
                           </thead>
                           <tbody>
@@ -2926,7 +2926,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                                     />
                                   ) : item.allocationPriority}
                                 </td>
-                                {['SUPER_ADMIN', 'BURSAR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && (
+                                {['SUPER_ADMIN', 'BURSAR', 'RECTOR'].includes(role) && selectedNewSchedule.status === 'DRAFT' && (
                                   <td className="p-2">
                                     <div className="flex flex-wrap items-center gap-2">
                                       {editingNewScheduleItemId === item.id ? (
