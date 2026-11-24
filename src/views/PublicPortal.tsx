@@ -500,20 +500,21 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
 
     if (sectionKey === 'footer') {
       return (
-        <section key="footer" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            style={{
-              backgroundColor: content.headerBgColor || '#047857',
-              backgroundImage: content.headerBackgroundImageUrl
-                ? `linear-gradient(110deg, ${content.headerBgColor || '#047857'}eF, ${content.headerBgSecondaryColor || '#065f46'}eF), url(${content.headerBackgroundImageUrl})`
-                : `linear-gradient(110deg, ${content.headerBgColor || '#047857'}, ${content.headerBgSecondaryColor || '#065f46'})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              color: content.headerTextColor || '#ffffff',
-              borderColor: content.headerBorderColor || '#065f46',
-            }}
-            className="text-white rounded-3xl p-8 sm:p-12 grid grid-cols-1 md:grid-cols-3 gap-8 border-t-4"
-          >
+        <section
+          key="footer"
+          style={{
+            backgroundColor: content.headerBgColor || '#047857',
+            backgroundImage: content.headerBackgroundImageUrl
+              ? `linear-gradient(110deg, ${content.headerBgColor || '#047857'}eF, ${content.headerBgSecondaryColor || '#065f46'}eF), url(${content.headerBackgroundImageUrl})`
+              : `linear-gradient(110deg, ${content.headerBgColor || '#047857'}, ${content.headerBgSecondaryColor || '#065f46'})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            color: content.headerTextColor || '#ffffff',
+            borderColor: content.headerBorderColor || '#065f46',
+          }}
+          className="w-full border-t-4 text-white"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <SchoolLogo size={44} />
