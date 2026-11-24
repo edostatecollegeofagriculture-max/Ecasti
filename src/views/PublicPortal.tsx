@@ -549,7 +549,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
   };
 
   return (
-    <div className="min-h-screen space-y-16 sm:space-y-20 pb-12 bg-[#f6f8f6] dark:bg-slate-950">
+    <div className="min-h-screen space-y-16 sm:space-y-20 pb-12 bg-transparent">
       {sectionOrder.map((key) => renderSection(key))}
 
       {/* Render any visible custom sections not already in sectionOrder */}
