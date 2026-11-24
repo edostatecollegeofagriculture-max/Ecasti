@@ -2127,7 +2127,7 @@ apiRouter.post(
         : (!session || registration.session === session) && (!semester || registration.semester === semester);
       const hodDepartmentId = req.user!.role === 'HOD' ? req.user!.departmentId : undefined;
       const hodCourseIds = hodDepartmentId ? new Set(state.courses.filter((course) => course.departmentId === hodDepartmentId).map((course) => course.id)) : null;
-      const withinHodDepartment = !hodDepartmentId || registration.courseIds.every((courseId) => Boolean(hodCourseIds?.has(courseId)));
+      const withinHodDepartment = req.user!.role !== 'HOD' || Boolean(hodDepartmentId && registration.courseIds.every((courseId) => Boolean(hodCourseIds?.has(courseId))));
       if (selected && withinHodDepartment && registration.status === 'SUBMITTED') {
         registration.status = 'APPROVED_BY_HOD';
         registration.approvedAt = now;
