@@ -27,8 +27,8 @@ export const SchoolLogo: React.FC<Props> = ({
         draggable={false}
         className={`${isWatermark ? 'object-cover' : 'object-contain rounded-full'} ${className}`}
         style={{
-          width: resolvedSize,
-          height: resolvedSize,
+          width: isWatermark ? '100vw' : resolvedSize,
+          height: isWatermark ? '100vh' : resolvedSize,
           opacity: isWatermark ? watermarkOpacity : 1,
           pointerEvents: 'none',
           userSelect: 'none',
@@ -46,8 +46,8 @@ export const SchoolLogo: React.FC<Props> = ({
         xmlns="http://www.w3.org/2000/svg"
         className={className}
         style={{
-          width: typeof size === 'number' ? `${size}px` : size,
-          height: typeof size === 'number' ? `${size}px` : size,
+          width: '100vw',
+          height: '100vh',
           opacity: watermarkOpacity,
         }}
         aria-hidden="true"
