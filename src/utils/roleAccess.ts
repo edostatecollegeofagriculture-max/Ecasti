@@ -9,7 +9,8 @@ export type AdminWorkspaceTab =
 
 const FULL_ACCESS_ROLES = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'] as const;
 
-const ADMIN_TAB_ROLES: Record<AdminWorkspaceTab, readonly string[]> = {\n  admissions_review: ['ADMISSIONS_OFFICER'],
+const ADMIN_TAB_ROLES: Record<AdminWorkspaceTab, readonly string[]> = {
+  admissions_review: ['ADMISSIONS_OFFICER'],
   analytics: [...FULL_ACCESS_ROLES],
   dean_curriculum: [...FULL_ACCESS_ROLES, 'DEAN'],
   hod_allocation: [...FULL_ACCESS_ROLES, 'HOD'],
@@ -45,7 +46,8 @@ export function getDefaultAdminTab(role: string | null | undefined): AdminWorksp
 
 export function canAccessWorkspace(role: string | null | undefined, tab: string): boolean {
   if (FULL_ACCESS_ROLES.includes(role as typeof FULL_ACCESS_ROLES[number])) return true;
-  if (tab === 'public' || tab === 'admissions') return !role || role === 'APPLICANT';\n  if (tab === 'admissions-review') return role === 'ADMISSIONS_OFFICER';
+  if (tab === 'public' || tab === 'admissions') return !role || role === 'APPLICANT';
+  if (tab === 'admissions-review') return role === 'ADMISSIONS_OFFICER';
   if (!role) return false;
   if (tab === 'student') return role === 'STUDENT';
   if (tab === 'lecturer') return role === 'LECTURER';
@@ -58,7 +60,7 @@ export function getRoleHome(role: string | null | undefined): { tab: string; sec
   switch (role) {
     case 'STUDENT': return { tab: 'student', section: 'courses' };
     case 'LECTURER': return { tab: 'lecturer', section: 'overview' };
-    case 'APPLICANT':
+    case 'APPLICANT': return { tab: 'admissions', section: 'overview' };
     case 'ADMISSIONS_OFFICER': return { tab: 'admissions-review', section: 'applications' };
     default:
       return getDefaultAdminTab(role)
