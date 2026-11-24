@@ -80,13 +80,13 @@ export const Navbar: React.FC<Props> = ({
         </div>}
 
         {/* Dynamic Navigation Tabs */}
-        <nav className="hidden lg:flex items-center gap-1 p-1 rounded-xl border" style={{ backgroundColor: pageContent?.headerNavBgColor || 'rgba(255,255,255,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)' }}>
+        <nav className="hidden lg:flex items-center gap-1 p-1 rounded-xl border" style={{ backgroundColor: pageContent?.headerNavBgColor || 'rgba(255,255,255,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)', color: pageContent?.headerNavTextColor || '#ffffff' }}>
           {!user && <button
             onClick={() => setActiveTab('public')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'public'
                 ? 'bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-400 shadow-xs'
-                : 'text-white/85 hover:text-white'
+                : 'text-inherit hover:brightness-110'
             }`}
           >
             Public Info
@@ -97,7 +97,7 @@ export const Navbar: React.FC<Props> = ({
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'admissions'
                 ? 'bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-400 shadow-xs'
-                : 'text-white/85 hover:text-white'
+                : 'text-inherit hover:brightness-110'
             }`}
           >
             Admissions
@@ -109,7 +109,7 @@ export const Navbar: React.FC<Props> = ({
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 activeTab === 'student'
                   ? 'bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-400 shadow-xs'
-                  : 'text-white/85 hover:text-white'
+                  : 'text-inherit hover:brightness-110'
               }`}
             >
               Student Portal
@@ -122,7 +122,7 @@ export const Navbar: React.FC<Props> = ({
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                   activeTab === 'lecturer'
                     ? 'bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-400 shadow-xs'
-                    : 'text-white/85 hover:text-white'
+                    : 'text-inherit hover:brightness-110'
                 }`}
               >
                 Faculty
@@ -135,7 +135,7 @@ export const Navbar: React.FC<Props> = ({
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'admin'
                     ? 'bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-400 shadow-xs'
-                    : 'text-white/85 hover:text-white'
+                    : 'text-inherit hover:brightness-110'
                 }`}
               >
                 Management
@@ -225,13 +225,13 @@ export const Navbar: React.FC<Props> = ({
       </div>}
 
       {/* Mobile Nav Tabs */}
-      <div className="lg:hidden flex items-center overflow-x-auto px-4 py-2 border-t gap-1 text-xs" style={{ backgroundColor: 'rgba(0,0,0,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)' }}>
+      <div className="lg:hidden flex items-center overflow-x-auto px-4 py-2 border-t gap-1 text-xs" style={{ backgroundColor: 'rgba(0,0,0,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)', color: pageContent?.headerNavTextColor || '#ffffff' }}>
         {!user && <button
           onClick={() => setActiveTab('public')}
           className={`px-3 py-1 rounded-md shrink-0 font-medium ${
             activeTab === 'public'
               ? 'bg-emerald-800 text-white dark:bg-emerald-700'
-              : 'text-white/85'
+              : 'text-inherit'
           }`}
         >
           College Info
@@ -241,7 +241,7 @@ export const Navbar: React.FC<Props> = ({
           className={`px-3 py-1 rounded-md shrink-0 font-medium ${
             activeTab === 'admissions'
               ? 'bg-emerald-800 text-white dark:bg-emerald-700'
-              : 'text-white/85'
+              : 'text-inherit'
           }`}
         >
           Admissions
@@ -252,7 +252,7 @@ export const Navbar: React.FC<Props> = ({
             className={`px-3 py-1 rounded-md shrink-0 font-medium ${
               activeTab === 'student'
                 ? 'bg-emerald-800 text-white dark:bg-emerald-700'
-                : 'text-white/85'
+                : 'text-inherit'
             }`}
           >
             Student
@@ -264,7 +264,7 @@ export const Navbar: React.FC<Props> = ({
             className={`px-3 py-1 rounded-md shrink-0 font-medium ${
               activeTab === 'lecturer'
                 ? 'bg-emerald-800 text-white dark:bg-emerald-700'
-              : 'text-white/85'
+              : 'text-inherit'
             }`}
           >
             Lecturer
@@ -276,7 +276,7 @@ export const Navbar: React.FC<Props> = ({
               className={`px-3 py-1 rounded-md shrink-0 font-medium ${
                 activeTab === 'admin'
                   ? 'bg-emerald-800 text-white dark:bg-emerald-700'
-                  : 'text-white/85'
+                  : 'text-inherit'
               }`}
             >
               Management
