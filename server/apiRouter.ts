@@ -28,6 +28,7 @@ import { activateAdmissionFeeObligations, listRetryableAdmissionFeeActivations }
 import { evaluateNdGraduationEligibility } from './academicProgressionService';
 import { academicProgressionApiRouter } from './academicProgressionApiRouter';
 import { appendAcademicResultEvent, listAcademicResultAttempts } from './academicResultNeonService';
+import { canSearchApplicants, canSearchInstitutionStudents } from './searchAuthorization';
 
 export const apiRouter = Router();
 apiRouter.use('/academic-progression', academicProgressionApiRouter);
@@ -71,9 +72,22 @@ apiRouter.get(
 // ==================== END ACADEMIC PROGRESSION ====================
 
 // ==================== GLOBAL SEARCH ====================
-apiRouter.get('/search', (req, res) => {
+apiRouter.get(
+  '/search',
+  (req, res, next) => {
+    // Public visitors can search public catalogue/content. If a bearer token
+    // is supplied, validate it before using any identity-dependent results.
+    if (!req.headers.authorization) return next();
+    return authenticateToken(req, res, next);
+  },
+  (req: AuthenticatedRequest, res: Response) => {
   const q = String(req.query.q || '').trim().toLowerCase();
   const state = db.getState();
+  res.setHeader('Cache-Control', 'private, no-store');
+  res.setHeader('Vary', 'Authorization');
+  const role = req.user?.role;
+  const canSearchStudents = canSearchInstitutionStudents(role);
+  const canSearchApplicantsForActor = canSearchApplicants(role);
 
   const matchedStudents = state.students
     .map((s) => {
@@ -83,7 +97,6 @@ apiRouter.get('/search', (req, res) => {
         id: s.id,
         matricNumber: s.matricNumber,
         fullName: u?.fullName || 'Student',
-        email: u?.email || '',
         programmeName: prog?.name || '',
         level: s.level,
         cgpa: s.cgpa,
@@ -92,11 +105,10 @@ apiRouter.get('/search', (req, res) => {
     })
     .filter(
       (s) =>
-        !q ||
+        canSearchStudents && (!q ||
         s.fullName.toLowerCase().includes(q) ||
         s.matricNumber.toLowerCase().includes(q) ||
-        s.programmeName.toLowerCase().includes(q) ||
-        s.email.toLowerCase().includes(q)
+        s.programmeName.toLowerCase().includes(q))
     )
     .slice(0, 6);
 
@@ -107,7 +119,6 @@ apiRouter.get('/search', (req, res) => {
         id: a.id,
         applicationNumber: a.applicationNumber,
         fullName: `${a.firstName} ${a.lastName}`,
-        email: a.email,
         programmeName: prog?.name || '',
         status: a.status,
         type: 'APPLICANT',
@@ -115,11 +126,10 @@ apiRouter.get('/search', (req, res) => {
     })
     .filter(
       (a) =>
-        !q ||
+        canSearchApplicantsForActor && (!q ||
         a.fullName.toLowerCase().includes(q) ||
         a.applicationNumber.toLowerCase().includes(q) ||
-        a.programmeName.toLowerCase().includes(q) ||
-        a.email.toLowerCase().includes(q)
+        a.programmeName.toLowerCase().includes(q))
     )
     .slice(0, 6);
 

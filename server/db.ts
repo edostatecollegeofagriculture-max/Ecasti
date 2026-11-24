@@ -725,7 +725,22 @@ export class DatabaseEngine {
   public saveState(customState?: DatabaseState) {
     this.ensureDataDir();
     const toSave = customState || this.state;
-    fs.writeFileSync(DB_FILE, JSON.stringify(toSave, null, 2), 'utf-8');
+    const serialized = JSON.stringify(toSave, null, 2);
+    const temporaryFile = DB_FILE + '.tmp';
+
+    try {
+      // Write the complete snapshot before replacing the last known-good file.
+      // This prevents an interrupted write from leaving truncated JSON behind.
+      fs.writeFileSync(temporaryFile, serialized, { encoding: 'utf-8', mode: 0o600 });
+      fs.renameSync(temporaryFile, DB_FILE);
+    } catch (error) {
+      try {
+        if (fs.existsSync(temporaryFile)) fs.unlinkSync(temporaryFile);
+      } catch {
+        // Preserve the original persistence error.
+      }
+      throw error;
+    }
   }
 
   public getState(): DatabaseState {
