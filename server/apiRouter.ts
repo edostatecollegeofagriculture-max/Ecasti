@@ -2125,7 +2125,10 @@ apiRouter.post(
       const selected = selectedIds
         ? selectedIds.has(registration.id)
         : (!session || registration.session === session) && (!semester || registration.semester === semester);
-      if (selected && registration.status === 'SUBMITTED') {
+      const hodDepartmentId = req.user!.role === 'HOD' ? req.user!.departmentId : undefined;
+      const hodCourseIds = hodDepartmentId ? new Set(state.courses.filter((course) => course.departmentId === hodDepartmentId).map((course) => course.id)) : null;
+      const withinHodDepartment = !hodDepartmentId || registration.courseIds.every((courseId) => Boolean(hodCourseIds?.has(courseId)));
+      if (selected && withinHodDepartment && registration.status === 'SUBMITTED') {
         registration.status = 'APPROVED_BY_HOD';
         registration.approvedAt = now;
         registration.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
@@ -2153,6 +2156,11 @@ apiRouter.patch(
     const { id } = req.params;
     const reg = db.getState().registrations.find((r) => r.id === id);
     if (!reg) return res.status(404).json({ success: false, message: 'Registration not found.' });
+    if (req.user!.role === 'HOD') {
+      const departmentId = req.user!.departmentId;
+      const allowedCourseIds = new Set(db.getState().courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+      if (!departmentId || !reg.courseIds.every((courseId) => allowedCourseIds.has(courseId))) return res.status(403).json({ success: false, message: 'You can only reject registrations for your department.' });
+    }
     reg.status = 'REJECTED';
     reg.approvedAt = new Date().toISOString();
     reg.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
@@ -2169,6 +2177,11 @@ apiRouter.put(
     const { id } = req.params;
     const reg = db.getState().registrations.find((r) => r.id === id);
     if (!reg) return res.status(404).json({ success: false, message: 'Registration not found.' });
+    if (req.user!.role === 'HOD') {
+      const departmentId = req.user!.departmentId;
+      const allowedCourseIds = new Set(db.getState().courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+      if (!departmentId || !reg.courseIds.every((courseId) => allowedCourseIds.has(courseId))) return res.status(403).json({ success: false, message: 'You can only edit registrations for your department.' });
+    }
     if (reg.status === 'APPROVED_BY_HOD') {
       return res.status(409).json({ success: false, message: 'Approved registrations are locked against changes.' });
     }
