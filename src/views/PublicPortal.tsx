@@ -541,12 +541,12 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {content.calendarItems.map((item) => (
-                <div key={item.id} className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                  <div className="flex items-center gap-2 font-bold text-sm" style={{ color: content.calendarAccentColor || "#fbbf24" }}>
-                    <Calendar className="w-4 h-4" /> {item.title}
+                <div key={item.id} style={{ backgroundColor: item.backgroundColor || content.calendarCardBgColor || "rgba(255,255,255,0.05)", borderColor: item.borderColor || content.calendarCardBorderColor || "rgba(255,255,255,0.10)" }} className="p-4 rounded-xl border space-y-2">
+                  <div className="flex items-center gap-2 font-bold text-sm" style={{ color: item.titleColor || content.calendarAccentColor || "#fbbf24" }}>
+                    <Calendar className="w-4 h-4" style={{ color: item.iconColor || content.calendarAccentColor || "#fbbf24" }} /> {item.title}
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed text-justify [text-align-last:left]">{item.description}</p>
-                  <div className="text-[11px] text-emerald-400 font-semibold pt-2">{item.statusLabel}</div>
+                  <p className="text-xs leading-relaxed text-justify [text-align-last:left]" style={{ color: item.descriptionColor || "#cbd5e1" }}>{item.description}</p>
+                  <div className="text-[11px] font-semibold pt-2" style={{ color: item.statusColor || "#34d399" }}>{item.statusLabel}</div>
                 </div>
               ))}
             </div>

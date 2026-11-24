@@ -298,6 +298,12 @@ export interface CalendarHighlight {
   title: string;
   description: string;
   statusLabel: string;
+  backgroundColor?: string;
+  borderColor?: string;
+  titleColor?: string;
+  descriptionColor?: string;
+  statusColor?: string;
+  iconColor?: string;
 }
 
 export interface FaqItem {

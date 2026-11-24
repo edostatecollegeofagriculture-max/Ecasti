@@ -2724,12 +2724,20 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
           </div>
           <div>
             <label className={labelCls}>Status Label</label>
-            <input
-              type="text"
-              value={item.statusLabel}
-              onChange={(e) => updateItem({ statusLabel: e.target.value })}
-              className={inputCls}
-            />
+            <input type="text" value={item.statusLabel} onChange={(e) => updateItem({ statusLabel: e.target.value })} className={inputCls} />
+          </div>
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-3">
+            <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">Highlight Colours</h4>
+            {([
+              ['backgroundColor','Card Background','#164e3b'],
+              ['borderColor','Card Border','#2f6b55'],
+              ['titleColor','Title Text','#fbbf24'],
+              ['descriptionColor','Description Text','#cbd5e1'],
+              ['statusColor','Status Text','#34d399'],
+              ['iconColor','Icon','#fbbf24'],
+            ] as const).map(([key,label,fallback]) => (
+              <div key={key}><label className={labelCls}>{label}</label><input type="color" value={item[key] || fallback} onChange={(e) => updateItem({ [key]: e.target.value })} className={inputCls} /></div>
+            ))}
           </div>
           <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
             <button
@@ -4485,7 +4493,7 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                           </button>
                         </div>
 
-                        <div className="mb-1"><span className="px-3 py-1 rounded-lg text-xs font-semibold border" style={{ backgroundColor: pageContent.calendarCardBgColor || "rgba(255,255,255,0.05)", borderColor: pageContent.calendarCardBorderColor || "rgba(255,255,255,0.10)" }}>{pageContent.calendarCurrentPeriodLabel || "Current Period"}: {pageContent.calendarCurrentPeriodText || settings?.currentSemester || "First Semester"}</span></div>
+                        <div className="mb-1"><span className="px-3 py-1 rounded-lg text-xs font-semibold border" style={{ backgroundColor: item.backgroundColor || pageContent.calendarCardBgColor || "rgba(255,255,255,0.05)", borderColor: item.borderColor || pageContent.calendarCardBorderColor || "rgba(255,255,255,0.10)" }}>{pageContent.calendarCurrentPeriodLabel || "Current Period"}: {pageContent.calendarCurrentPeriodText || settings?.currentSemester || "First Semester"}</span></div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {pageContent.calendarItems.map((item) => (
                             <div
@@ -4497,10 +4505,10 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                               )}`}
                             >
                               <div className="flex items-center gap-2 font-bold text-sm" style={{ color: pageContent.calendarAccentColor || "#fbbf24" }}>
-                                <Calendar className="w-4 h-4" /> {item.title}
+                                <Calendar className="w-4 h-4" style={{ color: item.iconColor || pageContent.calendarAccentColor || "#fbbf24" }} /> {item.title}
                               </div>
-                              <p className="text-xs text-slate-300">{item.description}</p>
-                              <div className="text-[11px] text-emerald-400 font-semibold">{item.statusLabel}</div>
+                              <p className="text-xs leading-relaxed text-justify [text-align-last:left]" style={{ color: item.descriptionColor || "#cbd5e1" }}>{item.description}</p>
+                              <div className="text-[11px] font-semibold" style={{ color: item.statusColor || "#34d399" }}>{item.statusLabel}</div>
                             </div>
                           ))}
                         </div>
