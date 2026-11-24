@@ -7,7 +7,7 @@ import { PersonaSwitcherModal } from './components/PersonaSwitcherModal';
 import { LoginModal } from './components/LoginModal';
 import { PrintSlipModal } from './components/PrintSlipModal';
 import { SchoolLogo } from './components/SchoolLogo';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, Phone } from 'lucide-react';
 import { canAccessWorkspace, getRoleHome } from './utils/roleAccess';
 
 const PublicPortal = lazy(() => import('./views/PublicPortal').then((module) => ({ default: module.PublicPortal })));
@@ -26,7 +26,7 @@ type PrintModalState = {
 const getWorkspaceForRole = getRoleHome;
 
 const MainApp: React.FC = () => {
-  const { user, settings } = useAuth();
+  const { user, settings, pageContent } = useAuth();
   const [activeTab, setActiveTab] = useState('public');
   const [activeSubSection, setActiveSubSection] = useState<string | undefined>('overview');
   const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
@@ -145,6 +145,31 @@ const MainApp: React.FC = () => {
         </Suspense>
       </main>
 
+      <footer
+        className="w-full border-t relative z-10"
+        style={{
+          backgroundColor: pageContent?.headerBgColor || '#047857',
+          backgroundImage: pageContent?.headerBackgroundImageUrl
+            ? `linear-gradient(110deg, ${pageContent?.headerBgColor || '#047857'}eF, ${pageContent?.headerBgSecondaryColor || '#065f46'}eF), url(${pageContent.headerBackgroundImageUrl})`
+            : `linear-gradient(110deg, ${pageContent?.headerBgColor || '#047857'}, ${pageContent?.headerBgSecondaryColor || '#065f46'})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          color: pageContent?.headerTextColor || '#ffffff',
+          borderColor: pageContent?.headerBorderColor || '#065f46',
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-center sm:justify-end">
+          <a
+            href={`tel:${settings?.contactPhone || '+2348030001234'}`}
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold hover:underline"
+            style={{ color: pageContent?.headerSubtitleColor || '#d1fae5' }}
+            aria-label={`Call ${settings?.contactPhone || '+234 803 000 1234'}`}
+          >
+            <Phone className="w-3.5 h-3.5 shrink-0" style={{ color: pageContent?.headerAccentColor || '#fbbf24' }} />
+            <span>{settings?.contactPhone || '+234 803 000 1234'}</span>
+          </a>
+        </div>
+      </footer>
 
       <PersonaSwitcherModal
         isOpen={isPersonaModalOpen}
