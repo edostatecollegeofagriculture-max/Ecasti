@@ -71,9 +71,20 @@ apiRouter.get(
 // ==================== END ACADEMIC PROGRESSION ====================
 
 // ==================== GLOBAL SEARCH ====================
-apiRouter.get('/search', (req, res) => {
+apiRouter.get(
+  '/search',
+  (req, res, next) => {
+    // Public visitors can search public catalogue/content. If a bearer token
+    // is supplied, validate it before using any identity-dependent results.
+    if (!req.headers.authorization) return next();
+    return authenticateToken(req, res, next);
+  },
+  (req: AuthenticatedRequest, res: Response) => {
   const q = String(req.query.q || '').trim().toLowerCase();
   const state = db.getState();
+  const role = req.user?.role;
+  const canSearchInstitutionStudents = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'].includes(role || '');
+  const canSearchApplicants = canSearchInstitutionStudents || role === 'ADMISSIONS_OFFICER';
 
   const matchedStudents = state.students
     .map((s) => {
@@ -92,11 +103,11 @@ apiRouter.get('/search', (req, res) => {
     })
     .filter(
       (s) =>
-        !q ||
+        canSearchInstitutionStudents && (!q ||
         s.fullName.toLowerCase().includes(q) ||
         s.matricNumber.toLowerCase().includes(q) ||
         s.programmeName.toLowerCase().includes(q) ||
-        s.email.toLowerCase().includes(q)
+        s.email.toLowerCase().includes(q))
     )
     .slice(0, 6);
 
@@ -115,11 +126,11 @@ apiRouter.get('/search', (req, res) => {
     })
     .filter(
       (a) =>
-        !q ||
+        canSearchApplicants && (!q ||
         a.fullName.toLowerCase().includes(q) ||
         a.applicationNumber.toLowerCase().includes(q) ||
         a.programmeName.toLowerCase().includes(q) ||
-        a.email.toLowerCase().includes(q)
+        a.email.toLowerCase().includes(q))
     )
     .slice(0, 6);
 
