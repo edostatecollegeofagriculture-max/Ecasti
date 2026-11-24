@@ -181,7 +181,7 @@ export const Navbar: React.FC<Props> = ({
             }`}
           >
             <Layers className="w-3.5 h-3.5" /> Page Builder
-          </button>
+          </button>}
 
           {/* Theme Toggle */}
           <ThemeToggle />
