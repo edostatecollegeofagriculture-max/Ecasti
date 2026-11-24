@@ -54,7 +54,6 @@ export const Navbar: React.FC<Props> = ({
           <span className="bg-emerald-800/80 px-2 py-0.5 rounded border border-emerald-700 text-emerald-100 hidden md:inline">
             {settings?.currentSemester || 'First Semester'}
           </span>
-}
         </div>
       </div>
 
