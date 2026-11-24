@@ -8,6 +8,7 @@ import { LoginModal } from './components/LoginModal';
 import { PrintSlipModal } from './components/PrintSlipModal';
 import { SchoolLogo } from './components/SchoolLogo';
 import { KeyRound } from 'lucide-react';
+import { canAccessWorkspace, getRoleHome } from './utils/roleAccess';
 
 const PublicPortal = lazy(() => import('./views/PublicPortal').then((module) => ({ default: module.PublicPortal })));
 const AdmissionsPortal = lazy(() => import('./views/AdmissionsPortal').then((module) => ({ default: module.AdmissionsPortal })));
@@ -22,29 +23,7 @@ type PrintModalState = {
   data: any;
 };
 
-const getWorkspaceForRole = (role?: string | null) => {
-  switch (role) {
-    case 'STUDENT':
-      return { tab: 'student', section: 'courses' };
-    case 'LECTURER':
-      return { tab: 'lecturer', section: 'overview' };
-    case 'APPLICANT':
-      return { tab: 'admissions', section: 'overview' };
-    case 'ADMISSIONS_OFFICER':
-      return { tab: 'admin', section: 'overview' };
-    case 'SUPER_ADMIN':
-    case 'INSTITUTION_ADMIN':
-    case 'RECTOR':
-    case 'REGISTRAR':
-    case 'BURSAR':
-    case 'DEAN':
-    case 'HOD':
-    case 'EXAM_OFFICER':
-      return { tab: 'admin', section: 'overview' };
-    default:
-      return { tab: 'public', section: 'overview' };
-  }
-};
+const getWorkspaceForRole = getRoleHome;
 
 const MainApp: React.FC = () => {
   const { user, settings } = useAuth();
@@ -79,6 +58,12 @@ const MainApp: React.FC = () => {
   };
 
   const handleNavigate = (tab: string, subSection?: string) => {
+    if (!canAccessWorkspace(user?.role, tab)) {
+      const home = getRoleHome(user?.role);
+      setActiveTab(home.tab);
+      setActiveSubSection(home.section);
+      return;
+    }
     setActiveTab(tab);
     setActiveSubSection(subSection || 'overview');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -151,7 +136,7 @@ const MainApp: React.FC = () => {
           />
         )}
 
-        {activeTab === 'builder' && (
+        {activeTab === 'builder' && canAccessWorkspace(user?.role, 'builder') && (
           <PageBuilder
             onExitBuilder={() => handleNavigate('public')}
             onOpenLoginModal={() => setIsLoginModalOpen(true)}
@@ -160,7 +145,7 @@ const MainApp: React.FC = () => {
         </Suspense>
       </main>
 
-      <div className="fixed bottom-5 right-5 z-40 no-print">
+      {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role) && <div className="fixed bottom-5 right-5 z-40 no-print">
         <button
           onClick={() => setIsPersonaModalOpen(true)}
           className="bg-emerald-900 hover:bg-emerald-800 dark:bg-emerald-800 dark:hover:bg-emerald-700 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-xl hover:shadow-2xl flex items-center gap-2 border-2 border-amber-400 transition transform hover:-translate-y-0.5 cursor-pointer"
@@ -169,7 +154,7 @@ const MainApp: React.FC = () => {
           <span>Test as Rector / HOD / Student</span>
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
         </button>
-      </div>
+      </div>}
 
       <PersonaSwitcherModal
         isOpen={isPersonaModalOpen}
