@@ -44,14 +44,14 @@ export const LecturerPortal: React.FC = () => {
     setLoading(true);
     setLoadError(null);
     try {
-      const courseRequest =
-        user?.role === 'LECTURER' ? api.getMyCourses() : api.getCourses();
+      const isLecturer = user?.role === 'LECTURER';
+      const courseRequest = isLecturer ? api.getMyCourses() : api.getCourses();
 
       const [crsRes, stdRes, deptRes, progRes, regRes] = await Promise.all([
         courseRequest,
         api.getStudents(),
-        api.getDepartments(),
-        api.getProgrammes(),
+        isLecturer ? Promise.resolve({ success: true, departments: [] }) : api.getDepartments(),
+        isLecturer ? Promise.resolve({ success: true, programmes: [] }) : api.getProgrammes(),
         api.getRegistrations().catch(() => ({ success: false, registrations: [] })),
       ]);
 
@@ -323,20 +323,22 @@ export const LecturerPortal: React.FC = () => {
             totalCount={students.length}
             filteredCount={filteredStudents.length}
             facets={[
-              {
-                key: 'dept',
-                label: 'Department',
-                value: filterDeptId,
-                onChange: setFilterDeptId,
-                options: departments.map((department) => ({ value: department.id, label: department.name })),
-              },
-              {
-                key: 'prog',
-                label: 'Programme',
-                value: filterProgId,
-                onChange: setFilterProgId,
-                options: programmes.map((programme) => ({ value: programme.id, label: programme.name })),
-              },
+              ...(user?.role === 'LECTURER' ? [] : [
+                {
+                  key: 'dept',
+                  label: 'Department',
+                  value: filterDeptId,
+                  onChange: setFilterDeptId,
+                  options: departments.map((department) => ({ value: department.id, label: department.name })),
+                },
+                {
+                  key: 'prog',
+                  label: 'Programme',
+                  value: filterProgId,
+                  onChange: setFilterProgId,
+                  options: programmes.map((programme) => ({ value: programme.id, label: programme.name })),
+                },
+              ]),
               {
                 key: 'level',
                 label: 'Class/Level',
