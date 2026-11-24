@@ -487,9 +487,9 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
         },
         {
           id: 'exam_approvals',
-          label: 'Exam Officer Approvals',
+          label: user?.role === 'HOD' ? 'Course Registration Approvals' : user?.role === 'EXAM_OFFICER' ? 'Result Moderation & Publishing' : 'Academic Approvals',
           icon: <ClipboardCheck className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'HOD', 'EXAM_OFFICER'],
         },
       ],
     },
@@ -720,7 +720,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
   const handleApproveRegistration = async (regId: string) => {
     try {
       await api.approveRegistration(regId);
-      notify('Course registration approved by Exam Officer.');
+      notify('Course registration approved by HOD.');
       loadData();
     } catch (err: any) {
       notify(err.message || 'Failed to approve registration', 'error');
@@ -1700,8 +1700,8 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           {/* ==================== 4. EXAM OFFICER APPROVALS (COURSE REGS + RESULTS) ==================== */}
           {activeSubTab === 'exam_approvals' && (
             <div className="space-y-6">
-              {/* Panel A: Student Course Registrations Approval */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+              {/* Panel A: HOD course registration approval; full-access roles may also review */}
+              {user?.role !== 'EXAM_OFFICER' && <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                     Examination Officer Gate 1
@@ -1728,7 +1728,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                       onChange: setExamRegStatusFilter,
                       options: [
                         { value: 'SUBMITTED', label: 'Pending Approval (SUBMITTED)' },
-                        { value: 'APPROVED_BY_EXAM_OFFICER', label: 'Approved by Exam Officer' },
+                        { value: 'APPROVED_BY_HOD', label: 'Approved by HOD' },
                         { value: 'APPROVED_BY_HOD', label: 'Approved by HOD' },
                         { value: 'REJECTED', label: 'Rejected' },
                       ],
@@ -1776,7 +1776,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                         <th className="p-3">Registered Course Details</th>
                         <th className="p-3 text-center">Credits</th>
                         <th className="p-3">Status</th>
-                        <th className="p-3 text-right">Exam Officer Action</th>
+                        <th className="p-3 text-right">HOD Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -1864,8 +1864,8 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                 </div>
               </div>
 
-              {/* Panel B: Lecturer Scores Approval & Publishing */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+              {/* Panel B: Exam Officer result moderation and publication */}
+              {user?.role !== 'HOD' && <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
