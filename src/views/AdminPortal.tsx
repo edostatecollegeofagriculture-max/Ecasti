@@ -450,6 +450,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
   const canManageAdmissionFeeActivations = [
     'SUPER_ADMIN',
     'INSTITUTION_ADMIN',
+    'RECTOR',
     'REGISTRAR',
     'ADMISSIONS_OFFICER',
   ].includes(role);
