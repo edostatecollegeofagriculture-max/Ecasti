@@ -21,6 +21,8 @@ assert.equal(canAccessAdminTab('EXAM_OFFICER', 'exam_approvals'), true);
 assert.equal(canAccessAdminTab('REGISTRAR', 'registrar_docs'), true);
 assert.equal(canAccessAdminTab('BURSAR', 'finance'), true);
 assert.equal(canAccessWorkspace('HOD', 'builder'), false);
+assert.equal(canAccessWorkspace('HOD', 'lecturer'), false);
+assert.equal(canAccessWorkspace('DEAN', 'lecturer'), false);
 assert.equal(canAccessWorkspace('STUDENT', 'student'), true);
 assert.equal(canAccessWorkspace('HOD', 'admin'), true);
 assert.equal(getDefaultAdminTab('HOD'), 'hod_allocation');
