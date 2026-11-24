@@ -110,7 +110,7 @@ const MainApp: React.FC = () => {
         >
         {activeTab === 'public' && (
           <PublicPortal
-            onGoToAdmissions={() => handleNavigate('admissions', 'form')}
+            onGoToAdmissions={() => handleNavigate('admissions', 'programmes')}
             onGoToLogin={() => setIsLoginModalOpen(true)}
             onNavigateSection={handleNavigate}
           />
@@ -118,6 +118,7 @@ const MainApp: React.FC = () => {
 
         {activeTab === 'admissions' && (
           <AdmissionsPortal
+            initialSection={activeSubSection}
             onOpenPrintModal={openPrintModal}
             onGoToStudentWorkspace={() => handleNavigate('student', 'courses')}
             onOpenLoginModal={() => setIsLoginModalOpen(true)}
