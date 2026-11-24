@@ -28,6 +28,7 @@ import { activateAdmissionFeeObligations, listRetryableAdmissionFeeActivations }
 import { evaluateNdGraduationEligibility } from './academicProgressionService';
 import { academicProgressionApiRouter } from './academicProgressionApiRouter';
 import { appendAcademicResultEvent, listAcademicResultAttempts } from './academicResultNeonService';
+import { canExamOfficerModerateResult, canHodApproveResult, isHodApprovedForPublication } from './resultApprovalAuthorization';
 
 export const apiRouter = Router();
 apiRouter.use('/academic-progression', academicProgressionApiRouter);
@@ -2241,7 +2242,7 @@ function recalculateStudentAcademicTotals(state: ReturnType<typeof db.getState>,
   }
 }
 
-apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'HOD', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
   const { courseId, session, semester, studentId, status } = req.query;
   let list = db.getState().results;
 
@@ -2458,8 +2459,8 @@ apiRouter.post(
       (r) => r.courseId === courseId && r.studentId === studentId && r.session === targetSession && r.semester === targetSemester
     );
 
-    const isAutoPublishRole = ['SUPER_ADMIN', 'RECTOR', 'EXAM_OFFICER'].includes(req.user!.role);
-    const nextStatus = existing?.status === 'PUBLISHED' && isAutoPublishRole ? 'PUBLISHED' : 'SUBMITTED';
+    // Every score entry or revision restarts the approval chain.
+    const nextStatus = 'SUBMITTED';
 
     const resultRecord: AssessmentResult = {
       id: existing?.id || 'res-' + Date.now() + '-' + Math.floor(Math.random() * 100),
@@ -2500,6 +2501,87 @@ apiRouter.post(
 );
 
 apiRouter.patch(
+  '/results/:id/hod-approve',
+  authenticateToken,
+  requireRoles('HOD'),
+  (req: AuthenticatedRequest, res: Response) => {
+    const state = db.getState();
+    const result = state.results.find((item) => item.id === req.params.id);
+    if (!result) return res.status(404).json({ success: false, message: 'Result not found.' });
+
+    const departmentId = req.user!.departmentId;
+    const course = state.courses.find((item) => item.id === result.courseId);
+    if (!departmentId || !canHodApproveResult(req.user, course, result)) {
+      return res.status(403).json({ success: false, message: 'You can only approve submitted results for courses in your department.' });
+    }
+
+    result.status = 'HOD_APPROVED';
+    result.hodApprovedAt = new Date().toISOString();
+    result.hodApprovedBy = `${req.user!.fullName} (${req.user!.role})`;
+    db.saveState();
+    db.logAudit({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'RESULT_HOD_APPROVED',
+      resource: 'RESULT',
+      details: { resultId: result.id, courseId: result.courseId, studentId: result.studentId },
+      ipAddress: req.ip,
+    });
+    return res.json({ success: true, result });
+  }
+);
+
+apiRouter.post(
+  '/results/hod-approve-bulk',
+  authenticateToken,
+  requireRoles('HOD'),
+  (req: AuthenticatedRequest, res: Response) => {
+    const { resultIds, courseId } = req.body || {};
+    if (resultIds !== undefined && (!Array.isArray(resultIds) || resultIds.some((id: unknown) => typeof id !== 'string'))) {
+      return res.status(400).json({ success: false, message: 'Result IDs must be an array of valid IDs.' });
+    }
+    const requestedIds = new Set<string>(resultIds || []);
+    const hasCourseFilter = typeof courseId === 'string' && courseId.trim().length > 0;
+    if (requestedIds.size === 0 && !hasCourseFilter) {
+      return res.status(400).json({ success: false, message: 'Select submitted results or specify a course.' });
+    }
+    const departmentId = req.user!.departmentId;
+    if (!departmentId) return res.status(403).json({ success: false, message: 'Your account has no assigned department.' });
+    const state = db.getState();
+    const departmentCourseIds = new Set(state.courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+    if (hasCourseFilter && !departmentCourseIds.has(courseId)) {
+      return res.status(403).json({ success: false, message: 'You can only approve results for courses in your department.' });
+    }
+    const now = new Date().toISOString();
+    const eligibleResults = state.results.filter((result) => {
+      const course = state.courses.find((item) => item.id === result.courseId);
+      return canHodApproveResult(req.user, course, result) &&
+        departmentCourseIds.has(result.courseId) &&
+        (requestedIds.has(result.id) || (hasCourseFilter && result.courseId === courseId));
+    });
+    for (const result of eligibleResults) {
+      result.status = 'HOD_APPROVED';
+      result.hodApprovedAt = now;
+      result.hodApprovedBy = `${req.user!.fullName} (${req.user!.role})`;
+    }
+    if (eligibleResults.length > 0) db.saveState();
+    db.logAudit({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'RESULTS_HOD_BULK_APPROVED',
+      resource: 'RESULT',
+      details: { count: eligibleResults.length, resultIds: eligibleResults.map((result) => result.id) },
+      ipAddress: req.ip,
+    });
+    return res.json({
+      success: true,
+      approvedCount: eligibleResults.length,
+      skippedCount: Math.max(0, requestedIds.size - eligibleResults.length),
+    });
+  }
+);
+
+apiRouter.patch(
   '/results/:id/publish',
   authenticateToken,
   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
@@ -2509,6 +2591,15 @@ apiRouter.patch(
     const resItem = state.results.find((r) => r.id === id);
     if (!resItem) {
       return res.status(404).json({ success: false, message: 'Result not found.' });
+    }
+    if (!isHodApprovedForPublication(resItem)) {
+      return res.status(409).json({ success: false, message: 'Results must be approved by the HOD before Exam Officer moderation and publication.' });
+    }
+    if (req.user!.role === 'EXAM_OFFICER') {
+      const course = state.courses.find((item) => item.id === resItem.courseId);
+      if (!canExamOfficerModerateResult(req.user, course, resItem)) {
+        return res.status(403).json({ success: false, message: 'You can only moderate HOD-approved results for your department.' });
+      }
     }
 
     resItem.status = 'PUBLISHED';
@@ -2551,7 +2642,9 @@ apiRouter.post(
     const now = new Date().toISOString();
     const touchedStudents = new Set<string>();
     const eligibleResults = state.results.filter((result) => {
-      if (result.status !== 'SUBMITTED') return false;
+      const course = state.courses.find((item) => item.id === result.courseId);
+      if (!isHodApprovedForPublication(result)) return false;
+      if (req.user!.role === 'EXAM_OFFICER' && !canExamOfficerModerateResult(req.user, course, result)) return false;
       const matchesId = requestedIds.has(result.id);
       const matchesCourse = hasCourseFilter && result.courseId === courseId;
       return matchesId || matchesCourse;
@@ -2607,7 +2700,10 @@ apiRouter.put(
     if (req.user!.role === 'LECTURER' && req.body.status !== undefined) {
       return res.status(403).json({ success: false, message: 'Lecturers cannot approve or publish results.' });
     }
-    const { caScore, examScore, status } = req.body;
+    const { caScore, examScore } = req.body;
+    if (req.body.status !== undefined) {
+      return res.status(400).json({ success: false, message: 'Result status can only be changed through the approval workflow.' });
+    }
     if (caScore !== undefined) {
       resItem.caScore = Math.max(0, Math.min(Number(caScore), state.settings.caMaxMarks));
     }
@@ -2618,12 +2714,12 @@ apiRouter.put(
     const { grade, gradePoint } = computeGradeAndPoints(resItem.totalScore);
     resItem.grade = grade;
     resItem.gradePoint = gradePoint;
-    if (status !== undefined) {
-      resItem.status = status;
-      if (status === 'PUBLISHED' && !resItem.publishedAt) {
-        resItem.publishedAt = new Date().toISOString();
-      }
-    }
+    // Any score revision invalidates prior HOD approval and publication.
+    resItem.status = 'SUBMITTED';
+    delete resItem.hodApprovedBy;
+    delete resItem.hodApprovedAt;
+    delete resItem.approvedBy;
+    delete resItem.publishedAt;
     recalculateStudentAcademicTotals(state, resItem.studentId);
     db.saveState();
     return res.json({ success: true, result: resItem });

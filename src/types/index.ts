@@ -170,8 +170,10 @@ export interface AssessmentResult {
   totalScore: number;
   grade: string;
   gradePoint: number;
-  status: 'DRAFT' | 'SUBMITTED' | 'VERIFIED' | 'APPROVED' | 'PUBLISHED';
+  status: 'DRAFT' | 'SUBMITTED' | 'HOD_APPROVED' | 'VERIFIED' | 'APPROVED' | 'PUBLISHED';
   submittedBy?: string;
+  hodApprovedBy?: string;
+  hodApprovedAt?: string;
   verifiedBy?: string;
   approvedBy?: string;
   publishedAt?: string;

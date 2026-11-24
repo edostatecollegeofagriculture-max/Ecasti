@@ -478,6 +478,12 @@ class ApiService {
     });
   }
 
+  approveResultByHod(id: string) {
+    return this.request<{ success: boolean; result: any }>(`/results/${id}/hod-approve`, {
+      method: 'PATCH',
+    });
+  }
+
   publishResult(id: string) {
     return this.request<{ success: boolean; result: any }>(`/results/${id}/publish`, {
       method: 'PATCH',
