@@ -118,6 +118,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
 
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
   const [newsCategory, setNewsCategory] = useState<string>('ALL');
   const [newsWildcard, setNewsWildcard] = useState('');
   const [schoolWildcard, setSchoolWildcard] = useState('');
@@ -130,19 +131,26 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
   const [departments, setDepartments] = useState<Department[]>([]);
   const [programmes, setProgrammes] = useState<Programme[]>([]);
 
+  // Load the complete published bulletin set once. Category tabs and wildcard
+  // search are applied locally so they always work together on the same dataset.
   useEffect(() => {
-    api
-      .getNews({
-        category: newsCategory !== 'ALL' ? newsCategory : undefined,
-        status: 'PUBLISHED',
-      })
+    let active = true;
+    setNewsLoading(true);
+    api.getNews({ status: 'PUBLISHED' })
       .then((res) => {
-        if (res.success && res.articles) {
-          setNewsArticles(res.articles);
+        if (active && res.success && Array.isArray(res.articles)) {
+          setNewsArticles(res.articles.filter((article: NewsArticle) => article.status === 'PUBLISHED'));
         }
       })
-      .catch((err) => console.error(err));
-  }, [newsCategory]);
+      .catch((err) => {
+        console.error('Unable to load published bulletins:', err);
+        if (active) setNewsArticles([]);
+      })
+      .finally(() => {
+        if (active) setNewsLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -186,9 +194,10 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
     }
 
     if (sectionKey === 'news') {
-      const filteredNews = newsArticles.filter((a) =>
-        matchesWildcard(newsWildcard, a.title, a.summary, a.category, a.author)
-      );
+      const filteredNews = newsArticles.filter((a) => {
+        const categoryMatches = newsCategory === 'ALL' || a.category === newsCategory;
+        return categoryMatches && matchesWildcard(newsWildcard, a.title, a.summary, a.category, a.author);
+      });
       return (
         <section key="news" className="portal-section space-y-6 sm:space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
@@ -226,6 +235,15 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
             filteredCount={filteredNews.length}
           />
 
+          {newsLoading ? (
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center text-sm text-slate-500">Loading published bulletins…</div>
+          ) : filteredNews.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center space-y-2">
+              <h3 className="font-bold text-slate-800 dark:text-slate-200">No bulletins found</h3>
+              <p className="text-sm text-slate-500">{newsArticles.length === 0 ? 'There are no published bulletins yet.' : 'No published bulletins match this category and search. Try another category or clear the wildcard filter.'}</p>
+              {(newsCategory !== 'ALL' || newsWildcard) && <button type="button" onClick={() => { setNewsCategory('ALL'); setNewsWildcard(''); }} className="text-sm font-bold text-emerald-800 dark:text-emerald-300 underline cursor-pointer">Clear filters</button>}
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredNews.map((article) => (
               <div
@@ -276,6 +294,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
               </div>
             ))}
           </div>
+          )}
         </section>
       );
     }
