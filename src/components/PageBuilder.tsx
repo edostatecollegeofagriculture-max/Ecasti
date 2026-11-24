@@ -2832,6 +2832,65 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                 className={inputCls}
               />
             </div>
+            <div>
+              <label className={labelCls}>Contact Phone</label>
+              <input
+                type="text"
+                value={pageContent.footerContactPhone || settings?.contactPhone || ''}
+                onChange={(e) => setPageContent({ ...pageContent, footerContactPhone: e.target.value })}
+                placeholder="Use institution contact phone"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Contact Email</label>
+              <input
+                type="email"
+                value={pageContent.footerContactEmail || settings?.contactEmail || ''}
+                onChange={(e) => setPageContent({ ...pageContent, footerContactEmail: e.target.value })}
+                placeholder="Use institution contact email"
+                className={inputCls}
+              />
+            </div>
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-3">
+              <div>
+                <h4 className="text-xs font-black text-slate-900 dark:text-white">Footer Appearance</h4>
+                <p className="text-[10px] text-slate-500 mt-1">Customize the footer background, image, typography, accent, border and contact icon colours.</p>
+              </div>
+              {renderImageEditor('Footer Background Image', pageContent.footerBackgroundImageUrl, (v) =>
+                setPageContent({ ...pageContent, footerBackgroundImageUrl: v }),
+                { maxDimension: 1800 }
+              )}
+              <div className="grid grid-cols-2 gap-2.5">
+                {([
+                  ['Background Colour', 'footerBgColor', '#022c22'],
+                  ['Secondary Background', 'footerBgSecondaryColor', '#064e3b'],
+                  ['Main Text Colour', 'footerTextColor', '#ffffff'],
+                  ['Description Colour', 'footerSubtitleColor', '#a7f3d0'],
+                  ['Accent Colour', 'footerAccentColor', '#fbbf24'],
+                  ['Top Border Colour', 'footerBorderColor', '#f59e0b'],
+                  ['Icon Colour', 'footerIconColor', '#fbbf24'],
+                ] as const).map(([label, key, fallback]) => (
+                  <label key={key} className="space-y-1">
+                    <span className={labelCls}>{label}</span>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={(pageContent as any)[key] || fallback}
+                        onChange={(e) => setPageContent({ ...pageContent, [key]: e.target.value })}
+                        className="h-9 w-11 rounded border border-slate-300 dark:border-slate-700 bg-white p-1 cursor-pointer" />
+                      <input type="text" value={(pageContent as any)[key] || ''}
+                        onChange={(e) => setPageContent({ ...pageContent, [key]: e.target.value })}
+                        placeholder={fallback} className={inputCls} />
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <button type="button" onClick={() => setPageContent({
+                ...pageContent, footerBackgroundImageUrl: '', footerBgColor: '', footerBgSecondaryColor: '',
+                footerTextColor: '', footerSubtitleColor: '', footerAccentColor: '', footerBorderColor: '', footerIconColor: '',
+              })} className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+                Reset appearance to defaults
+              </button>
+            </div>
           </div>
         </div>
       );
@@ -4367,6 +4426,18 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                       <div
                         key="footer"
                         onClick={() => setSelected({ type: 'footer' })}
+                        style={{
+                          backgroundColor: pageContent.footerBgColor || undefined,
+                          backgroundImage: pageContent.footerBackgroundImageUrl
+                            ? `linear-gradient(135deg, ${pageContent.footerBgColor || '#022c22'}dd, ${pageContent.footerBgSecondaryColor || '#064e3b'}cc), url(${pageContent.footerBackgroundImageUrl})`
+                            : pageContent.footerBgColor || pageContent.footerBgSecondaryColor
+                              ? `linear-gradient(135deg, ${pageContent.footerBgColor || '#022c22'}, ${pageContent.footerBgSecondaryColor || '#064e3b'})`
+                              : undefined,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          color: pageContent.footerTextColor || undefined,
+                          borderColor: pageContent.footerBorderColor || undefined,
+                        }}
                         className={`bg-emerald-950 text-white rounded-3xl p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 border-t-4 border-amber-500 transition ${
                           isHidden ? 'opacity-50' : ''
                         } ${outlineCls(isSelected('footer'))}`}
@@ -4375,28 +4446,28 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                           <div className="flex items-center gap-2.5 mb-2">
                             <SchoolLogo size={36} />
                             <div>
-                              <div className="font-black text-amber-400 text-base">{pageContent.footerBrandTitle}</div>
-                              <div className="text-[10px] text-emerald-300">{pageContent.footerBrandSubtitle}</div>
+                              <div className="font-black text-amber-400 text-base" style={{ color: pageContent.footerAccentColor || undefined }}>{pageContent.footerBrandTitle}</div>
+                              <div className="text-[10px] text-emerald-300" style={{ color: pageContent.footerSubtitleColor || undefined }}>{pageContent.footerBrandSubtitle}</div>
                             </div>
                           </div>
-                          <p className="text-xs text-emerald-200 leading-relaxed">{pageContent.footerDescription}</p>
+                          <p className="text-xs text-emerald-200 leading-relaxed" style={{ color: pageContent.footerSubtitleColor || undefined }}>{pageContent.footerDescription}</p>
                         </div>
                         <div className="space-y-1.5 text-xs text-emerald-200">
-                          <h4 className="font-bold text-white uppercase">{pageContent.footerLocationHeading}</h4>
+                          <h4 className="font-bold text-white uppercase" style={{ color: pageContent.footerTextColor || undefined }}>{pageContent.footerLocationHeading}</h4>
                           <div className="flex items-start gap-2">
-                            <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                            <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" style={{ color: pageContent.footerIconColor || pageContent.footerAccentColor || undefined }} />
                             <span>{pageContent.footerLocationAddress}</span>
                           </div>
                         </div>
                         <div className="space-y-1.5 text-xs text-emerald-200">
-                          <h4 className="font-bold text-white uppercase">{pageContent.footerContactHeading}</h4>
+                          <h4 className="font-bold text-white uppercase" style={{ color: pageContent.footerTextColor || undefined }}>{pageContent.footerContactHeading}</h4>
                           <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-amber-400 shrink-0" />
-                            <span>{settings?.contactPhone || '+234 803 000 1234'}</span>
+                            <Phone className="w-4 h-4 text-amber-400 shrink-0" style={{ color: pageContent.footerIconColor || pageContent.footerAccentColor || undefined }} />
+                            <span>{pageContent.footerContactPhone || settings?.contactPhone || '+234 803 000 1234'}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-amber-400 shrink-0" />
-                            <span>{settings?.contactEmail || 'admissions@edocasti.edu.ng'}</span>
+                            <Mail className="w-4 h-4 text-amber-400 shrink-0" style={{ color: pageContent.footerIconColor || pageContent.footerAccentColor || undefined }} />
+                            <span>{pageContent.footerContactEmail || settings?.contactEmail || 'admissions@edocasti.edu.ng'}</span>
                           </div>
                         </div>
                       </div>
