@@ -1198,7 +1198,7 @@ apiRouter.delete(
 apiRouter.patch(
   '/admissions/:id/decision',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'ADMISSIONS_OFFICER'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const { status, screeningNotes } = req.body;
@@ -1506,7 +1506,7 @@ apiRouter.post(
 apiRouter.post(
   '/admissions/:id/migrate-student',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'ADMISSIONS_OFFICER'),
   async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const state = db.getState();
@@ -1628,7 +1628,7 @@ apiRouter.post(
 apiRouter.get(
   '/admissions/fee-activation-retries',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'ADMISSIONS_OFFICER'),
   async (req: AuthenticatedRequest, res: Response) => {
     if (!isFeeManagementEnabled()) {
       return res.status(503).json({
@@ -1657,7 +1657,7 @@ apiRouter.get(
 apiRouter.post(
   '/admissions/:id/retry-fee-activation',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'ADMISSIONS_OFFICER'),
   async (req: AuthenticatedRequest, res: Response) => {
     if (!isFeeManagementEnabled()) {
       return res.status(503).json({
