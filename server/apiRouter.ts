@@ -28,6 +28,7 @@ import { activateAdmissionFeeObligations, listRetryableAdmissionFeeActivations }
 import { evaluateNdGraduationEligibility } from './academicProgressionService';
 import { academicProgressionApiRouter } from './academicProgressionApiRouter';
 import { appendAcademicResultEvent, listAcademicResultAttempts } from './academicResultNeonService';
+import { canSearchApplicants, canSearchInstitutionStudents } from './searchAuthorization';
 
 export const apiRouter = Router();
 apiRouter.use('/academic-progression', academicProgressionApiRouter);
@@ -83,8 +84,8 @@ apiRouter.get(
   const q = String(req.query.q || '').trim().toLowerCase();
   const state = db.getState();
   const role = req.user?.role;
-  const canSearchInstitutionStudents = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'].includes(role || '');
-  const canSearchApplicants = canSearchInstitutionStudents || role === 'ADMISSIONS_OFFICER';
+  const canSearchStudents = canSearchInstitutionStudents(role);
+  const canSearchApplicantsForActor = canSearchApplicants(role);
 
   const matchedStudents = state.students
     .map((s) => {
@@ -103,7 +104,7 @@ apiRouter.get(
     })
     .filter(
       (s) =>
-        canSearchInstitutionStudents && (!q ||
+        canSearchStudents && (!q ||
         s.fullName.toLowerCase().includes(q) ||
         s.matricNumber.toLowerCase().includes(q) ||
         s.programmeName.toLowerCase().includes(q) ||
@@ -126,7 +127,7 @@ apiRouter.get(
     })
     .filter(
       (a) =>
-        canSearchApplicants && (!q ||
+        canSearchApplicantsForActor && (!q ||
         a.fullName.toLowerCase().includes(q) ||
         a.applicationNumber.toLowerCase().includes(q) ||
         a.programmeName.toLowerCase().includes(q) ||
