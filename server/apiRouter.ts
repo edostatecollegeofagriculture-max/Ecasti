@@ -1941,13 +1941,13 @@ apiRouter.get('/students/me', authenticateToken, (req: AuthenticatedRequest, res
 apiRouter.get(
   '/registrations',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
   const { session, semester, studentId } = req.query;
   const state = db.getState();
   let list = state.registrations;
   const actorRole = req.user!.role;
-  if (actorRole === 'EXAM_OFFICER') {
+  if (actorRole === 'EXAM_OFFICER' || actorRole === 'HOD') {
     const departmentId = req.user!.departmentId;
     const departmentCourseIds = new Set(state.courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
     list = departmentId
@@ -2071,7 +2071,7 @@ apiRouter.post('/registrations/register', authenticateToken, (req: Authenticated
 apiRouter.patch(
   '/registrations/:id/approve',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const reg = db.getState().registrations.find((r) => r.id === id);
@@ -2079,13 +2079,18 @@ apiRouter.patch(
       return res.status(404).json({ success: false, message: 'Registration not found.' });
     }
 
-    if (reg.status === 'APPROVED_BY_EXAM_OFFICER') {
+    if (req.user!.role === 'HOD') {
+      const departmentId = req.user!.departmentId;
+      const allowedCourseIds = new Set(db.getState().courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+      if (!departmentId || !reg.courseIds.every((courseId) => allowedCourseIds.has(courseId))) return res.status(403).json({ success: false, message: 'You can only approve registrations for your department.' });
+    }
+    if (reg.status === 'APPROVED_BY_HOD') {
       return res.status(409).json({ success: false, message: 'This registration has already been approved.' });
     }
     if (reg.status !== 'SUBMITTED') {
       return res.status(400).json({ success: false, message: 'Only submitted registrations can be approved.' });
     }
-    reg.status = 'APPROVED_BY_EXAM_OFFICER';
+    reg.status = 'APPROVED_BY_HOD';
     reg.approvedAt = new Date().toISOString();
     reg.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
 
@@ -2106,7 +2111,7 @@ apiRouter.patch(
 apiRouter.post(
   '/registrations/approve-bulk',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
     const { registrationIds, session, semester } = req.body;
     const state = db.getState();
@@ -2121,7 +2126,7 @@ apiRouter.post(
         ? selectedIds.has(registration.id)
         : (!session || registration.session === session) && (!semester || registration.semester === semester);
       if (selected && registration.status === 'SUBMITTED') {
-        registration.status = 'APPROVED_BY_EXAM_OFFICER';
+        registration.status = 'APPROVED_BY_HOD';
         registration.approvedAt = now;
         registration.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
         approvedCount++;
@@ -2143,7 +2148,7 @@ apiRouter.post(
 apiRouter.patch(
   '/registrations/:id/reject',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const reg = db.getState().registrations.find((r) => r.id === id);
@@ -2159,12 +2164,12 @@ apiRouter.patch(
 apiRouter.put(
   '/registrations/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const reg = db.getState().registrations.find((r) => r.id === id);
     if (!reg) return res.status(404).json({ success: false, message: 'Registration not found.' });
-    if (reg.status === 'APPROVED_BY_EXAM_OFFICER') {
+    if (reg.status === 'APPROVED_BY_HOD') {
       return res.status(409).json({ success: false, message: 'Approved registrations are locked against changes.' });
     }
     const { courseIds } = req.body;
