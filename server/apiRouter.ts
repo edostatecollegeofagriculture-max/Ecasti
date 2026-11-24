@@ -3123,6 +3123,7 @@ apiRouter.delete(
 // ==================== ATTENDANCE ====================
 
 apiRouter.get('/attendance', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+  const { courseId } = req.query;
   const user = req.user!;
   if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER'].includes(user.role)) {
     return res.status(403).json({ success: false, message: 'You do not have permission to view attendance records.' });
