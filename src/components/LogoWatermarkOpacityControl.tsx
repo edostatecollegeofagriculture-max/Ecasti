@@ -34,7 +34,7 @@ export const LogoWatermarkOpacityControl: React.FC = () => {
   return (
     <section
       aria-label="Global background logo opacity"
-      className="fixed bottom-5 right-5 z-[60] w-[min( calc(100vw-2.5rem), 19rem)] rounded-xl border border-slate-200 bg-white/95 p-3.5 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/95"
+      className="fixed bottom-5 right-5 z-[60] w-[min(19rem,calc(100vw-2.5rem))] rounded-xl border border-slate-200 bg-white/95 p-3.5 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/95"
     >
       <div className="mb-2 flex items-center gap-2 text-xs font-black text-slate-800 dark:text-slate-100">
         <Eye className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
