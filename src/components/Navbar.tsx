@@ -21,7 +21,6 @@ import {
 interface Props {
   activeTab: string;
   setActiveTab: (tab: string, subSection?: string) => void;
-  onOpenPersonaModal: () => void;
   onOpenLoginModal: () => void;
   onOpenPrintModal: (type: any, data: any) => void;
 }
@@ -29,7 +28,6 @@ interface Props {
 export const Navbar: React.FC<Props> = ({
   activeTab,
   setActiveTab,
-  onOpenPersonaModal,
   onOpenLoginModal,
   onOpenPrintModal,
 }) => {
@@ -42,7 +40,7 @@ export const Navbar: React.FC<Props> = ({
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1 font-semibold text-amber-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            {settings?.shortName || 'EDOCASTI'} PORTAL
+            {settings?.shortName || 'EDOCASTI'}
           </span>
           <span className="hidden sm:inline text-emerald-200/60">•</span>
           <span className="hidden sm:inline text-emerald-100">
@@ -57,13 +55,7 @@ export const Navbar: React.FC<Props> = ({
           <span className="bg-emerald-800/80 px-2 py-0.5 rounded border border-emerald-700 text-emerald-100 hidden md:inline">
             {settings?.currentSemester || 'First Semester'}
           </span>
-          {user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role) && <button
-            onClick={onOpenPersonaModal}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-0.5 rounded shadow-xs flex items-center gap-1 cursor-pointer transition"
-            title="Fast switch between roles (Rector, Bursar, Lecturer, Student, etc.)"
-          >
-            <KeyRound className="w-3 h-3" /> Quick Switch Role
-          </button>}
+}
         </div>
       </div>
 
@@ -81,7 +73,6 @@ export const Navbar: React.FC<Props> = ({
                 {settings?.shortName || 'EDOCASTI'}
               </span>
               <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60">
-                {pageContent?.portalBadgeText || 'Official Portal'}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden xl:block">
