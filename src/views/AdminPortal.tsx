@@ -416,7 +416,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
       if (attRes.success && attRes.attendance) setAttendance(attRes.attendance);
       if (tktRes.success && tktRes.tickets) setTickets(tktRes.tickets);
 
-      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'].includes(user.role)) {
+      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(user.role)) {
         const [uRes, aRes, appRes] = await Promise.all([
           api.getUsers().catch(() => ({ success: false, users: [] })),
           api.getAuditLogs({ limit: 80 }).catch(() => ({ success: false, logs: [] })),
@@ -427,7 +427,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
         if (appRes.success && appRes.applications) setApplications(appRes.applications);
       }
 
-      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'RECTOR', 'REGISTRAR'].includes(user.role)) {
+      if (user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'RECTOR'].includes(user.role)) {
         const pRes = await api.getPayments().catch(() => ({ success: false, payments: [] }));
         if (pRes.success && pRes.payments) setPayments(pRes.payments);
       }
