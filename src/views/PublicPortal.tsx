@@ -503,37 +503,41 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
         <footer
           key="footer"
           style={{
-            backgroundColor: '#ffffff',
-            color: '#0f172a',
-            borderColor: '#e2e8f0',
+            backgroundColor: content.headerBgColor || '#047857',
+            backgroundImage: content.headerBackgroundImageUrl
+              ? `linear-gradient(110deg, ${content.headerBgColor || '#047857'}eF, ${content.headerBgSecondaryColor || '#065f46'}eF), url(${content.headerBackgroundImageUrl})`
+              : `linear-gradient(110deg, ${content.headerBgColor || '#047857'}, ${content.headerBgSecondaryColor || '#065f46'})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            color: content.headerTextColor || '#ffffff',
+            borderColor: content.headerBorderColor || '#065f46',
           }}
-          className="w-full border-t border-slate-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+          className="w-full border-t"
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-8 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <div className="min-w-0">
-              <div className="font-black text-lg sm:text-xl tracking-tight text-emerald-900 dark:text-emerald-300">{content.footerBrandTitle}</div>
-              <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300 mt-1">{content.footerBrandSubtitle}</p>
-              {content.footerDescription && (
-                <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400 mt-2">{content.footerDescription}</p>
-              )}
-            </div>
-
-            <div className="flex items-start gap-3 text-xs text-slate-600 dark:text-slate-300">
-              <MapPin className="w-5 h-5 shrink-0 mt-0.5 text-amber-500" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-6">
+            <div className="flex items-center min-w-0 md:flex-1">
               <div className="min-w-0">
-                <h4 className="font-bold text-xs uppercase tracking-wide text-emerald-900 dark:text-emerald-300 mb-1">{content.footerLocationHeading}</h4>
-                <span className="leading-relaxed">{content.footerLocationAddress}</span>
+                <div className="font-black text-base sm:text-lg tracking-tight truncate" style={{ color: content.headerAccentColor || '#fbbf24' }}>{content.footerBrandTitle}</div>
+                <p className="text-[10px] leading-tight" style={{ color: content.headerSubtitleColor || '#d1fae5' }}>{content.footerBrandSubtitle}</p>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 text-xs text-slate-600 dark:text-slate-300">
-              <h4 className="font-bold text-xs uppercase tracking-wide text-emerald-900 dark:text-emerald-300">{content.footerContactHeading}</h4>
+            <div className="flex items-start gap-2 text-[10px] md:flex-1" style={{ color: content.headerSubtitleColor || '#d1fae5' }}>
+              <MapPin className="w-4 h-4 shrink-0 mt-0.5" style={{ color: content.headerAccentColor || '#fbbf24' }} />
+              <div className="min-w-0">
+                <h4 className="font-bold text-[11px] uppercase" style={{ color: content.headerTextColor || '#ffffff' }}>{content.footerLocationHeading}</h4>
+                <span className="leading-tight">{content.footerLocationAddress}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1 text-[10px] md:flex-1" style={{ color: content.headerSubtitleColor || '#d1fae5' }}>
+              <h4 className="font-bold text-[11px] uppercase" style={{ color: content.headerTextColor || '#ffffff' }}>{content.footerContactHeading}</h4>
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 shrink-0 text-amber-500" />
+                <Phone className="w-3.5 h-3.5 shrink-0" style={{ color: content.headerAccentColor || '#fbbf24' }} />
                 <span>{content.footerContactPhone || settings?.contactPhone || '+234 803 000 1234'}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 shrink-0 text-amber-500" />
+                <Mail className="w-3.5 h-3.5 shrink-0" style={{ color: content.headerAccentColor || '#fbbf24' }} />
                 <span>{content.footerContactEmail || settings?.contactEmail || 'admissions@edocasti.edu.ng'}</span>
               </div>
             </div>
