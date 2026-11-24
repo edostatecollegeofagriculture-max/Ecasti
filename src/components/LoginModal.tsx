@@ -198,6 +198,7 @@ export const LoginModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 {[
                   { label: 'Super Admin', email: 'superadmin@edocasti.edu.ng' },
                   { label: 'Dean of Academics', email: 'dean@edocasti.edu.ng' },
+                  { label: 'Rector', email: 'rector@edocasti.edu.ng' },
                   { label: 'HOD Agric', email: 'hod.agric@edocasti.edu.ng' },
                   { label: 'Exam Officer', email: 'examofficer@edocasti.edu.ng' },
                   { label: 'Lecturer', email: 'lecturer.agric@edocasti.edu.ng' },
