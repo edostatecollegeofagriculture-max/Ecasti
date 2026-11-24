@@ -1975,6 +1975,48 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
               setPageContent({ ...pageContent, rectorPhotoUrl: v })
             )}
 
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-3">
+              <div>
+                <h4 className="text-xs font-black text-slate-900 dark:text-white">Rector Message Appearance</h4>
+                <p className="text-[10px] text-slate-500 mt-1">Customize the section background, image, text, accent, border and call-to-action colours.</p>
+              </div>
+              {renderImageEditor('Section Background Image', pageContent.rectorBackgroundImageUrl, (v) =>
+                setPageContent({ ...pageContent, rectorBackgroundImageUrl: v }),
+                { maxDimension: 1800 }
+              )}
+              <div className="grid grid-cols-2 gap-2.5">
+                {([
+                  ['Background Colour', 'rectorBgColor', '#052e24'],
+                  ['Secondary Background', 'rectorBgSecondaryColor', '#064e3b'],
+                  ['Main Text Colour', 'rectorTextColor', '#ffffff'],
+                  ['Paragraph Colour', 'rectorSubtitleColor', '#d1fae5'],
+                  ['Accent Colour', 'rectorAccentHex', '#fbbf24'],
+                  ['Border Colour', 'rectorBorderColor', '#f59e0b'],
+                  ['Button Background', 'rectorButtonBgColor', '#f59e0b'],
+                  ['Button Text', 'rectorButtonTextColor', '#0f172a'],
+                ] as const).map(([label, key, fallback]) => (
+                  <label key={key} className="space-y-1">
+                    <span className={labelCls}>{label}</span>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={(pageContent as any)[key] || fallback}
+                        onChange={(e) => setPageContent({ ...pageContent, [key]: e.target.value })}
+                        className="h-9 w-11 rounded border border-slate-300 dark:border-slate-700 bg-white p-1 cursor-pointer" />
+                      <input type="text" value={(pageContent as any)[key] || ''}
+                        onChange={(e) => setPageContent({ ...pageContent, [key]: e.target.value })}
+                        placeholder={fallback} className={inputCls} />
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <button type="button" onClick={() => setPageContent({
+                ...pageContent, rectorBackgroundImageUrl: '', rectorBgColor: '', rectorBgSecondaryColor: '',
+                rectorTextColor: '', rectorSubtitleColor: '', rectorAccentHex: '', rectorBorderColor: '',
+                rectorButtonBgColor: '', rectorButtonTextColor: '',
+              })} className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+                Reset appearance to defaults
+              </button>
+            </div>
+
             <div>
               <label className={labelCls}>Button Text</label>
               <input
@@ -4040,6 +4082,18 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                       <div
                         key="rector"
                         onClick={() => setSelected({ type: 'rector' })}
+                        style={{
+                          backgroundColor: pageContent.rectorBgColor || undefined,
+                          backgroundImage: pageContent.rectorBackgroundImageUrl
+                            ? `linear-gradient(135deg, ${pageContent.rectorBgColor || '#052e24'}dd, ${pageContent.rectorBgSecondaryColor || '#064e3b'}cc), url(${pageContent.rectorBackgroundImageUrl})`
+                            : pageContent.rectorBgColor || pageContent.rectorBgSecondaryColor
+                              ? `linear-gradient(135deg, ${pageContent.rectorBgColor || '#052e24'}, ${pageContent.rectorBgSecondaryColor || '#064e3b'})`
+                              : undefined,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          color: pageContent.rectorTextColor || undefined,
+                          borderColor: pageContent.rectorBorderColor || undefined,
+                        }}
                         className={`bg-linear-to-br from-emerald-950 via-emerald-900 to-emerald-950 rounded-3xl p-6 sm:p-8 text-white border-2 border-amber-500/40 grid grid-cols-1 md:grid-cols-3 gap-6 items-center transition ${
                           isHidden ? 'opacity-50' : ''
                         } ${outlineCls(isSelected('rector'))}`}
@@ -4056,18 +4110,18 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                               pageContent.rectorAvatarEmoji || '👨‍🏫'
                             )}
                           </div>
-                          <div className="font-black text-base">{pageContent.rectorName}</div>
-                          <div className="text-[11px] text-amber-300 font-bold uppercase">{pageContent.rectorTitle}</div>
-                          <div className="text-[11px] text-emerald-200">{pageContent.rectorInstitution}</div>
+                          <div className="font-black text-base" style={{ color: pageContent.rectorTextColor || undefined }}>{pageContent.rectorName}</div>
+                          <div className="text-[11px] text-amber-300 font-bold uppercase" style={{ color: pageContent.rectorAccentHex || undefined }}>{pageContent.rectorTitle}</div>
+                          <div className="text-[11px] text-emerald-200" style={{ color: pageContent.rectorSubtitleColor || undefined }}>{pageContent.rectorInstitution}</div>
                         </div>
                         <div className="md:col-span-2 space-y-2.5">
-                          <div className="text-xs font-bold uppercase tracking-wider text-amber-300">
+                          <div className="text-xs font-bold uppercase tracking-wider text-amber-300" style={{ color: pageContent.rectorAccentHex || undefined }}>
                             {pageContent.rectorKicker}
                           </div>
-                          <h3 className="text-xl font-black leading-snug">{pageContent.rectorHeadline}</h3>
-                          <p className="text-xs text-emerald-100 leading-relaxed">{pageContent.rectorParagraph1}</p>
-                          <p className="text-xs text-emerald-100 leading-relaxed">{pageContent.rectorParagraph2}</p>
-                          <span className="inline-block mt-2 px-4 py-2 bg-amber-500 text-slate-950 text-xs font-bold rounded-xl">
+                          <h3 className="text-xl font-black leading-snug" style={{ color: pageContent.rectorTextColor || undefined }}>{pageContent.rectorHeadline}</h3>
+                          <p className="text-xs text-emerald-100 leading-relaxed" style={{ color: pageContent.rectorSubtitleColor || undefined }}>{pageContent.rectorParagraph1}</p>
+                          <p className="text-xs text-emerald-100 leading-relaxed" style={{ color: pageContent.rectorSubtitleColor || undefined }}>{pageContent.rectorParagraph2}</p>
+                          <span className="inline-block mt-2 px-4 py-2 bg-amber-500 text-slate-950 text-xs font-bold rounded-xl" style={{ backgroundColor: pageContent.rectorButtonBgColor || undefined, color: pageContent.rectorButtonTextColor || undefined }}>
                             {pageContent.rectorCtaText}
                           </span>
                         </div>

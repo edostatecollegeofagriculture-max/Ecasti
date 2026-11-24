@@ -271,7 +271,21 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
     if (sectionKey === 'rector') {
       return (
         <section key="rector" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-linear-to-br from-emerald-950 via-emerald-900 to-emerald-950 rounded-3xl p-8 sm:p-12 text-white border-2 border-amber-500/40 shadow-xl grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+          <div
+            style={{
+              backgroundColor: content.rectorBgColor || undefined,
+              backgroundImage: content.rectorBackgroundImageUrl
+                ? `linear-gradient(135deg, ${content.rectorBgColor || '#052e24'}dd, ${content.rectorBgSecondaryColor || '#064e3b'}cc), url(${content.rectorBackgroundImageUrl})`
+                : content.rectorBgColor || content.rectorBgSecondaryColor
+                  ? `linear-gradient(135deg, ${content.rectorBgColor || '#052e24'}, ${content.rectorBgSecondaryColor || '#064e3b'})`
+                  : undefined,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              color: content.rectorTextColor || undefined,
+              borderColor: content.rectorBorderColor || undefined,
+            }}
+            className="bg-linear-to-br from-emerald-950 via-emerald-900 to-emerald-950 rounded-3xl p-8 sm:p-12 text-white border-2 border-amber-500/40 shadow-xl grid grid-cols-1 lg:grid-cols-3 gap-8 items-center"
+          >
             <div className="lg:col-span-1 text-center space-y-3">
               <div className="relative inline-block">
                 <div className="w-36 h-36 mx-auto rounded-full bg-emerald-900 text-white flex items-center justify-center font-bold text-4xl border-4 border-amber-400 shadow-xl overflow-hidden">
@@ -290,25 +304,26 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
                 </div>
               </div>
               <div>
-                <h3 className="font-black text-white text-lg">{content.rectorName}</h3>
-                <p className="text-xs text-amber-300 font-bold uppercase tracking-wider">{content.rectorTitle}</p>
-                <p className="text-[11px] text-emerald-200 mt-1">{content.rectorInstitution}</p>
+                <h3 className="font-black text-white text-lg" style={{ color: content.rectorTextColor || undefined }}>{content.rectorName}</h3>
+                <p className="text-xs text-amber-300 font-bold uppercase tracking-wider" style={{ color: content.rectorAccentHex || undefined }}>{content.rectorTitle}</p>
+                <p className="text-[11px] text-emerald-200 mt-1" style={{ color: content.rectorSubtitleColor || undefined }}>{content.rectorInstitution}</p>
               </div>
             </div>
 
             <div className="lg:col-span-2 space-y-4">
-              <span className="inline-flex items-center gap-1.5 text-amber-300 text-xs font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 text-amber-300 text-xs font-bold uppercase tracking-wider" style={{ color: content.rectorAccentHex || undefined }}>
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" /> {content.rectorKicker}
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+              <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight" style={{ color: content.rectorTextColor || undefined }}>
                 {content.rectorHeadline}
               </h2>
-              <p className="text-sm text-emerald-100 leading-relaxed">{content.rectorParagraph1}</p>
-              <p className="text-sm text-emerald-100 leading-relaxed">{content.rectorParagraph2}</p>
+              <p className="text-sm text-emerald-100 leading-relaxed" style={{ color: content.rectorSubtitleColor || undefined }}>{content.rectorParagraph1}</p>
+              <p className="text-sm text-emerald-100 leading-relaxed" style={{ color: content.rectorSubtitleColor || undefined }}>{content.rectorParagraph2}</p>
 
               <div className="pt-2 flex flex-wrap gap-3">
                 <button
                   onClick={onGoToAdmissions}
+                  style={{ backgroundColor: content.rectorButtonBgColor || undefined, color: content.rectorButtonTextColor || undefined }}
                   className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
                 >
                   {content.rectorCtaText} <ArrowRight className="w-4 h-4" />

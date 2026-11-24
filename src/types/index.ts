@@ -331,6 +331,15 @@ export interface PageContent {
   rectorCtaText: string;
   rectorAvatarEmoji: string;
   rectorPhotoUrl?: string;
+  rectorBackgroundImageUrl?: string;
+  rectorBgColor?: string;
+  rectorBgSecondaryColor?: string;
+  rectorTextColor?: string;
+  rectorSubtitleColor?: string;
+  rectorAccentHex?: string;
+  rectorBorderColor?: string;
+  rectorButtonBgColor?: string;
+  rectorButtonTextColor?: string;
   schoolsSectionKicker: string;
   schoolsSectionHeading: string;
   schoolsSectionSubheading: string;
