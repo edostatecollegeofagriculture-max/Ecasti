@@ -4452,14 +4452,14 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                           </div>
                           <p className="text-xs text-emerald-200 leading-relaxed" style={{ color: pageContent.footerSubtitleColor || undefined }}>{pageContent.footerDescription}</p>
                         </div>
-                        <div className="space-y-1.5 text-xs text-emerald-200">
+                        <div className="space-y-1.5 text-xs text-emerald-200" style={{ color: pageContent.footerSubtitleColor || undefined }}>
                           <h4 className="font-bold text-white uppercase" style={{ color: pageContent.footerTextColor || undefined }}>{pageContent.footerLocationHeading}</h4>
                           <div className="flex items-start gap-2">
                             <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" style={{ color: pageContent.footerIconColor || pageContent.footerAccentColor || undefined }} />
                             <span>{pageContent.footerLocationAddress}</span>
                           </div>
                         </div>
-                        <div className="space-y-1.5 text-xs text-emerald-200">
+                        <div className="space-y-1.5 text-xs text-emerald-200" style={{ color: pageContent.footerSubtitleColor || undefined }}>
                           <h4 className="font-bold text-white uppercase" style={{ color: pageContent.footerTextColor || undefined }}>{pageContent.footerContactHeading}</h4>
                           <div className="flex items-center gap-2">
                             <Phone className="w-4 h-4 text-amber-400 shrink-0" style={{ color: pageContent.footerIconColor || pageContent.footerAccentColor || undefined }} />
