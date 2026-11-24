@@ -5,12 +5,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowRight,
-  Sparkles,
-  Tractor,
-  GraduationCap,
   Calendar,
   BookOpen,
-  Award,
   Bell,
   Eye,
 } from 'lucide-react';
@@ -132,23 +128,6 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
     ? `linear-gradient(90deg, ${currentSlide.bgColor || currentSlide.bgSecondaryColor}dd 0%, ${currentSlide.bgSecondaryColor || currentSlide.bgColor}99 65%, ${currentSlide.bgSecondaryColor || currentSlide.bgColor}66 100%)`
     : 'linear-gradient(90deg, rgba(2, 44, 34, 0.82) 0%, rgba(2, 44, 34, 0.48) 65%, rgba(2, 44, 34, 0.28) 100%)';
 
-  const getIcon = (name: string) => {
-    switch (name) {
-      case 'Tractor':
-        return Tractor;
-      case 'GraduationCap':
-        return GraduationCap;
-      case 'BookOpen':
-        return BookOpen;
-      case 'Award':
-        return Award;
-      default:
-        return Sparkles;
-    }
-  };
-
-  const SlideIcon = currentSlide ? getIcon(currentSlide.iconName) : Sparkles;
-
   // Find if there's a matching news article for the current slide
   const matchingArticle = news.find(
     (n) =>
@@ -218,13 +197,6 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
 
         {/* Slide Content Area */}
         <div className="relative z-10 px-6 sm:px-12 py-4 sm:py-6 max-w-4xl space-y-4 sm:space-y-6">
-          <div
-            style={heroStyles.iconBoxStyle}
-            className="inline-flex p-3 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-400/30"
-          >
-            <SlideIcon className="w-6 h-6 sm:w-8 sm:h-8" />
-          </div>
-
           <h2
             style={heroStyles.titleStyle}
             className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white drop-shadow-sm"
