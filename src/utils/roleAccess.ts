@@ -4,22 +4,25 @@ export type PortalRole =
   | 'LECTURER' | 'STUDENT' | 'APPLICANT';
 
 export type AdminWorkspaceTab =
-  | 'analytics' | 'dean_curriculum' | 'hod_allocation' | 'exam_approvals'
-  | 'registrar_docs' | 'finance' | 'global_crud' | 'users' | 'settings'
-  | 'cms' | 'audit';
+  | 'analytics' | 'dean_curriculum' | 'hod_allocation' | 'hod_registrations'
+  | 'exam_approvals' | 'registrar_docs' | 'finance' | 'global_crud' | 'users'
+  | 'settings' | 'cms' | 'audit';
+
+const FULL_ACCESS_ROLES = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'] as const;
 
 const ADMIN_TAB_ROLES: Record<AdminWorkspaceTab, readonly string[]> = {
-  analytics: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'],
-  dean_curriculum: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN'],
-  hod_allocation: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'HOD'],
-  exam_approvals: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'],
-  registrar_docs: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'],
-  finance: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'],
-  global_crud: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
-  users: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
-  settings: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
-  cms: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
-  audit: ['SUPER_ADMIN', 'INSTITUTION_ADMIN'],
+  analytics: [...FULL_ACCESS_ROLES],
+  dean_curriculum: [...FULL_ACCESS_ROLES, 'DEAN'],
+  hod_allocation: [...FULL_ACCESS_ROLES, 'HOD'],
+  hod_registrations: [...FULL_ACCESS_ROLES, 'HOD'],
+  exam_approvals: [...FULL_ACCESS_ROLES, 'EXAM_OFFICER'],
+  registrar_docs: [...FULL_ACCESS_ROLES, 'REGISTRAR'],
+  finance: [...FULL_ACCESS_ROLES, 'BURSAR'],
+  global_crud: [...FULL_ACCESS_ROLES],
+  users: [...FULL_ACCESS_ROLES],
+  settings: [...FULL_ACCESS_ROLES],
+  cms: [...FULL_ACCESS_ROLES],
+  audit: [...FULL_ACCESS_ROLES],
 };
 
 const DEFAULT_ADMIN_TAB: Partial<Record<string, AdminWorkspaceTab>> = {
@@ -43,12 +46,13 @@ export function getDefaultAdminTab(role: string | null | undefined): AdminWorksp
 }
 
 export function canAccessWorkspace(role: string | null | undefined, tab: string): boolean {
-  if (tab === 'public' || tab === 'admissions') return !role || role === 'APPLICANT' || role === 'ADMISSIONS_OFFICER' || role === 'SUPER_ADMIN' || role === 'INSTITUTION_ADMIN';
+  if (FULL_ACCESS_ROLES.includes(role as typeof FULL_ACCESS_ROLES[number])) return true;
+  if (tab === 'public' || tab === 'admissions') return !role || role === 'APPLICANT' || role === 'ADMISSIONS_OFFICER';
   if (!role) return false;
-  if (tab === 'student') return role === 'STUDENT' || role === 'SUPER_ADMIN' || role === 'INSTITUTION_ADMIN';
-  if (tab === 'lecturer') return ['LECTURER', 'SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(role);
+  if (tab === 'student') return role === 'STUDENT';
+  if (tab === 'lecturer') return role === 'LECTURER';
   if (tab === 'admin') return getDefaultAdminTab(role) !== null;
-  if (tab === 'builder') return role === 'SUPER_ADMIN' || role === 'INSTITUTION_ADMIN';
+  if (tab === 'builder') return false;
   return false;
 }
 
