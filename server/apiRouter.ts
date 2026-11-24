@@ -467,7 +467,7 @@ apiRouter.get('/settings', (req, res) => {
 apiRouter.put(
   '/settings',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const current = db.getState().settings;
     const updated = { ...current, ...req.body, id: 'default' };
@@ -3015,7 +3015,7 @@ apiRouter.post('/finance/pay', authenticateToken, (req: AuthenticatedRequest, re
 apiRouter.get(
   '/finance/payments',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'RECTOR', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'RECTOR'),
   (req: AuthenticatedRequest, res: Response) => {
     return res.json({ success: true, payments: db.getState().payments });
   }
@@ -3298,7 +3298,7 @@ apiRouter.delete(
 apiRouter.get(
   '/audit',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
   (req: AuthenticatedRequest, res: Response) => {
     const { action, search, limit = 50 } = req.query;
     let list = db.getState().auditLogs;
