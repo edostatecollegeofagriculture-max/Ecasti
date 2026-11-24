@@ -7,7 +7,7 @@ import { PersonaSwitcherModal } from './components/PersonaSwitcherModal';
 import { LoginModal } from './components/LoginModal';
 import { PrintSlipModal } from './components/PrintSlipModal';
 import { SchoolLogo } from './components/SchoolLogo';
-import { KeyRound, Phone } from 'lucide-react';
+import { KeyRound, Phone, MapPin, Mail } from 'lucide-react';
 import { canAccessWorkspace, getRoleHome } from './utils/roleAccess';
 
 const PublicPortal = lazy(() => import('./views/PublicPortal').then((module) => ({ default: module.PublicPortal })));
@@ -158,16 +158,54 @@ const MainApp: React.FC = () => {
           borderColor: pageContent?.headerBorderColor || '#065f46',
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-center sm:justify-end">
-          <a
-            href={`tel:${settings?.contactPhone || '+2348030001234'}`}
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold hover:underline"
-            style={{ color: pageContent?.headerSubtitleColor || '#d1fae5' }}
-            aria-label={`Call ${settings?.contactPhone || '+234 803 000 1234'}`}
-          >
-            <Phone className="w-3.5 h-3.5 shrink-0" style={{ color: pageContent?.headerAccentColor || '#fbbf24' }} />
-            <span>{settings?.contactPhone || '+234 803 000 1234'}</span>
-          </a>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-6">
+          <div className="flex items-center min-w-0 md:flex-1">
+            <div className="min-w-0">
+              <div className="font-black text-base sm:text-lg tracking-tight truncate" style={{ color: pageContent?.headerAccentColor || '#fbbf24' }}>
+                {pageContent?.footerBrandTitle || 'EDOCASTI PORTAL'}
+              </div>
+              <p className="text-[10px] leading-tight" style={{ color: pageContent?.headerSubtitleColor || '#d1fae5' }}>
+                {pageContent?.footerBrandSubtitle || 'Edo State College of Agriculture, Science & Technology, Iguoriakhi'}
+              </p>
+              {pageContent?.footerDescription && (
+                <p className="text-[10px] leading-tight mt-1" style={{ color: pageContent?.headerSubtitleColor || '#d1fae5' }}>
+                  {pageContent.footerDescription}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2 text-[10px] md:flex-1" style={{ color: pageContent?.headerSubtitleColor || '#d1fae5' }}>
+            <MapPin className="w-4 h-4 shrink-0 mt-0.5" style={{ color: pageContent?.headerAccentColor || '#fbbf24' }} />
+            <div className="min-w-0">
+              <h4 className="font-bold text-[11px] uppercase" style={{ color: pageContent?.headerTextColor || '#ffffff' }}>
+                {pageContent?.footerLocationHeading || 'Main Campus Location'}
+              </h4>
+              <span className="leading-tight">
+                {pageContent?.footerLocationAddress || 'Iguoriakhi Main Campus, Benin-Lagos Expressway, Ovia South-West LGA, Edo State, Nigeria.'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1 text-[10px] md:flex-1" style={{ color: pageContent?.headerSubtitleColor || '#d1fae5' }}>
+            <h4 className="font-bold text-[11px] uppercase" style={{ color: pageContent?.headerTextColor || '#ffffff' }}>
+              {pageContent?.footerContactHeading || 'Helpdesk & Admissions'}
+            </h4>
+            <a
+              href={`tel:${settings?.contactPhone || pageContent?.footerContactPhone || '+2348030001234'}`}
+              className="flex items-center gap-2 hover:underline"
+            >
+              <Phone className="w-3.5 h-3.5 shrink-0" style={{ color: pageContent?.headerAccentColor || '#fbbf24' }} />
+              <span>{pageContent?.footerContactPhone || settings?.contactPhone || '+234 803 000 1234'}</span>
+            </a>
+            <a
+              href={`mailto:${pageContent?.footerContactEmail || settings?.contactEmail || 'admissions@edocasti.edu.ng'}`}
+              className="flex items-center gap-2 hover:underline"
+            >
+              <Mail className="w-3.5 h-3.5 shrink-0" style={{ color: pageContent?.headerAccentColor || '#fbbf24' }} />
+              <span>{pageContent?.footerContactEmail || settings?.contactEmail || 'admissions@edocasti.edu.ng'}</span>
+            </a>
+          </div>
         </div>
       </footer>
 
