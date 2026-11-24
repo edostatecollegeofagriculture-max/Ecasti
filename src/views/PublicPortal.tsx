@@ -113,7 +113,9 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
   const [newsCategory, setNewsCategory] = useState<string>('ALL');
   const [newsWildcard, setNewsWildcard] = useState('');
   const [schoolWildcard, setSchoolWildcard] = useState('');
-  const [showAcademicOfferings, setShowAcademicOfferings] = useState(false);
+  const [programmeWildcard, setProgrammeWildcard] = useState('');
+  const [showSchools, setShowSchools] = useState(false);
+  const [showProgrammes, setShowProgrammes] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
 
   const [schools, setSchools] = useState<School[]>([]);
@@ -155,9 +157,14 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
   };
 
   const hiddenSet = new Set(content.hiddenSections || []);
-  const sectionOrder = content.sectionOrder?.length
+  const configuredSectionOrder = content.sectionOrder?.length
     ? content.sectionOrder
     : DEFAULT_PAGE_CONTENT.sectionOrder;
+  // Always place the separate Programmes section immediately after Schools,
+  // even when older saved Page Builder content has the previous section order.
+  const sectionOrder = configuredSectionOrder
+    .filter((key) => key !== 'programmes')
+    .flatMap((key) => key === 'schools' ? ['schools', 'programmes'] : [key]);
 
   const getSchoolProgrammes = (schoolId: string) => {
     const deptIds = departments.filter((d) => d.schoolId === schoolId).map((d) => d.id);
@@ -338,16 +345,9 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
     }
 
     if (sectionKey === 'schools') {
-      const filteredSchools = schools.filter((sch) => {
-        const schProgs = getSchoolProgrammes(sch.id);
-        return matchesWildcard(
-          schoolWildcard,
-          sch.code,
-          sch.name,
-          sch.description,
-          ...schProgs.map((p) => `${p.name} ${p.code} ${p.qualification}`)
-        );
-      });
+      const filteredSchools = schools.filter((sch) =>
+        matchesWildcard(schoolWildcard, sch.code, sch.name, sch.description)
+      );
 
       return (
         <section key="schools" className="portal-section space-y-7 sm:space-y-9">
@@ -356,39 +356,38 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
               {content.schoolsSectionKicker}
             </span>
             <h2 className="portal-section-heading text-3xl sm:text-4xl mt-2">
-              {content.schoolsSectionHeading}
+              Schools & Faculties
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              {content.schoolsSectionSubheading}
+              Explore the College's academic schools and faculties.
             </p>
           </div>
 
           <div className="flex justify-center">
             <button
               type="button"
-              onClick={() => setShowAcademicOfferings((visible) => !visible)}
-              aria-expanded={showAcademicOfferings}
-              aria-controls="public-academic-offerings"
+              onClick={() => setShowSchools((visible) => !visible)}
+              aria-expanded={showSchools}
+              aria-controls="public-schools-list"
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white px-6 py-3 text-sm font-bold shadow-sm transition-colors cursor-pointer"
             >
-              {showAcademicOfferings ? 'Hide Schools & Programmes' : 'View Schools & Programmes'}
-              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showAcademicOfferings ? 'rotate-180' : ''}`} />
+              {showSchools ? 'Hide Schools' : 'View Schools'}
+              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showSchools ? 'rotate-180' : ''}`} />
             </button>
           </div>
 
-          {showAcademicOfferings && (
-            <div id="public-academic-offerings" className="space-y-6">
+          {showSchools && (
+            <div id="public-schools-list" className="space-y-6">
               <WildcardFilterBar
                 query={schoolWildcard}
                 onQueryChange={setSchoolWildcard}
-                placeholder="Wildcard filter schools & programmes (e.g. *Agric* or ND*)..."
+                placeholder="Search schools and faculties..."
                 totalCount={schools.length}
                 filteredCount={filteredSchools.length}
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredSchools.map((sch) => {
-              const schProgs = getSchoolProgrammes(sch.id);
               return (
                 <div
                   key={sch.id}
@@ -410,23 +409,6 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
                       <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{sch.name}</h3>
                       <p className="text-xs text-slate-600 dark:text-slate-300 mb-4">{sch.description}</p>
 
-                      <div className="space-y-1.5 border-t border-slate-100 dark:border-slate-800 pt-3">
-                        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
-                          Available Programmes:
-                        </span>
-                        {schProgs.length === 0 ? (
-                          <p className="text-xs text-slate-400">Programme listings updated by Academic Board.</p>
-                        ) : (
-                          schProgs.map((prog) => (
-                            <div key={prog.id} className="flex items-center gap-2 text-xs text-slate-800 dark:text-slate-200">
-                              <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                              <span>
-                                {prog.name} ({prog.durationYears} Years)
-                              </span>
-                            </div>
-                          ))
-                        )}
-                      </div>
                     </div>
 
                     <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -441,6 +423,96 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
                 </div>
               );
               })}
+              </div>
+            </div>
+          )}
+        </section>
+      );
+    }
+
+    if (sectionKey === 'programmes') {
+      const filteredProgrammes = programmes.filter((prog) => {
+        const department = departments.find((dept) => dept.id === prog.departmentId);
+        const school = department ? schools.find((item) => item.id === department.schoolId) : undefined;
+        return matchesWildcard(
+          programmeWildcard,
+          prog.code,
+          prog.name,
+          prog.qualification,
+          prog.description,
+          department?.name || '',
+          school?.name || ''
+        );
+      });
+
+      return (
+        <section key="programmes" className="portal-section space-y-7 sm:space-y-9">
+          <div className="text-center max-w-2xl mx-auto">
+            <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider">
+              Academic Offerings
+            </span>
+            <h2 className="portal-section-heading text-3xl sm:text-4xl mt-2">
+              Programmes
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+              Browse the available National Diploma (ND), Higher National Diploma (HND), and other programme listings.
+            </p>
+          </div>
+
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowProgrammes((visible) => !visible)}
+              aria-expanded={showProgrammes}
+              aria-controls="public-programmes-list"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white px-6 py-3 text-sm font-bold shadow-sm transition-colors cursor-pointer"
+            >
+              {showProgrammes ? 'Hide Programmes' : 'View Programmes'}
+              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showProgrammes ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {showProgrammes && (
+            <div id="public-programmes-list" className="space-y-6">
+              <WildcardFilterBar
+                query={programmeWildcard}
+                onQueryChange={setProgrammeWildcard}
+                placeholder="Search programmes, qualifications, departments or schools..."
+                totalCount={programmes.length}
+                filteredCount={filteredProgrammes.length}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredProgrammes.map((prog) => {
+                  const department = departments.find((dept) => dept.id === prog.departmentId);
+                  const school = department ? schools.find((item) => item.id === department.schoolId) : undefined;
+                  return (
+                    <div key={prog.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm p-6 space-y-4">
+                      <div className="flex items-center justify-between gap-3 text-xs">
+                        <span className="font-mono font-bold text-emerald-800 dark:text-emerald-300">{prog.code}</span>
+                        <span className="text-amber-600 dark:text-amber-400 font-bold">{prog.qualification}</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">{prog.name}</h3>
+                      {prog.description && <p className="text-xs text-slate-600 dark:text-slate-300">{prog.description}</p>}
+                      <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
+                        {school && <p>School: {school.name}</p>}
+                        {department && <p>Department: {department.name}</p>}
+                        <p>Duration: {prog.durationYears} Years</p>
+                      </div>
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
+                        <button
+                          onClick={onGoToAdmissions}
+                          className="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300 inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          View Admission Criteria <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {filteredProgrammes.length === 0 && (
+                  <p className="col-span-full text-center text-sm text-slate-500">No programmes match your search.</p>
+                )}
               </div>
             </div>
           )}
