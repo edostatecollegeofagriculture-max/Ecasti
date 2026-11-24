@@ -2959,17 +2959,18 @@ apiRouter.delete(
 );
 
 apiRouter.get('/finance/invoices', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
-  const { studentId } = req.query;
   const user = req.user!;
+  if (user.role !== 'STUDENT' && !['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'].includes(user.role)) {
+    return res.status(403).json({ success: false, message: 'You do not have permission to view the fee ledger.' });
+  }
+  const { studentId } = req.query;
   let list = db.getState().invoices;
-
   if (user.role === 'STUDENT') {
     const student = db.getState().students.find((s) => s.userId === user.id);
-    list = list.filter((i) => i.studentId === student?.id);
+    list = list.filter((invoice) => invoice.studentId === student?.id);
   } else if (studentId) {
-    list = list.filter((i) => i.studentId === studentId);
+    list = list.filter((invoice) => invoice.studentId === studentId);
   }
-
   return res.json({ success: true, invoices: list });
 });
 
@@ -2977,6 +2978,10 @@ apiRouter.post('/finance/pay', authenticateToken, (req: AuthenticatedRequest, re
   const { invoiceId, channel } = req.body;
   const state = db.getState();
   const invoice = state.invoices.find((i) => i.id === invoiceId);
+  const payingStudent = state.students.find((student) => student.userId === req.user!.id);
+  if (req.user!.role !== 'STUDENT' || !payingStudent || invoice?.studentId !== payingStudent.id) {
+    return res.status(403).json({ success: false, message: 'You can only pay invoices assigned to your own student account.' });
+  }
 
   if (!invoice) {
     return res.status(404).json({ success: false, message: 'Invoice not found.' });
@@ -3115,9 +3120,21 @@ apiRouter.delete(
 // ==================== ATTENDANCE ====================
 
 apiRouter.get('/attendance', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
-  const { courseId } = req.query;
-  let list = db.getState().attendance;
-  if (courseId) list = list.filter((a) => a.courseId === courseId);
+  const user = req.user!;
+  if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'HOD'].includes(user.role)) {
+    return res.status(403).json({ success: false, message: 'You do not have permission to view attendance records.' });
+  }
+  const state = db.getState();
+  let list = state.attendance;
+  if (user.role === 'LECTURER') {
+    const assignedCourseIds = new Set(state.courses.filter((course) => course.lecturerId === user.id).map((course) => course.id));
+    list = list.filter((record) => assignedCourseIds.has(record.courseId));
+  } else if (user.role === 'HOD') {
+    const departmentId = user.departmentId;
+    const departmentCourseIds = new Set(state.courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+    list = departmentId ? list.filter((record) => departmentCourseIds.has(record.courseId)) : [];
+  }
+  if (courseId) list = list.filter((record) => record.courseId === courseId);
   return res.json({ success: true, attendance: list });
 });
 
@@ -3196,7 +3213,9 @@ apiRouter.get('/support', authenticateToken, (req: AuthenticatedRequest, res: Re
   const user = req.user!;
   let list = db.getState().supportTickets;
   if (user.role === 'STUDENT' || user.role === 'APPLICANT') {
-    list = list.filter((t) => t.userId === user.id);
+    list = list.filter((ticket) => ticket.userId === user.id);
+  } else if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER', 'BURSAR'].includes(user.role)) {
+    return res.status(403).json({ success: false, message: 'You do not have permission to view support queues.' });
   }
   return res.json({ success: true, tickets: list });
 });
