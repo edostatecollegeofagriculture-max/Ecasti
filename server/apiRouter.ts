@@ -1718,7 +1718,7 @@ apiRouter.post(
 apiRouter.get(
   '/students',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'DEAN', 'HOD', 'LECTURER', 'EXAM_OFFICER', 'BURSAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'BURSAR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { departmentId, level, search, programmeId } = req.query;
     const state = db.getState();
@@ -1759,7 +1759,7 @@ apiRouter.get(
       );
       list = list.filter((s) => enrolledStudentIds.has(s.id));
     }
-    if (role === 'HOD' || role === 'EXAM_OFFICER') {
+    if (role === 'EXAM_OFFICER') {
       const departmentId = req.user!.departmentId;
       list = departmentId ? list.filter((s) => s.departmentId === departmentId) : [];
     }
@@ -1941,13 +1941,13 @@ apiRouter.get('/students/me', authenticateToken, (req: AuthenticatedRequest, res
 apiRouter.get(
   '/registrations',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'HOD'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
   (req: AuthenticatedRequest, res: Response) => {
   const { session, semester, studentId } = req.query;
   const state = db.getState();
   let list = state.registrations;
   const actorRole = req.user!.role;
-  if (actorRole === 'EXAM_OFFICER' || actorRole === 'HOD') {
+  if (actorRole === 'HOD') {
     const departmentId = req.user!.departmentId;
     const departmentCourseIds = new Set(state.courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
     list = departmentId
@@ -2241,7 +2241,7 @@ function recalculateStudentAcademicTotals(state: ReturnType<typeof db.getState>,
   }
 }
 
-apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD', 'EXAM_OFFICER', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
   const { courseId, session, semester, studentId, status } = req.query;
   let list = db.getState().results;
 
