@@ -484,7 +484,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'hod_allocation',
           label: 'HOD: Assign Lecturers',
           icon: <UserCheck className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'DEAN', 'HOD'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'HOD'],
         },
         {
           id: 'exam_approvals',
