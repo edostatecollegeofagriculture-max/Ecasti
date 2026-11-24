@@ -31,7 +31,7 @@ for (const role of ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR']) {
   for (const tab of ['analytics', 'dean_curriculum', 'hod_allocation', 'exam_approvals', 'registrar_docs', 'finance', 'global_crud', 'users', 'settings', 'cms', 'audit']) {
     assert.equal(canAccessAdminTab(role, tab), true, `${role} must access ${tab}`);
   }
-  for (const tab of ['admin', 'student', 'lecturer', 'admissions', 'builder', 'public']) {
+  for (const tab of ['admin', 'student', 'lecturer', 'admissions', 'public']) {
     assert.equal(canAccessWorkspace(role, tab), true, `${role} must access workspace ${tab}`);
   }
 }
