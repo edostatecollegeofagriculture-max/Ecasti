@@ -19,15 +19,19 @@ interface Props {
   onOpenPrintModal: (type: any, data: any) => void;
   onGoToStudentWorkspace: () => void;
   onOpenLoginModal: () => void;
+  initialSection?: string;
 }
 
 export const AdmissionsPortal: React.FC<Props> = ({
   onOpenPrintModal,
   onGoToStudentWorkspace,
   onOpenLoginModal,
+  initialSection,
 }) => {
   const { user, settings, updateSessionUser } = useAuth();
   const [programmes, setProgrammes] = useState<Programme[]>([]);
+  const [selectedProgrammeId, setSelectedProgrammeId] = useState<string | null>(null);
+  const [showApplicationForm, setShowApplicationForm] = useState(initialSection === 'form');
   const [myApp, setMyApp] = useState<AdmissionApplication | null>(null);
   const [allApps, setAllApps] = useState<AdmissionApplication[]>([]);
   const [selectedApp, setSelectedApp] = useState<AdmissionApplication | null>(null);
@@ -160,6 +164,11 @@ export const AdmissionsPortal: React.FC<Props> = ({
   useEffect(() => {
     loadData();
   }, [user]);
+
+  useEffect(() => {
+    if (initialSection === 'programmes') setShowApplicationForm(false);
+    if (initialSection === 'form') setShowApplicationForm(true);
+  }, [initialSection]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -640,20 +649,75 @@ export const AdmissionsPortal: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Admission Application Form: hide it after successful submission. */}
-          {!myApp && (
+          {/* Programme catalogue: applicants review programme requirements before opening the form. */}
+          {!myApp && !showApplicationForm && (
+            <div className="lg:col-span-2 space-y-5">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Available Programmes</span>
+                <h2 className="text-xl font-bold text-slate-900">Choose a Programme</h2>
+                <p className="text-sm text-slate-600">Review each programme's description, duration and admission requirements before applying.</p>
+              </div>
+              {programmes.length === 0 ? (
+                <div className="bg-white rounded-xl border border-slate-200 p-6 text-sm text-slate-600">
+                  {loading ? 'Loading available programmes…' : 'No programmes are currently published for admission. Please contact the Admissions Office.'}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {programmes.map((programme) => (
+                    <article key={programme.id} className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 flex flex-col gap-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">{programme.qualification}</span>
+                          <h3 className="text-base font-bold text-slate-900 mt-1">{programme.name}</h3>
+                          <p className="text-xs text-slate-500 mt-1">{programme.code} · {programme.durationYears} {programme.durationYears === 1 ? 'year' : 'years'}</p>
+                        </div>
+                        <span className="shrink-0 rounded-lg bg-emerald-50 text-emerald-800 px-2.5 py-1 text-[11px] font-bold">{programme.qualification}</span>
+                      </div>
+                      <p className="text-sm text-slate-600 leading-relaxed">{programme.description}</p>
+                      <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">Admission Requirements</h4>
+                        {programme.requirements?.length ? (
+                          <ul className="list-disc pl-5 space-y-1 text-xs text-slate-700">
+                            {programme.requirements.map((requirement, index) => <li key={index}>{requirement}</li>)}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-slate-500">Specific requirements have not yet been provided. Contact the Admissions Office to confirm eligibility before applying.</p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedProgrammeId(programme.id);
+                          setFormData((current) => ({ ...current, programmeId: programme.id }));
+                          setShowApplicationForm(true);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="mt-auto w-full rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm py-3 cursor-pointer"
+                      >
+                        Apply for this Programme
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Application form is shown only after an applicant selects a programme. */}
+          {!myApp && showApplicationForm && (
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6">
-              <div>
-                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
                   Online Screening Form
                 </span>
                 <h2 className="text-xl font-bold text-slate-900 mt-0.5">
-                  National Diploma (ND) / HND Application
+                  Application for {programmes.find((programme) => programme.id === (selectedProgrammeId || formData.programmeId))?.name || 'Selected Programme'}
                 </h2>
-                <p className="text-xs text-slate-500 mt-1">
-                  Ensure all supplied biodata and O-Level examination results are accurate according to your WAEC/NECO certificates.
-                </p>
+                <p className="text-xs text-slate-500 mt-1">Complete the applicant information and O-Level results for the programme you selected.</p>
+                </div>
+                <button type="button" onClick={() => setShowApplicationForm(false)} className="px-3 py-2 text-xs font-semibold rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 cursor-pointer">Back to programmes</button>
               </div>
 
               <form onSubmit={handleSubmitApplication} className="space-y-6 text-xs">
