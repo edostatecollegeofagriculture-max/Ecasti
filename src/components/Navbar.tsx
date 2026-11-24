@@ -80,9 +80,6 @@ export const Navbar: React.FC<Props> = ({
               <span className="font-black text-base sm:text-lg text-emerald-900 dark:text-emerald-400 tracking-tight">
                 {settings?.shortName || 'EDOCASTI'}
               </span>
-              <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60">
-                {pageContent?.portalBadgeText || 'Official Portal'}
-              </span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden xl:block">
               {settings?.institutionName || 'Edo State College of Agriculture, Science and Technology'}
