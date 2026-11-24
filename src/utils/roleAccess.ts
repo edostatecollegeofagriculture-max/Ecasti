@@ -50,7 +50,7 @@ export function canAccessWorkspace(role: string | null | undefined, tab: string)
   if (tab === 'student') return role === 'STUDENT';
   if (tab === 'lecturer') return role === 'LECTURER';
   if (tab === 'admin') return getDefaultAdminTab(role) !== null;
-  if (tab === 'builder') return false;
+  if (tab === 'builder') return role === 'SUPER_ADMIN' || role === 'RECTOR';
   return false;
 }
 
