@@ -36,7 +36,19 @@ export const Navbar: React.FC<Props> = ({
   const { user, settings, pageContent, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-xs transition-colors duration-200">
+    <header
+      style={{
+        backgroundColor: pageContent?.headerBgColor || '#047857',
+        backgroundImage: pageContent?.headerBackgroundImageUrl
+          ? `linear-gradient(110deg, ${pageContent?.headerBgColor || '#047857'}eF, ${pageContent?.headerBgSecondaryColor || '#065f46'}eF), url(${pageContent.headerBackgroundImageUrl})`
+          : `linear-gradient(110deg, ${pageContent?.headerBgColor || '#047857'}, ${pageContent?.headerBgSecondaryColor || '#065f46'})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        color: pageContent?.headerTextColor || '#ffffff',
+        borderColor: pageContent?.headerBorderColor || '#065f46',
+      }}
+      className="sticky top-0 z-40 border-b shadow-xs transition-colors duration-200"
+    >
       {/* Main Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3 sm:gap-6">
         {/* Logo and Brand */}
@@ -47,16 +59,16 @@ export const Navbar: React.FC<Props> = ({
           <SchoolLogo size={44} className="group-hover:scale-105 transition shrink-0" />
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-black text-base sm:text-lg text-emerald-900 dark:text-emerald-400 tracking-tight">
+              <span className="font-black text-base sm:text-lg tracking-tight" style={{ color: pageContent?.headerAccentColor || '#fbbf24' }}>
                 {settings?.shortName || 'EDOCASTI'}
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden xl:block">
+            <p className="text-[11px] hidden xl:block" style={{ color: pageContent?.headerSubtitleColor || '#d1fae5' }}>
               {settings?.institutionName || 'Edo State College of Agriculture, Science and Technology'}
             </p>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-300">
-              <span>Session: <strong className="font-bold text-emerald-800 dark:text-emerald-400">{settings?.currentSession || '2025/2026'}</strong></span>
-              <span className="text-slate-300 dark:text-slate-600">•</span>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px] sm:text-[11px]" style={{ color: pageContent?.headerSubtitleColor || '#d1fae5' }}>
+              <span>Session: <strong className="font-bold" style={{ color: pageContent?.headerAccentColor || '#fbbf24' }}>{settings?.currentSession || '2025/2026'}</strong></span>
+              <span className="opacity-60">•</span>
               <span className="font-semibold">{settings?.currentSemester || 'First Semester'}</span>
             </div>
           </div>
@@ -68,13 +80,13 @@ export const Navbar: React.FC<Props> = ({
         </div>}
 
         {/* Dynamic Navigation Tabs */}
-        <nav className="hidden lg:flex items-center gap-1 bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
+        <nav className="hidden lg:flex items-center gap-1 p-1 rounded-xl border" style={{ backgroundColor: pageContent?.headerNavBgColor || 'rgba(255,255,255,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)' }}>
           {!user && <button
             onClick={() => setActiveTab('public')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'public'
                 ? 'bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                : 'text-white/85 hover:text-white'
             }`}
           >
             Public Info
@@ -85,7 +97,7 @@ export const Navbar: React.FC<Props> = ({
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'admissions'
                 ? 'bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                : 'text-white/85 hover:text-white'
             }`}
           >
             Admissions
@@ -97,7 +109,7 @@ export const Navbar: React.FC<Props> = ({
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 activeTab === 'student'
                   ? 'bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-400 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  : 'text-white/85 hover:text-white'
               }`}
             >
               Student Portal
@@ -110,7 +122,7 @@ export const Navbar: React.FC<Props> = ({
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                   activeTab === 'lecturer'
                     ? 'bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    : 'text-white/85 hover:text-white'
                 }`}
               >
                 Faculty
@@ -123,7 +135,7 @@ export const Navbar: React.FC<Props> = ({
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'admin'
                     ? 'bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    : 'text-white/85 hover:text-white'
                 }`}
               >
                 Management
@@ -168,10 +180,10 @@ export const Navbar: React.FC<Props> = ({
           {user ? (
             <div className="flex items-center gap-2">
               <div className="text-right hidden sm:block">
-                <div className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">
+                <div className="text-xs font-bold leading-tight" style={{ color: pageContent?.headerTextColor || '#ffffff' }}>
                   {user.fullName}
                 </div>
-                <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold uppercase">
+                <div className="text-[10px] font-semibold uppercase" style={{ color: pageContent?.headerSubtitleColor || '#d1fae5' }}>
                   {user.role.replace('_', ' ')}
                 </div>
               </div>
@@ -190,7 +202,7 @@ export const Navbar: React.FC<Props> = ({
 
               <button
                 onClick={logout}
-                className="p-2 text-slate-500 hover:text-red-700 dark:text-slate-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition cursor-pointer"
+                className="p-2 text-white/80 hover:text-red-200 hover:bg-white/10 rounded-lg transition cursor-pointer"
                 title="Logout from portal"
               >
                 <LogOut className="w-4 h-4" />
@@ -213,13 +225,13 @@ export const Navbar: React.FC<Props> = ({
       </div>}
 
       {/* Mobile Nav Tabs */}
-      <div className="lg:hidden flex items-center overflow-x-auto px-4 py-2 border-t border-slate-100 dark:border-slate-800 gap-1 bg-slate-50 dark:bg-slate-900/90 text-xs">
+      <div className="lg:hidden flex items-center overflow-x-auto px-4 py-2 border-t gap-1 text-xs" style={{ backgroundColor: 'rgba(0,0,0,0.12)', borderColor: pageContent?.headerBorderColor || 'rgba(255,255,255,0.2)' }}>
         {!user && <button
           onClick={() => setActiveTab('public')}
           className={`px-3 py-1 rounded-md shrink-0 font-medium ${
             activeTab === 'public'
               ? 'bg-emerald-800 text-white dark:bg-emerald-700'
-              : 'text-slate-700 dark:text-slate-300'
+              : 'text-white/85'
           }`}
         >
           College Info
@@ -229,7 +241,7 @@ export const Navbar: React.FC<Props> = ({
           className={`px-3 py-1 rounded-md shrink-0 font-medium ${
             activeTab === 'admissions'
               ? 'bg-emerald-800 text-white dark:bg-emerald-700'
-              : 'text-slate-700 dark:text-slate-300'
+              : 'text-white/85'
           }`}
         >
           Admissions
@@ -240,7 +252,7 @@ export const Navbar: React.FC<Props> = ({
             className={`px-3 py-1 rounded-md shrink-0 font-medium ${
               activeTab === 'student'
                 ? 'bg-emerald-800 text-white dark:bg-emerald-700'
-                : 'text-slate-700 dark:text-slate-300'
+                : 'text-white/85'
             }`}
           >
             Student
@@ -252,7 +264,7 @@ export const Navbar: React.FC<Props> = ({
             className={`px-3 py-1 rounded-md shrink-0 font-medium ${
               activeTab === 'lecturer'
                 ? 'bg-emerald-800 text-white dark:bg-emerald-700'
-              : 'text-slate-700 dark:text-slate-300'
+              : 'text-white/85'
             }`}
           >
             Lecturer
@@ -264,7 +276,7 @@ export const Navbar: React.FC<Props> = ({
               className={`px-3 py-1 rounded-md shrink-0 font-medium ${
                 activeTab === 'admin'
                   ? 'bg-emerald-800 text-white dark:bg-emerald-700'
-                  : 'text-slate-700 dark:text-slate-300'
+                  : 'text-white/85'
               }`}
             >
               Management
