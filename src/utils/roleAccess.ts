@@ -46,7 +46,7 @@ export function canAccessWorkspace(role: string | null | undefined, tab: string)
   if (tab === 'public' || tab === 'admissions') return !role || role === 'APPLICANT' || role === 'ADMISSIONS_OFFICER' || role === 'SUPER_ADMIN' || role === 'INSTITUTION_ADMIN';
   if (!role) return false;
   if (tab === 'student') return role === 'STUDENT' || role === 'SUPER_ADMIN' || role === 'INSTITUTION_ADMIN';
-  if (tab === 'lecturer') return ['LECTURER', 'HOD', 'DEAN', 'SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(role);
+  if (tab === 'lecturer') return ['LECTURER', 'SUPER_ADMIN', 'INSTITUTION_ADMIN'].includes(role);
   if (tab === 'admin') return getDefaultAdminTab(role) !== null;
   if (tab === 'builder') return role === 'SUPER_ADMIN' || role === 'INSTITUTION_ADMIN';
   return false;
