@@ -28,6 +28,7 @@ import { activateAdmissionFeeObligations, listRetryableAdmissionFeeActivations }
 import { evaluateNdGraduationEligibility } from './academicProgressionService';
 import { academicProgressionApiRouter } from './academicProgressionApiRouter';
 import { appendAcademicResultEvent, listAcademicResultAttempts } from './academicResultNeonService';
+import { canExamOfficerModerateResult, canHodApproveResult, isHodApprovedForPublication } from './resultApprovalAuthorization';
 
 export const apiRouter = Router();
 apiRouter.use('/academic-progression', academicProgressionApiRouter);
@@ -2510,11 +2511,8 @@ apiRouter.patch(
 
     const departmentId = req.user!.departmentId;
     const course = state.courses.find((item) => item.id === result.courseId);
-    if (!departmentId || !course || course.departmentId !== departmentId) {
-      return res.status(403).json({ success: false, message: 'You can only approve results for courses in your department.' });
-    }
-    if (result.status !== 'SUBMITTED') {
-      return res.status(409).json({ success: false, message: 'Only lecturer-submitted results can receive HOD approval.' });
+    if (!departmentId || !canHodApproveResult(req.user, course, result)) {
+      return res.status(403).json({ success: false, message: 'You can only approve submitted results for courses in your department.' });
     }
 
     result.status = 'HOD_APPROVED';
@@ -2555,11 +2553,12 @@ apiRouter.post(
       return res.status(403).json({ success: false, message: 'You can only approve results for courses in your department.' });
     }
     const now = new Date().toISOString();
-    const eligibleResults = state.results.filter((result) =>
-      result.status === 'SUBMITTED' &&
-      departmentCourseIds.has(result.courseId) &&
-      (requestedIds.has(result.id) || (hasCourseFilter && result.courseId === courseId))
-    );
+    const eligibleResults = state.results.filter((result) => {
+      const course = state.courses.find((item) => item.id === result.courseId);
+      return canHodApproveResult(req.user, course, result) &&
+        departmentCourseIds.has(result.courseId) &&
+        (requestedIds.has(result.id) || (hasCourseFilter && result.courseId === courseId));
+    });
     for (const result of eligibleResults) {
       result.status = 'HOD_APPROVED';
       result.hodApprovedAt = now;
@@ -2593,13 +2592,13 @@ apiRouter.patch(
     if (!resItem) {
       return res.status(404).json({ success: false, message: 'Result not found.' });
     }
-    if (resItem.status !== 'HOD_APPROVED') {
+    if (!isHodApprovedForPublication(resItem)) {
       return res.status(409).json({ success: false, message: 'Results must be approved by the HOD before Exam Officer moderation and publication.' });
     }
     if (req.user!.role === 'EXAM_OFFICER') {
       const course = state.courses.find((item) => item.id === resItem.courseId);
-      if (!req.user!.departmentId || course?.departmentId !== req.user!.departmentId) {
-        return res.status(403).json({ success: false, message: 'You can only moderate results for your department.' });
+      if (!canExamOfficerModerateResult(req.user, course, resItem)) {
+        return res.status(403).json({ success: false, message: 'You can only moderate HOD-approved results for your department.' });
       }
     }
 
@@ -2642,12 +2641,10 @@ apiRouter.post(
     const state = db.getState();
     const now = new Date().toISOString();
     const touchedStudents = new Set<string>();
-    const examOfficerCourseIds = req.user!.role === 'EXAM_OFFICER'
-      ? new Set(state.courses.filter((course) => course.departmentId === req.user!.departmentId).map((course) => course.id))
-      : null;
     const eligibleResults = state.results.filter((result) => {
-      if (result.status !== 'HOD_APPROVED') return false;
-      if (examOfficerCourseIds && !examOfficerCourseIds.has(result.courseId)) return false;
+      const course = state.courses.find((item) => item.id === result.courseId);
+      if (!isHodApprovedForPublication(result)) return false;
+      if (req.user!.role === 'EXAM_OFFICER' && !canExamOfficerModerateResult(req.user, course, result)) return false;
       const matchesId = requestedIds.has(result.id);
       const matchesCourse = hasCourseFilter && result.courseId === courseId;
       return matchesId || matchesCourse;
