@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - staging-postgres-state-store
+      - feature/academic-progression-snapshot-readonly
   pull_request:
     branches:
       - feature/academic-progression-snapshot-readonly
