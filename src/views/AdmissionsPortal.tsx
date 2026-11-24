@@ -20,6 +20,7 @@ interface Props {
   onGoToStudentWorkspace: () => void;
   onOpenLoginModal: () => void;
   initialSection?: string;
+  forceApplicantView?: boolean;
 }
 
 export const AdmissionsPortal: React.FC<Props> = ({
@@ -27,6 +28,7 @@ export const AdmissionsPortal: React.FC<Props> = ({
   onGoToStudentWorkspace,
   onOpenLoginModal,
   initialSection,
+  forceApplicantView = false,
 }) => {
   const { user, settings, updateSessionUser } = useAuth();
   const [programmes, setProgrammes] = useState<Programme[]>([]);
@@ -133,7 +135,7 @@ export const AdmissionsPortal: React.FC<Props> = ({
   const [screeningNotes, setScreeningNotes] = useState('');
 
   const isStaff =
-    user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'].includes(user.role);
+    !forceApplicantView && !!user && ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER'].includes(user.role);
 
   const loadData = async () => {
     setLoading(true);
