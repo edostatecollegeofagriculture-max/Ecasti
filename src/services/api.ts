@@ -102,7 +102,7 @@ class ApiService {
   }
 
   getStagingDemoDataStatus() {
-    return this.request<{ success: boolean; seeded: boolean; createdAt: string | null; recordCount: number }>('/staging/demo-data/status');
+    return this.request<{ success: boolean; seeded: boolean; createdAt: string | null; recordCount: number; conflicts: Array<{ collection: string; id: string; issue: 'missing' | 'changed'; changedFields: string[] }> }>('/staging/demo-data/status');
   }
 
   seedStagingDemoData() {

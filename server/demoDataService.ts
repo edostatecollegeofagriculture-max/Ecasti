@@ -19,8 +19,23 @@ function snapshot(value: unknown) {
 
 export function getDemoSeedStatus() {
   assertStagingOnly();
-  const manifest = (db.getState() as DatabaseState & { [MANIFEST_KEY]?: Manifest })[MANIFEST_KEY];
-  return { success: true, seeded: Boolean(manifest), createdAt: manifest?.createdAt ?? null, recordCount: manifest?.changes.length ?? 0 };
+  const state = db.getState() as DatabaseState & { [MANIFEST_KEY]?: Manifest };
+  const manifest = state[MANIFEST_KEY];
+  const conflicts = (manifest?.changes ?? []).flatMap((change) => {
+    const current = (state[change.collection] as any[]).find((record) => record.id === change.id);
+    if (!current) return [{ collection: change.collection, id: change.id, issue: 'missing', changedFields: [] as string[] }];
+    if (snapshot(current) === snapshot(change.after)) return [];
+    const keys = new Set([...Object.keys(change.after ?? {}), ...Object.keys(current ?? {})]);
+    const changedFields = [...keys].filter((key) => snapshot(current[key]) !== snapshot(change.after[key])).sort();
+    return [{ collection: change.collection, id: change.id, issue: 'changed', changedFields }];
+  });
+  return {
+    success: true,
+    seeded: Boolean(manifest),
+    createdAt: manifest?.createdAt ?? null,
+    recordCount: manifest?.changes.length ?? 0,
+    conflicts,
+  };
 }
 
 export function seedDemoAcademicData(actor: { id: string; email: string }) {
