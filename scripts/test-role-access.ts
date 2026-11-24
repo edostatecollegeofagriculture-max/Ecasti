@@ -24,7 +24,7 @@ assert.equal(canAccessAdminTab('DEAN', 'dean_curriculum'), true);
 assert.equal(canAccessAdminTab('EXAM_OFFICER', 'exam_approvals'), true);
 assert.equal(canAccessAdminTab('REGISTRAR', 'registrar_docs'), true);
 assert.equal(canAccessAdminTab('BURSAR', 'finance'), true);
-assert.equal(canAccessAdminTab('ADMISSIONS_OFFICER', 'admissions_review'), true);
+assert.equal(canAccessAdminTab('ADMISSIONS_OFFICER', 'analytics'), false);
 assert.equal(canAccessAdminTab('APPLICANT', 'admissions_review'), false);
 
 for (const role of ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR']) {
