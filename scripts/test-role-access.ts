@@ -3,7 +3,6 @@ import { canAccessAdminTab, canAccessWorkspace, getDefaultAdminTab, getRoleHome 
 
 const forbidden = [
   ['HOD', 'dean_curriculum'],
-  ['HOD', 'exam_approvals'],
   ['DEAN', 'exam_approvals'],
   ['EXAM_OFFICER', 'dean_curriculum'],
   ['STUDENT', 'admin'],
@@ -17,6 +16,7 @@ for (const [role, tab] of forbidden) {
   assert.equal(canAccessAdminTab(role, tab), false, `${role} must not access ${tab}`);
 }
 assert.equal(canAccessAdminTab('HOD', 'hod_allocation'), true);
+assert.equal(canAccessAdminTab('HOD', 'exam_approvals'), true);
 assert.equal(canAccessAdminTab('DEAN', 'dean_curriculum'), true);
 assert.equal(canAccessAdminTab('EXAM_OFFICER', 'exam_approvals'), true);
 assert.equal(canAccessAdminTab('REGISTRAR', 'registrar_docs'), true);
