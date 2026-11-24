@@ -477,13 +477,13 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'dean_curriculum',
           label: 'Dean: Programmes & Courses',
           icon: <GraduationCap className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'DEAN'],
         },
         {
           id: 'hod_allocation',
           label: 'HOD: Assign Lecturers',
           icon: <UserCheck className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'DEAN', 'HOD'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'DEAN', 'HOD'],
         },
         {
           id: 'exam_approvals',
@@ -506,7 +506,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'finance',
           label: 'Bursary & Fee Ledger',
           icon: <Wallet className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'BURSAR'],
         },
       ],
     },
@@ -523,7 +523,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
           id: 'users',
           label: 'Users & RBAC',
           icon: <Users className="w-4 h-4" />,
-          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'],
+          roles: ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR'],
         },
         {
           id: 'settings',
