@@ -444,6 +444,9 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
 
   // Role permission helper for sidebar visibility
   const role = user?.role || 'UNKNOWN';
+  const safeActiveSubTab = canAccessAdminTab(role, activeSubTab)
+    ? activeSubTab
+    : (ROLE_DEFAULT_TAB[role] || 'analytics');
   const canManageAdmissionFeeActivations = [
     'SUPER_ADMIN',
     'INSTITUTION_ADMIN',
@@ -1347,7 +1350,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
                   {group.group}
                 </div>
                 {visibleItems.map((item) => {
-                  const active = activeSubTab === item.id;
+                  const active = safeActiveSubTab === item.id;
                   return (
                     <button
                       key={item.id}
@@ -1376,7 +1379,7 @@ export const AdminPortal: React.FC<Props> = ({ onOpenPrintModal, onOpenPageBuild
         {/* MAIN RIGHT WORKSPACE */}
         <div className="flex-1 min-w-0 w-full space-y-6">
           {/* ==================== 1. ANALYTICS ==================== */}
-          {activeSubTab === 'analytics' && (
+          {safeActiveSubTab === 'analytics' && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
