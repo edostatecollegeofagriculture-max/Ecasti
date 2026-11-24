@@ -1708,7 +1708,7 @@ apiRouter.post(
 apiRouter.get(
   '/students',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'DEAN', 'HOD', 'LECTURER', 'EXAM_OFFICER', 'BURSAR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'DEAN', 'HOD', 'LECTURER', 'EXAM_OFFICER', 'BURSAR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { departmentId, level, search, programmeId } = req.query;
     const state = db.getState();
@@ -2213,7 +2213,7 @@ function recalculateStudentAcademicTotals(state: ReturnType<typeof db.getState>,
   }
 }
 
-apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'HOD', 'EXAM_OFFICER', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
+apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'HOD', 'EXAM_OFFICER', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
   const { courseId, session, semester, studentId, status } = req.query;
   let list = db.getState().results;
 
@@ -2240,7 +2240,7 @@ apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTIT
 apiRouter.get(
   '/results/neon-attempts',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'EXAM_OFFICER'),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const state = db.getState();
@@ -2627,7 +2627,7 @@ function computeHonoursClassification(cgpa: number): string {
 apiRouter.get(
   '/documents',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
   (req: AuthenticatedRequest, res: Response) => {
     const state = db.getState();
     const list = (state.issuedDocuments || []).map((doc) => {
@@ -2716,7 +2716,7 @@ apiRouter.get('/documents/my-documents', authenticateToken, (req: AuthenticatedR
 apiRouter.post(
   '/documents/generate',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { studentId, type, feeAmount, remarks, classification } = req.body;
     if (!studentId || !type || !['TRANSCRIPT', 'FINAL_CERTIFICATE'].includes(type)) {
@@ -3018,7 +3018,7 @@ apiRouter.post('/finance/pay', authenticateToken, (req: AuthenticatedRequest, re
 apiRouter.get(
   '/finance/payments',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
   (req: AuthenticatedRequest, res: Response) => {
     return res.json({ success: true, payments: db.getState().payments });
   }
@@ -3055,7 +3055,7 @@ apiRouter.post(
 apiRouter.put(
   '/finance/invoices/:id',
   authenticateToken,
-  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR', 'RECTOR'),
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
   (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const inv = db.getState().invoices.find((i) => i.id === id);
