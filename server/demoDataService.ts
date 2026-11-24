@@ -41,7 +41,8 @@ export function seedDemoAcademicData(actor: { id: string; email: string }) {
     throw new Error('The HOD and Lecturer demo accounts are not linked to the expected Agriculture department. No records were changed.');
   }
 
-  const ids = ['sch-agric', 'dept-agric', 'demo-e2e-programme-agric', 'demo-e2e-course-agric', 'demo-e2e-student-agric', 'demo-e2e-registration-agric', 'demo-e2e-result-agric'];
+  const courseIds = Array.from({ length: 8 }, (_, index) => index === 0 ? 'demo-e2e-course-agric' : `demo-e2e-course-agric-${String(index + 1).padStart(2, '0')}`);
+  const ids = ['sch-agric', 'dept-agric', 'demo-e2e-programme-agric', ...courseIds, 'demo-e2e-student-agric', 'demo-e2e-registration-agric', 'demo-e2e-result-agric'];
   const existingIds = [
     ...state.schools, ...state.departments, ...state.programmes, ...state.courses,
     ...state.students, ...state.registrations, ...state.results,
@@ -57,15 +58,32 @@ export function seedDemoAcademicData(actor: { id: string; email: string }) {
   const school = { id: 'sch-agric', code: 'E2E-AGRIC', name: '[DEMO] School of Agriculture', description: 'Automated staging test data only.' };
   const department = { id: 'dept-agric', schoolId: school.id, code: 'E2E-AGRIC', name: '[DEMO] Agriculture Department', hodId: required.hod!.id };
   const programme = { id: 'demo-e2e-programme-agric', departmentId: department.id, code: 'E2E-NDAG', name: '[DEMO] National Diploma in Agriculture', qualification: 'ND' as const, durationYears: 2, description: 'Automated staging workflow test programme.', requirements: [] };
-  const course = { id: 'demo-e2e-course-agric', departmentId: department.id, programmeId: programme.id, code: 'E2E-AGR101', title: '[DEMO] Introduction to Agriculture', creditUnits: 2, level: 'ND I', semester: 'First Semester' as const, lecturerId: required.lecturer!.id, lecturerName: required.lecturer!.fullName, isCompulsory: true };
+  const courseSpecs: Array<{ code: string; title: string; creditUnits: number }> = [
+    { code: 'E2E-AGR101', title: '[DEMO] Introduction to Agriculture', creditUnits: 2 },
+    { code: 'E2E-AGR103', title: '[DEMO] Principles of Crop Production', creditUnits: 2 },
+    { code: 'E2E-AGR105', title: '[DEMO] Principles of Animal Production', creditUnits: 2 },
+    { code: 'E2E-AGR107', title: '[DEMO] Soil Science Fundamentals', creditUnits: 2 },
+    { code: 'E2E-AGR109', title: '[DEMO] Agricultural Economics', creditUnits: 2 },
+    { code: 'E2E-AGR111', title: '[DEMO] Farm Power and Machinery', creditUnits: 2 },
+    { code: 'E2E-AGR113', title: '[DEMO] Agricultural Extension', creditUnits: 2 },
+    { code: 'E2E-AGR115', title: '[DEMO] Basic Farm Management', creditUnits: 2 },
+  ];
+  const courses = courseSpecs.map((spec, index) => ({
+    id: courseIds[index], departmentId: department.id, programmeId: programme.id,
+    code: spec.code, title: spec.title, creditUnits: spec.creditUnits,
+    level: 'ND I', semester: 'First Semester' as const,
+    lecturerId: required.lecturer!.id, lecturerName: required.lecturer!.fullName,
+    isCompulsory: true,
+  }));
+  const course = courses[0];
   const student = { id: 'demo-e2e-student-agric', matricNumber: 'E2E/ND/2026/001', userId: required.student!.id, programmeId: programme.id, departmentId: department.id, schoolId: school.id, level: 'ND I', sessionAdmitted: state.settings.currentSession || '2026/2027', academicStatus: 'Good Standing' as const, gender: 'Not specified', dob: '2000-01-01', emergencyContact: 'Staging demo only', nextOfKin: 'Staging demo only', cgpa: 0, totalCreditsEarned: 0 };
-  const registration = { id: 'demo-e2e-registration-agric', studentId: student.id, session: state.settings.currentSession || '2026/2027', semester: 'First Semester', level: 'ND I', courseIds: [course.id], totalCredits: 2, status: 'SUBMITTED' as const, createdAt: now };
+  const registration = { id: 'demo-e2e-registration-agric', studentId: student.id, session: state.settings.currentSession || '2026/2027', semester: 'First Semester', level: 'ND I', courseIds: courses.map((item) => item.id), totalCredits: courses.reduce((sum, item) => sum + item.creditUnits, 0), status: 'SUBMITTED' as const, createdAt: now };
   const result = { id: 'demo-e2e-result-agric', courseId: course.id, studentId: student.id, matricNumber: student.matricNumber, studentName: required.student!.fullName, session: registration.session, semester: registration.semester, caScore: 24, examScore: 56, totalScore: 80, grade: 'A', gradePoint: 5, status: 'SUBMITTED' as const, submittedBy: required.lecturer!.id };
 
   add('schools', school);
   add('departments', department);
   add('programmes', programme);
-  add('courses', course);
+  courses.forEach((item) => add('courses', item));
   add('students', student);
   add('registrations', registration);
   add('results', result);
