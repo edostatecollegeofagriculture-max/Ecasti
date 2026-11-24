@@ -4,10 +4,8 @@ import { canAccessAdminTab, canAccessWorkspace, getDefaultAdminTab, getRoleHome 
 const forbidden = [
   ['HOD', 'dean_curriculum'],
   ['HOD', 'exam_approvals'],
-  ['DEAN', 'hod_registrations'],
   ['DEAN', 'exam_approvals'],
   ['EXAM_OFFICER', 'dean_curriculum'],
-  ['EXAM_OFFICER', 'hod_registrations'],
   ['STUDENT', 'admin'],
   ['STUDENT', 'builder'],
   ['LECTURER', 'admin'],
@@ -19,14 +17,13 @@ for (const [role, tab] of forbidden) {
   assert.equal(canAccessAdminTab(role, tab), false, `${role} must not access ${tab}`);
 }
 assert.equal(canAccessAdminTab('HOD', 'hod_allocation'), true);
-assert.equal(canAccessAdminTab('HOD', 'hod_registrations'), true);
 assert.equal(canAccessAdminTab('DEAN', 'dean_curriculum'), true);
 assert.equal(canAccessAdminTab('EXAM_OFFICER', 'exam_approvals'), true);
 assert.equal(canAccessAdminTab('REGISTRAR', 'registrar_docs'), true);
 assert.equal(canAccessAdminTab('BURSAR', 'finance'), true);
 
 for (const role of ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR']) {
-  for (const tab of ['analytics', 'dean_curriculum', 'hod_allocation', 'hod_registrations', 'exam_approvals', 'registrar_docs', 'finance', 'global_crud', 'users', 'settings', 'cms', 'audit']) {
+  for (const tab of ['analytics', 'dean_curriculum', 'hod_allocation', 'exam_approvals', 'registrar_docs', 'finance', 'global_crud', 'users', 'settings', 'cms', 'audit']) {
     assert.equal(canAccessAdminTab(role, tab), true, `${role} must access ${tab}`);
   }
   for (const tab of ['admin', 'student', 'lecturer', 'admissions', 'builder', 'public']) {
