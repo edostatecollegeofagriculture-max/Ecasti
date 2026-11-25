@@ -14,7 +14,11 @@ export const SchoolLogo: React.FC<Props> = ({
   variant = 'full',
   watermarkOpacity = 0.04,
 }) => {
-  const { settings } = useAuth();
+  const { settings, isLoading } = useAuth();
+
+  if (variant !== 'watermark' && isLoading && !settings?.logoUrl) {
+    return <div aria-hidden='true' className={className} style={{ width: typeof size === 'number' ? `${size}px` : size, height: typeof size === 'number' ? `${size}px` : size }} />;
+  }
 
   if (variant !== 'watermark' && settings?.logoUrl) {
     const resolvedSize = typeof size === 'number' ? `${size}px` : size;
