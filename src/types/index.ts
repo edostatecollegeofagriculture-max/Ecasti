@@ -47,6 +47,8 @@ export interface InstitutionSettings {
   logoUrl?: string;
   /** Global application background logo opacity, stored as a 0–1 value. */
   logoWatermarkOpacity?: number;
+  /** Optional editable JSON mapping of Nigerian states to LGAs. */
+  nigeriaLocationDataJson?: string;
   registrarSignatureUrl?: string;
   rectorSignatureUrl?: string;
   bursarSignatureUrl?: string;
