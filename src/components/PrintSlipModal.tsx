@@ -5,6 +5,7 @@ import { SchoolLogo } from './SchoolLogo';
 import { StudentIdCard } from './StudentIdCard';
 
 export type PrintDocumentType =
+  | 'APPLICATION_SLIP'
   | 'ADMISSION_LETTER'
   | 'COURSE_REGISTRATION'
   | 'PAYMENT_RECEIPT'
@@ -263,6 +264,41 @@ export const PrintSlipModal: React.FC<Props> = ({ isOpen, onClose, type, data, s
               <span>Phone: {settings?.contactPhone || '+234 800 336 2278'}</span>
             </div>
           </div>
+
+          {type === 'APPLICATION_SLIP' && (
+            <div className="mt-6 space-y-5 text-slate-800 text-sm">
+              <div className="text-center border-b-2 border-emerald-800 pb-4">
+                <h2 className="text-xl font-black uppercase text-emerald-900">Admission Application Slip</h2>
+                <p className="text-xs text-slate-600">Submitted application record • {admissionSession}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                <div className="sm:col-span-2 grid grid-cols-2 gap-3 text-xs">
+                  <div><span className="text-slate-500">Application Reference:</span><p className="font-mono font-bold">{data.applicationNumber || 'N/A'}</p></div>
+                  <div><span className="text-slate-500">Application Status:</span><p className="font-bold">{data.status || 'SUBMITTED'}</p></div>
+                  <div><span className="text-slate-500">Applicant Name:</span><p className="font-bold">{studentName}</p></div>
+                  <div><span className="text-slate-500">Session:</span><p className="font-bold">{admissionSession}</p></div>
+                  <div><span className="text-slate-500">Gender:</span><p className="font-bold">{data.gender || '—'}</p></div>
+                  <div><span className="text-slate-500">Date of Birth:</span><p className="font-bold">{data.dob || '—'}</p></div>
+                  <div><span className="text-slate-500">Phone:</span><p className="font-bold">{data.phone || '—'}</p></div>
+                  <div><span className="text-slate-500">Email:</span><p className="font-bold">{data.email || '—'}</p></div>
+                  <div><span className="text-slate-500">State / LGA:</span><p className="font-bold">{data.stateOfOrigin || '—'} / {data.lga || '—'}</p></div>
+                  <div className="col-span-2"><span className="text-slate-500">Residential Address:</span><p className="font-bold">{data.residentialAddress || '—'}</p></div>
+                  <div className="col-span-2"><span className="text-slate-500">Programme:</span><p className="font-bold">{admissionProgramme}</p></div>
+                </div>
+                {renderPassportBox('Applicant Photo')}
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-bold text-emerald-900">O-Level Examination Results</h3>
+                <p className="text-xs">Examination Type: {data.oLevelResults?.[0]?.examType || '—'} • Exam Number: {data.oLevelResults?.[0]?.examNumber || '—'}</p>
+                <div className="border border-slate-300 rounded-lg overflow-hidden">
+                  <table className="w-full text-xs text-left"><thead className="bg-emerald-900 text-white"><tr><th className="p-2">Subject</th><th className="p-2">Grade</th></tr></thead>
+                    <tbody>{(data.oLevelResults || []).map((result:any,index:number)=><tr key={index} className="border-t border-slate-200"><td className="p-2">{result.subject || '—'}</td><td className="p-2 font-bold">{result.grade || '—'}</td></tr>)}</tbody>
+                  </table>
+                </div>
+              </div>
+              <div className="text-xs text-slate-500 border-t pt-3">This slip confirms the details of the application submitted through the EDOCASTI portal. It is not an admission offer.</div>
+            </div>
+          )}
 
           {type === 'ADMISSION_LETTER' && (
             <div className="mt-6 space-y-4 text-slate-800 text-sm">
