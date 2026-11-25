@@ -653,7 +653,7 @@ export const AdmissionsPortal: React.FC<Props> = ({
 
             <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200 text-xs text-amber-900 space-y-2">
               <span className="font-bold uppercase tracking-wider block">Admissions Helpdesk</span>
-              <p>For inquiries regarding O-Level subject combinations, contact the admissions office at <strong>admissions@edocasti.edu.ng</strong>.</p>
+              <p>For inquiries regarding O-Level subject combinations, contact the admissions office at <strong>{settings?.contactEmail || 'admissions@edocasti.edu.ng'}</strong>.</p>
             </div>
           </div>
 
