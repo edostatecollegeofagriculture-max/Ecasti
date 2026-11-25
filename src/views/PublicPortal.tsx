@@ -157,7 +157,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
     ? content.sectionOrder
     : DEFAULT_PAGE_CONTENT.sectionOrder;
   // Keep the hero slideshow first regardless of Page Builder ordering.
-  const sectionOrder = ['hero', ...configuredSectionOrder.filter((key) => key !== 'hero'];
+  const sectionOrder = ['hero', ...configuredSectionOrder.filter((key) => key !== 'hero')];
 
   const getSchoolProgrammes = (schoolId: string) => {
     const deptIds = departments.filter((d) => d.schoolId === schoolId).map((d) => d.id);
@@ -581,7 +581,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
                       </div>
                     </div>
                   </section>
-                )}}
+                )} </>)}}
         </React.Fragment>
       ))}
 
