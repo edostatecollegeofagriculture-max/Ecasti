@@ -153,9 +153,12 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
   };
 
   const hiddenSet = new Set(content.hiddenSections || []);
-  const sectionOrder = content.sectionOrder?.length
+  // The hero slideshow must always be the first public-portal section,
+  // regardless of the order saved in Page Builder.
+  const configuredSectionOrder = content.sectionOrder?.length
     ? content.sectionOrder
     : DEFAULT_PAGE_CONTENT.sectionOrder;
+  const sectionOrder = ['hero', ...configuredSectionOrder.filter((key) => key !== 'hero')];
 
   const getSchoolProgrammes = (schoolId: string) => {
     const deptIds = departments.filter((d) => d.schoolId === schoolId).map((d) => d.id);
