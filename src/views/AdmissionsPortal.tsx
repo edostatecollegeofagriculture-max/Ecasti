@@ -33,9 +33,7 @@ export const AdmissionsPortal: React.FC<Props> = ({
 }) => {
   const { user, settings, updateSessionUser } = useAuth();
   const [programmes, setProgrammes] = useState<Programme[]>([]);
-  const locationData = (() => { try { return settings?.nigeriaLocationDataJson ? JSON.parse(settings.nigeriaLocationDataJson) as Record<string,string[]> : NIGERIA_LGAS; } catch { return NIGERIA_LGAS; } })();
-  const stateOptions = Object.keys(locationData).sort((a,b)=>a.localeCompare(b));
-  const lgaOptions = formData.stateOfOrigin ? (locationData[formData.stateOfOrigin] || []) : [];
+
   const [selectedProgrammeId, setSelectedProgrammeId] = useState<string | null>(null);
   const [showApplicationForm, setShowApplicationForm] = useState(initialSection === 'form');
   const [myApp, setMyApp] = useState<AdmissionApplication | null>(null);
@@ -66,6 +64,10 @@ export const AdmissionsPortal: React.FC<Props> = ({
     examType: '',
     examNumber: '',
   });
+
+  const locationData = (() => { try { return settings?.nigeriaLocationDataJson ? JSON.parse(settings.nigeriaLocationDataJson) as Record<string,string[]> : NIGERIA_LGAS; } catch { return NIGERIA_LGAS; } })();
+  const stateOptions = Object.keys(locationData).sort((a,b)=>a.localeCompare(b));
+  const lgaOptions = formData.stateOfOrigin ? (locationData[formData.stateOfOrigin] || []) : [];
 
   // Start with empty rows so applicants enter their own verified O-Level results.
   const [oLevelResults, setOLevelResults] = useState([
