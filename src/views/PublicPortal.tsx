@@ -199,7 +199,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
         return categoryMatches && matchesWildcard(newsWildcard, a.title, a.summary, a.category, a.author);
       });
       return (
-        <section key="news" className="portal-section space-y-6 sm:space-y-8">
+        <section key="news" className="portal-section space-y-5 sm:space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div>
               <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
@@ -244,12 +244,12 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
               {(newsCategory !== 'ALL' || newsWildcard) && <button type="button" onClick={() => { setNewsCategory('ALL'); setNewsWildcard(''); }} className="text-sm font-bold text-emerald-800 dark:text-emerald-300 underline cursor-pointer">Clear filters</button>}
             </div>
           ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
             {filteredNews.map((article) => (
               <div
                 key={article.id}
                 onClick={() => setSelectedArticle(article)}
-                className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-800 hover:border-emerald-600 dark:hover:border-emerald-500 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col justify-between cursor-pointer"
+                className="group bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-800 hover:border-emerald-600 dark:hover:border-emerald-500 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between cursor-pointer"
               >
                 {article.imageUrl && (
                   <div className="aspect-[16/9] w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -260,7 +260,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
                     />
                   </div>
                 )}
-                <div className="p-6 flex-1 flex flex-col justify-between">
+                <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                       <span className="font-bold text-emerald-800 dark:text-emerald-300">
@@ -372,7 +372,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
       );
 
       return (
-        <section key="schools" className="portal-section space-y-7 sm:space-y-9">
+        <section key="schools" className="portal-section space-y-5 sm:space-y-7">
           <div className="text-center max-w-2xl mx-auto">
             <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider">
               {content.schoolsSectionKicker}
@@ -662,7 +662,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
   };
 
   return (
-    <div className="min-h-screen space-y-16 sm:space-y-20 pb-12 bg-transparent">
+    <div className="min-h-screen space-y-10 sm:space-y-14 lg:space-y-16 pb-10 sm:pb-12 bg-transparent">
       {!hiddenSet.has('hero') && (
         <section key="hero" className="portal-section">
           <NewsSlideShow onNavigate={handleNavigate} />
