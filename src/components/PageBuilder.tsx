@@ -209,6 +209,7 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
   const [searchQuery, setSearchQuery] = useState('');
   const [previewWidth, setPreviewWidth] = useState<'full' | 'tablet' | 'mobile'>('full');
   const [activeSlidePreviewIdx, setActiveSlidePreviewIdx] = useState(0);
+  const [draggedSectionIndex, setDraggedSectionIndex] = useState<number | null>(null);
   const [ticketReplyDraft, setTicketReplyDraft] = useState('');
 
   const [loading, setLoading] = useState(true);
@@ -1120,6 +1121,27 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                 return (
                   <div
                     key={key}
+                    draggable={idx > 0 && key !== 'hero'}
+                    onDragStart={(e) => {
+                      if (idx === 0 || key === 'hero') { e.preventDefault(); return; }
+                      setDraggedSectionIndex(idx);
+                      e.dataTransfer.effectAllowed = 'move';
+                      e.dataTransfer.setData('text/plain', key);
+                    }}
+                    onDragOver={(e) => { if (draggedSectionIndex !== null) e.preventDefault(); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedSectionIndex !== null && draggedSectionIndex !== idx && idx > 0) {
+                        const order = [...allSectionKeys];
+                        const [moved] = order.splice(draggedSectionIndex, 1);
+                        order.splice(idx, 0, moved);
+                        const next = { ...pageContent, sectionOrder: order.filter((section) => section !== 'hero') };
+                        setPageContent(next);
+                        if (canEdit) savePageContent(next, 'Section order updated.');
+                      }
+                      setDraggedSectionIndex(null);
+                    }}
+                    onDragEnd={() => setDraggedSectionIndex(null)}
                     className={`flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border text-xs ${
                       isHidden
                         ? 'bg-slate-100/60 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400'
