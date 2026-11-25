@@ -69,6 +69,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { readImageFileAsDataUrl } from '../utils/imageUpload';
+import { NIGERIA_LGAS } from '../utils/nigeriaLocations';
 import { matchesWildcard } from '../utils/wildcard';
 import {
   HERO_COLOR_PRESETS,
@@ -1428,6 +1429,11 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
               />
             </div>
 
+            <div className="space-y-2">
+              <label className={labelCls}>Applicant State &amp; LGA Dropdown Data (JSON)</label>
+              <p className="text-[10px] text-slate-500">Edit the state-to-LGA mapping. Keep the JSON format: state names mapped to arrays of LGA names. Default dataset contains 37 states including FCT and 774 LGAs.</p>
+              <textarea rows={10} value={settings.nigeriaLocationDataJson || JSON.stringify(NIGERIA_LGAS,null,2)} onChange={(e) => setSettings({ ...settings, nigeriaLocationDataJson: e.target.value })} className={inputCls + ' font-mono'} />
+            </div>
             <div>
               <label className={labelCls}>Contact Phone</label>
               <input
