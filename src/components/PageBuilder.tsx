@@ -1037,7 +1037,7 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
   const moveSection = async (index: number, direction: -1 | 1) => {
     const order = [...(pageContent.sectionOrder || [])];
     const targetIdx = index + direction;
-    if (targetIdx < 0 || targetIdx >= order.length) return;
+    if (index === 0 || targetIdx <= 0 || targetIdx >= order.length) return;
     [order[index], order[targetIdx]] = [order[targetIdx], order[index]];
     const next = { ...pageContent, sectionOrder: order };
     setPageContent(next);
@@ -1057,10 +1057,12 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
     const baseOrder = pageContent.sectionOrder?.length
       ? [...pageContent.sectionOrder]
       : ['hero', 'news', 'rector', 'schools', 'calendar', 'faqs', 'footer'];
+    // Hero is pinned to the top of the public page and Page Builder list.
+    const heroFirstOrder = ['hero', ...baseOrder.filter((key) => key !== 'hero')];
     (pageContent.customSections || []).forEach((c) => {
-      if (!baseOrder.includes(c.id)) baseOrder.push(c.id);
+      if (!heroFirstOrder.includes(c.id)) heroFirstOrder.push(c.id);
     });
-    return baseOrder;
+    return heroFirstOrder;
   }, [pageContent.sectionOrder, pageContent.customSections]);
 
   const inputCls =
@@ -1114,7 +1116,7 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
               {allSectionKeys.map((key, idx) => {
                 const custom = (pageContent.customSections || []).find((c) => c.id === key);
                 const label = custom ? `Custom: ${custom.title}` : SECTION_LABELS[key] || key;
-                const isHidden = (pageContent.hiddenSections || []).includes(key);
+                const isHidden = key !== 'hero' && (pageContent.hiddenSections || []).includes(key);
                 return (
                   <div
                     key={key}
@@ -1143,7 +1145,7 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => moveSection(idx, -1)}
-                        disabled={idx === 0}
+                        disabled={idx === 0 || key === 'hero'}
                         className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer"
                         title="Move Up"
                       >
@@ -1151,7 +1153,7 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                       </button>
                       <button
                         onClick={() => moveSection(idx, 1)}
-                        disabled={idx === allSectionKeys.length - 1}
+                        disabled={idx === allSectionKeys.length - 1 || key === 'hero'}
                         className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer"
                         title="Move Down"
                       >
@@ -1159,8 +1161,9 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                       </button>
                       <button
                         onClick={() => toggleSectionVisibility(key)}
-                        className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                        title={isHidden ? 'Show Section' : 'Hide Section'}
+                        disabled={key === 'hero'}
+                        className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                        title={key === 'hero' ? 'Hero is pinned and always visible' : isHidden ? 'Show Section' : 'Hide Section'}
                       >
                         {isHidden ? (
                           <EyeOff className="w-3.5 h-3.5 text-amber-600" />
@@ -4113,7 +4116,8 @@ export const PageBuilder: React.FC<Props> = ({ onExitBuilder, onOpenLoginModal }
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
                             <LayoutTemplate className="w-4 h-4 text-amber-500" /> Hero Slideshow ({slides.length})
-                            {isHidden && <span className="text-[10px] text-amber-600">(Hidden on Live Page)</span>}
+                            {key === 'hero' && <span className="text-[10px] text-emerald-600">(Pinned at Top)</span>}
+                            {isHidden && key !== 'hero' && <span className="text-[10px] text-amber-600">(Hidden on Live Page)</span>}
                           </span>
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {slides.map((s, idx) => (
