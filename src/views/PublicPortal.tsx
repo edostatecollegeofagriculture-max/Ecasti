@@ -555,7 +555,7 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
       {sectionOrder.map((key) => (
         <React.Fragment key={key}>
           {renderSection(key)}
-          {key === 'hero' && {/* Institution contact details from Page Builder Institution Settings */}
+          {key === 'hero' && (<> {/* Institution contact details from Page Builder Institution Settings */}
                 {settings?.contactEmail && (
                   <section aria-labelledby="institution-contact-heading" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
