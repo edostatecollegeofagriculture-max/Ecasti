@@ -334,7 +334,7 @@ export const AdmissionsPortal: React.FC<Props> = ({
 
         {myApp && (
           <button
-            onClick={() => onOpenPrintModal('ADMISSION_LETTER', myApp)}
+            onClick={() => onOpenPrintModal('APPLICATION_SLIP', { ...myApp, programmeName: programmes.find((p) => p.id === myApp.programmeId)?.name })}
             className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs rounded-lg flex items-center gap-1.5 transition cursor-pointer"
           >
             <Printer className="w-4 h-4" /> Print Application Slip
