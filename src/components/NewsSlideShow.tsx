@@ -7,7 +7,6 @@ import {
   ArrowRight,
   Calendar,
   BookOpen,
-  Bell,
   Eye,
 } from 'lucide-react';
 import { NewsArticleModal } from './NewsArticleModal';
@@ -106,7 +105,7 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
   // Keep the hero's footprint stable and neutral until its real slide/theme is ready.
   if (loading) {
     return (
-      <div className="w-full space-y-3" aria-busy="true" aria-label="Loading public highlights">
+      <div className="w-full" aria-busy="true" aria-label="Loading public highlights">
         <div className="relative min-h-[380px] sm:min-h-[440px] lg:min-h-[480px] overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 shadow-sm">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex items-center gap-3 text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -291,59 +290,6 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
             >
               <ChevronRight className="w-4 h-4" />
             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Breaking News Marquee & Direct Feed Ticker */}
-      <div
-        style={heroStyles.tickerBarStyle}
-        className="rounded-xl bg-linear-to-r from-emerald-900 via-emerald-950 to-emerald-900 text-white p-2.5 sm:p-3 flex items-center gap-3 border border-amber-500/40 shadow-xs text-xs"
-      >
-        <div
-          style={heroStyles.ctaStyle}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black text-[11px] uppercase tracking-wider shrink-0"
-        >
-          <Bell className="w-3.5 h-3.5" />
-          <span>Notice</span>
-        </div>
-
-        <div className="flex-1 min-w-0 overflow-hidden">
-          <style>{`
-            @keyframes hero-notice-marquee {
-              from { transform: translateX(0); }
-              to { transform: translateX(-50%); }
-            }
-            .hero-notice-track {
-              animation: hero-notice-marquee 38s linear infinite;
-              will-change: transform;
-            }
-            @media (prefers-reduced-motion: reduce) {
-              .hero-notice-track { animation: none; }
-            }
-          `}</style>
-          <div
-            className="hero-notice-track flex w-max whitespace-nowrap text-red-600"
-            style={{ ...heroStyles.subtitleStyle, color: '#dc2626' }}
-          >
-            {[0, 1].map((copy) => (
-              <div key={copy} className="flex shrink-0 items-center gap-6 pr-6" aria-hidden={copy === 1}>
-                {news.map((item) => (
-                  <button
-                    key={`${copy}-${item.id}`}
-                    onClick={() => setSelectedArticle(item)}
-                    tabIndex={copy === 1 ? -1 : 0}
-                    className="hover:opacity-80 transition flex items-center gap-2 cursor-pointer font-medium"
-                  >
-                    <span
-                      style={heroStyles.dotAccentStyle}
-                      className="w-1.5 h-1.5 rounded-full bg-amber-400"
-                    />
-                    <span>{item.title}</span>
-                  </button>
-                ))}
-              </div>
-            ))}
           </div>
         </div>
       </div>
