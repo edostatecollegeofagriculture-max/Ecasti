@@ -14,6 +14,7 @@ import {
 import { WildcardFilterBar } from '../components/WildcardFilterBar';
 import { matchesWildcard } from '../utils/wildcard';
 import { readImageFileAsDataUrl } from '../utils/imageUpload';
+import { NIGERIA_LGAS } from '../utils/nigeriaLocations';
 
 interface Props {
   onOpenPrintModal: (type: any, data: any) => void;
@@ -32,6 +33,9 @@ export const AdmissionsPortal: React.FC<Props> = ({
 }) => {
   const { user, settings, updateSessionUser } = useAuth();
   const [programmes, setProgrammes] = useState<Programme[]>([]);
+  const locationData = (() => { try { return settings?.nigeriaLocationDataJson ? JSON.parse(settings.nigeriaLocationDataJson) as Record<string,string[]> : NIGERIA_LGAS; } catch { return NIGERIA_LGAS; } })();
+  const stateOptions = Object.keys(locationData).sort((a,b)=>a.localeCompare(b));
+  const lgaOptions = formData.stateOfOrigin ? (locationData[formData.stateOfOrigin] || []) : [];
   const [selectedProgrammeId, setSelectedProgrammeId] = useState<string | null>(null);
   const [showApplicationForm, setShowApplicationForm] = useState(initialSection === 'form');
   const [myApp, setMyApp] = useState<AdmissionApplication | null>(null);
@@ -795,23 +799,17 @@ export const AdmissionsPortal: React.FC<Props> = ({
                     </div>
                     <div>
                       <label className="block text-slate-600 font-semibold mb-1">State of Origin</label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.stateOfOrigin}
-                        onChange={(e) => setFormData({ ...formData, stateOfOrigin: e.target.value })}
-                        className="w-full p-2.5 border border-slate-300 rounded-lg text-xs"
-                      />
+                      <select required value={formData.stateOfOrigin} onChange={(e) => setFormData({ ...formData, stateOfOrigin: e.target.value, lga: '' })} className="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-white">
+                        <option value="">Select state / FCT</option>
+                        {stateOptions.map((state) => <option key={state} value={state}>{state}</option>)}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-slate-600 font-semibold mb-1">LGA of Origin</label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.lga}
-                        onChange={(e) => setFormData({ ...formData, lga: e.target.value })}
-                        className="w-full p-2.5 border border-slate-300 rounded-lg text-xs"
-                      />
+                      <select required disabled={!formData.stateOfOrigin} value={formData.lga} onChange={(e) => setFormData({ ...formData, lga: e.target.value })} className="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-white disabled:bg-slate-100">
+                        <option value="">{formData.stateOfOrigin ? 'Select LGA' : 'Select state first'}</option>
+                        {lgaOptions.map((lga) => <option key={lga} value={lga}>{lga}</option>)}
+                      </select>
                     </div>
                   </div>
                 </div>
