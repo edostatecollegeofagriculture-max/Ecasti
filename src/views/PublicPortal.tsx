@@ -557,6 +557,34 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
         .filter((c) => c.isVisible && !sectionOrder.includes(c.id))
         .map((c) => renderSection(c.id))}
 
+      {/* Institution contact details from Page Builder Institution Settings */}
+      {settings?.contactEmail && (
+        <section aria-labelledby="institution-contact-heading" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="shrink-0 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 p-3 text-emerald-800 dark:text-emerald-300">
+                <Mail className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <h2 id="institution-contact-heading" className="text-xl font-bold text-slate-900 dark:text-white">Institution Contact</h2>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Contact the institution for general enquiries.</p>
+                <a href={`mailto:${settings.contactEmail}`} className="mt-3 inline-flex break-all font-semibold text-emerald-800 dark:text-emerald-300 hover:underline">
+                  {settings.contactEmail}
+                </a>
+                {settings.contactPhone && (
+                  <a href={`tel:${settings.contactPhone}`} className="mt-2 block text-sm font-medium text-slate-700 dark:text-slate-200 hover:underline">
+                    {settings.contactPhone}
+                  </a>
+                )}
+                {settings.address && (
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{settings.address}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       <NewsArticleModal
         isOpen={Boolean(selectedArticle)}
         onClose={() => setSelectedArticle(null)}
