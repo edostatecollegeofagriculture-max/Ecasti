@@ -494,7 +494,7 @@ apiRouter.put(
   '/settings',
   authenticateToken,
   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
-  (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response) => {
     const current = db.getState().settings;
     const updated = { ...current, ...req.body, id: 'default' };
     db.getState().settings = updated;
@@ -509,7 +509,14 @@ apiRouter.put(
       ipAddress: req.ip,
     });
 
-    return res.json({ success: true, settings: updated });
+    try {
+      await db.flushPersistentWrites();
+    } catch (error) {
+      console.error('[EDOCASTI] institution settings persistence failed.');
+      return res.status(503).json({ success: false, message: 'Settings could not be durably saved. Please retry.' });
+    }
+
+    return res.json({ success: true, settings: db.getState().settings });
   }
 );
 
