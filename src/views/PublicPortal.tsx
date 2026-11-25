@@ -553,7 +553,12 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
 
   return (
     <div className="space-y-14 sm:space-y-16 pb-0">
-      {sectionOrder.map((key) => renderSection(key))}
+      {/* Render the hero outside the saved section-order list so async Page Builder
+          hydration cannot move it after the initial render. */}
+      <section key="hero" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+        <NewsSlideShow onNavigate={handleNavigate} />
+      </section>
+      {sectionOrder.filter((key) => key !== 'hero').map((key) => renderSection(key))}
 
       {/* Render any visible custom sections not already in sectionOrder */}
       {(content.customSections || [])

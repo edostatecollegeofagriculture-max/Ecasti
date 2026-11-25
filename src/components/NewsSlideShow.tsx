@@ -42,41 +42,8 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
         api.getNews({ status: 'PUBLISHED' }).catch(() => ({ success: false, articles: [] })),
       ]);
 
-      if (slidesRes.success && slidesRes.slides && slidesRes.slides.length > 0) {
-        setSlides(slidesRes.slides);
-      } else {
-        // Fallback default slides
-        setSlides([
-          {
-            id: 'slide-01',
-            title: 'Excellence in Agricultural Mechanization & Food Security',
-            subtitle: 'Empowering Nigeria’s next generation of agronomists, bio-environmental engineers, and agro-technologists with world-class practical skills at Iguoriakhi Main Campus.',
-            badge: '2025/2026 Admissions Open',
-            bgGradient: 'from-emerald-950 via-emerald-900 to-slate-950',
-            accentColor: 'amber-400',
-            ctaText: 'Apply for Admission Online',
-            ctaTab: 'admissions',
-            ctaSubSection: 'form',
-            iconName: 'Sparkles',
-            order: 1,
-            isActive: true,
-          },
-          {
-            id: 'slide-02',
-            title: '1,500-Acre Demonstration Farms & Modernized Greenhouses',
-            subtitle: 'From automated drip-line irrigation to high-yield cassava multiplication and commercial poultry breeding, experience cutting-edge hands-on technical education.',
-            badge: 'Research & Field Practicum',
-            bgGradient: 'from-green-950 via-emerald-900 to-amber-950',
-            accentColor: 'amber-300',
-            ctaText: 'Explore Academic Programmes',
-            ctaTab: 'public',
-            ctaSubSection: 'programmes',
-            iconName: 'Tractor',
-            order: 2,
-            isActive: true,
-          },
-        ]);
-      }
+      // Never substitute stale hard-coded slides for the institution's configured slides.
+      setSlides(slidesRes.success && Array.isArray(slidesRes.slides) ? slidesRes.slides : []);
 
       if (newsRes.success && newsRes.articles) {
         setNews(newsRes.articles);
@@ -168,6 +135,8 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
         onMouseEnter={() => setIsPlaying(false)}
         onMouseLeave={() => setIsPlaying(true)}
       >
+        {/* Configured slide image, beneath its colour treatment */}
+        {currentSlide?.imageUrl && <div className="absolute inset-0 bg-cover bg-center transition-all duration-700" style={{ backgroundImage: `url(\"${currentSlide.imageUrl}\")` }} />}
         {/* Background Image / Gradients & Geometric Accents */}
         <div
           style={heroStyles.gradientLayerStyle}
@@ -177,7 +146,7 @@ export const NewsSlideShow: React.FC<Props> = ({ onNavigate }) => {
               : `bg-linear-to-br ${currentSlide?.bgGradient || 'from-emerald-950 via-emerald-900 to-slate-950'}`
           } transition-all duration-700 ease-in-out`}
         />
-        {/* Hero background uses its configured colour treatment; slide image URLs are not rendered. */}
+        {/* Subtle texture overlays the configured image/gradient. */}
         <div className="absolute inset-0 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:28px_28px] opacity-10 pointer-events-none" />
 
         {/* Heraldic Watermark Glow inside Slide */}
