@@ -663,11 +663,9 @@ export const PublicPortal: React.FC<Props> = ({ onGoToAdmissions, onNavigateSect
 
   return (
     <div className="min-h-screen space-y-10 sm:space-y-14 lg:space-y-16 pb-10 sm:pb-12 bg-transparent">
-      {!hiddenSet.has('hero') && (
-        <section key="hero" className="portal-section">
-          <NewsSlideShow onNavigate={handleNavigate} />
-        </section>
-      )}
+      <section key="hero" className="portal-section">
+        <NewsSlideShow onNavigate={handleNavigate} />
+      </section>
       {sectionOrder.filter((key) => key !== 'hero').map((key) => renderSection(key))}
 
       {/* Render any visible custom sections not already in sectionOrder */}
