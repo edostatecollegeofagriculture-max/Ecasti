@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+﻿import { Router, Response } from 'express';
 import { db } from './db';
 import { AuthenticatedRequest, authenticateToken, requireRoles } from './authMiddleware';
 import { neonPool } from './neon';
@@ -41,6 +41,46 @@ function requireAuthoritativeResultSource(res: Response): boolean {
 }
 
 export const academicProgressionApiRouter = Router();
+
+/**
+ * LIST ALL STUDENTS FOR PROGRESSION
+ * Returns a list of students with their current progression eligibility.
+ */
+academicProgressionApiRouter.get(
+  '/students',
+  authenticateToken,
+  requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'RECTOR', 'HOD'),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // db.getState() is used synchronously in this project to fetch state
+      // We return a basic list. If you have a progression service, you can enrich this.
+      const state = db.getState();
+      
+      const students = state.students.map(s => {
+        const user = state.users.find(u => u.id === s.userId);
+        const prog = state.programmes.find(p => p.id === s.programmeId);
+        return {
+          id: s.id,
+          studentId: s.id,
+          matricNumber: s.matricNumber,
+          fullName: user?.fullName || 'Unknown Student',
+          programme: prog?.name || 'Unknown Programme',
+          level: s.level,
+          stage: s.level, // Placeholder for stage
+          status: 'Active', // Placeholder
+          coursesCount: 0,
+          eligible: true
+        };
+      });
+
+      return res.json({ success: true, students });
+    } catch (error) {
+      console.error('Failed to list students for progression:', error);
+      return res.status(500).json({ success: false, message: 'Failed to load students.' });
+    }
+  }
+);
+
 academicProgressionApiRouter.use('/curriculum', academicCurriculumMappingApiRouter);
 
 /**
