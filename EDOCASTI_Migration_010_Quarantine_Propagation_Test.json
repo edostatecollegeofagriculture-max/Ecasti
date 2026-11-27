@@ -1,0 +1,55 @@
+{
+  "mode": "IN_MEMORY_SYNTHETIC_QUARANTINE_TEST",
+  "status": "TEST_PASS",
+  "checks": [
+    {
+      "name": "Quarantined student remains quarantined",
+      "passed": true
+    },
+    {
+      "name": "Dependent invoice quarantined",
+      "passed": true
+    },
+    {
+      "name": "Dependent payment quarantined",
+      "passed": true
+    },
+    {
+      "name": "Valid student remains eligible",
+      "passed": true
+    },
+    {
+      "name": "Valid invoice remains eligible",
+      "passed": true
+    },
+    {
+      "name": "Valid payment remains eligible",
+      "passed": true
+    },
+    {
+      "name": "Quarantined invoice excluded from eligible batch",
+      "passed": true
+    },
+    {
+      "name": "Quarantined payment excluded from eligible batch",
+      "passed": true
+    },
+    {
+      "name": "Propagation reasons recorded",
+      "passed": true
+    },
+    {
+      "name": "Eligible and quarantine sets do not overlap",
+      "passed": true
+    }
+  ],
+  "passed": 10,
+  "failed": 0,
+  "safety": {
+    "realSourceUsed": false,
+    "databaseConnected": false,
+    "sqlExecuted": false,
+    "importPerformed": false,
+    "sourceModified": false
+  }
+}

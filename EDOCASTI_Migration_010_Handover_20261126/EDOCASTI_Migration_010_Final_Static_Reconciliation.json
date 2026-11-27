@@ -1,0 +1,834 @@
+﻿{
+    "mode":  "LOCAL_STATIC_FILE_RECONCILIATION",
+    "generatedAt":  "2026-11-26T14:43:59.9966008+01:00",
+    "databaseConnected":  false,
+    "sqlExecuted":  false,
+    "originalLocalDatabaseTouched":  false,
+    "stagingDatabaseTouched":  false,
+    "sourceJsonModified":  false,
+    "files":  {
+                  "rerunSafeDraft":  {
+                                         "sha256":  "5C39F7E9BC082A8D5E76BED29F25D72C241C0DC2624D04861C3F37E0F0452268",
+                                         "path":  "C:\\Users\\EDSG-JOOPSA\\Documents\\EDOCASTI-LOCAL\\database\\migrations\\010_core_entities_and_legacy_finance_RERUN_SAFE_REVIEW.sql"
+                                     },
+                  "originalMigration":  {
+                                            "sha256":  "A6B1C87A02CE191AFF7CD335F441A27CEA01655D754D5D32CFF25A8AD2AE6077",
+                                            "path":  "C:\\Users\\EDSG-JOOPSA\\Documents\\EDOCASTI-LOCAL\\database\\migrations\\010_core_entities_and_legacy_finance.sql"
+                                        },
+                  "inventory":  {
+                                    "sha256":  "427EF1F1B915EE0E1C204118E4FFA9F3897B985B12006580AA98DDA77FCDEE87",
+                                    "path":  "C:\\Users\\EDSG-JOOPSA\\Documents\\EDOCASTI-LOCAL\\EDOCASTI_Migration_010_Fresh_Schema_Inventory.json"
+                                }
+              },
+    "tables":  {
+                   "expected":  [
+                                    "schools",
+                                    "users",
+                                    "departments",
+                                    "programmes",
+                                    "courses",
+                                    "admission_applications",
+                                    "students",
+                                    "legacy_invoices",
+                                    "legacy_payment_transactions"
+                                ],
+                   "original":  [
+                                    "admission_applications",
+                                    "courses",
+                                    "departments",
+                                    "legacy_invoices",
+                                    "legacy_payment_transactions",
+                                    "programmes",
+                                    "schools",
+                                    "students",
+                                    "users"
+                                ],
+                   "inventory":  [
+                                     "admission_applications",
+                                     "courses",
+                                     "departments",
+                                     "legacy_invoices",
+                                     "legacy_payment_transactions",
+                                     "programmes",
+                                     "schools",
+                                     "students",
+                                     "users"
+                                 ],
+                   "draft":  [
+                                 "admission_applications",
+                                 "courses",
+                                 "departments",
+                                 "legacy_invoices",
+                                 "legacy_payment_transactions",
+                                 "programmes",
+                                 "schools",
+                                 "students",
+                                 "users"
+                             ]
+               },
+    "structuralCounts":  {
+                             "draftCreateIndexes":  14,
+                             "draftCreateTables":  9,
+                             "originalCreateTables":  9,
+                             "draftGuardBlocks":  5,
+                             "originalCreateIndexes":  14,
+                             "originalAddConstraints":  5
+                         },
+    "columnComparisons":  [
+                              {
+                                  "table":  "schools",
+                                  "originalColumns":  [
+                                                          "code",
+                                                          "dean_user_id",
+                                                          "description",
+                                                          "id",
+                                                          "image_url",
+                                                          "name"
+                                                      ],
+                                  "draftColumns":  [
+                                                       "code",
+                                                       "dean_user_id",
+                                                       "description",
+                                                       "id",
+                                                       "image_url",
+                                                       "name"
+                                                   ],
+                                  "inventoryColumns":  [
+                                                           "code",
+                                                           "dean_user_id",
+                                                           "description",
+                                                           "id",
+                                                           "image_url",
+                                                           "name"
+                                                       ],
+                                  "originalVsDraft":  {
+                                                          "Match":  true,
+                                                          "Missing":  [
+
+                                                                      ],
+                                                          "Extra":  [
+
+                                                                    ]
+                                                      },
+                                  "originalVsInventory":  {
+                                                              "Match":  true,
+                                                              "Missing":  [
+
+                                                                          ],
+                                                              "Extra":  [
+
+                                                                        ]
+                                                          },
+                                  "draftVsInventory":  {
+                                                           "Match":  true,
+                                                           "Missing":  [
+
+                                                                       ],
+                                                           "Extra":  [
+
+                                                                     ]
+                                                       }
+                              },
+                              {
+                                  "table":  "users",
+                                  "originalColumns":  [
+                                                          "created_at",
+                                                          "department_id",
+                                                          "email",
+                                                          "failed_login_attempts",
+                                                          "full_name",
+                                                          "id",
+                                                          "is_active",
+                                                          "is_locked",
+                                                          "last_login",
+                                                          "password_hash",
+                                                          "phone",
+                                                          "photo_url",
+                                                          "role",
+                                                          "school_id"
+                                                      ],
+                                  "draftColumns":  [
+                                                       "created_at",
+                                                       "department_id",
+                                                       "email",
+                                                       "failed_login_attempts",
+                                                       "full_name",
+                                                       "id",
+                                                       "is_active",
+                                                       "is_locked",
+                                                       "last_login",
+                                                       "password_hash",
+                                                       "phone",
+                                                       "photo_url",
+                                                       "role",
+                                                       "school_id"
+                                                   ],
+                                  "inventoryColumns":  [
+                                                           "created_at",
+                                                           "department_id",
+                                                           "email",
+                                                           "failed_login_attempts",
+                                                           "full_name",
+                                                           "id",
+                                                           "is_active",
+                                                           "is_locked",
+                                                           "last_login",
+                                                           "password_hash",
+                                                           "phone",
+                                                           "photo_url",
+                                                           "role",
+                                                           "school_id"
+                                                       ],
+                                  "originalVsDraft":  {
+                                                          "Match":  true,
+                                                          "Missing":  [
+
+                                                                      ],
+                                                          "Extra":  [
+
+                                                                    ]
+                                                      },
+                                  "originalVsInventory":  {
+                                                              "Match":  true,
+                                                              "Missing":  [
+
+                                                                          ],
+                                                              "Extra":  [
+
+                                                                        ]
+                                                          },
+                                  "draftVsInventory":  {
+                                                           "Match":  true,
+                                                           "Missing":  [
+
+                                                                       ],
+                                                           "Extra":  [
+
+                                                                     ]
+                                                       }
+                              },
+                              {
+                                  "table":  "departments",
+                                  "originalColumns":  [
+                                                          "code",
+                                                          "hod_user_id",
+                                                          "id",
+                                                          "name",
+                                                          "school_id"
+                                                      ],
+                                  "draftColumns":  [
+                                                       "code",
+                                                       "hod_user_id",
+                                                       "id",
+                                                       "name",
+                                                       "school_id"
+                                                   ],
+                                  "inventoryColumns":  [
+                                                           "code",
+                                                           "hod_user_id",
+                                                           "id",
+                                                           "name",
+                                                           "school_id"
+                                                       ],
+                                  "originalVsDraft":  {
+                                                          "Match":  true,
+                                                          "Missing":  [
+
+                                                                      ],
+                                                          "Extra":  [
+
+                                                                    ]
+                                                      },
+                                  "originalVsInventory":  {
+                                                              "Match":  true,
+                                                              "Missing":  [
+
+                                                                          ],
+                                                              "Extra":  [
+
+                                                                        ]
+                                                          },
+                                  "draftVsInventory":  {
+                                                           "Match":  true,
+                                                           "Missing":  [
+
+                                                                       ],
+                                                           "Extra":  [
+
+                                                                     ]
+                                                       }
+                              },
+                              {
+                                  "table":  "programmes",
+                                  "originalColumns":  [
+                                                          "code",
+                                                          "department_id",
+                                                          "description",
+                                                          "duration_years",
+                                                          "id",
+                                                          "name",
+                                                          "qualification",
+                                                          "requirements"
+                                                      ],
+                                  "draftColumns":  [
+                                                       "code",
+                                                       "department_id",
+                                                       "description",
+                                                       "duration_years",
+                                                       "id",
+                                                       "name",
+                                                       "qualification",
+                                                       "requirements"
+                                                   ],
+                                  "inventoryColumns":  [
+                                                           "code",
+                                                           "department_id",
+                                                           "description",
+                                                           "duration_years",
+                                                           "id",
+                                                           "name",
+                                                           "qualification",
+                                                           "requirements"
+                                                       ],
+                                  "originalVsDraft":  {
+                                                          "Match":  true,
+                                                          "Missing":  [
+
+                                                                      ],
+                                                          "Extra":  [
+
+                                                                    ]
+                                                      },
+                                  "originalVsInventory":  {
+                                                              "Match":  true,
+                                                              "Missing":  [
+
+                                                                          ],
+                                                              "Extra":  [
+
+                                                                        ]
+                                                          },
+                                  "draftVsInventory":  {
+                                                           "Match":  true,
+                                                           "Missing":  [
+
+                                                                       ],
+                                                           "Extra":  [
+
+                                                                     ]
+                                                       }
+                              },
+                              {
+                                  "table":  "courses",
+                                  "originalColumns":  [
+                                                          "code",
+                                                          "credit_units",
+                                                          "department_id",
+                                                          "id",
+                                                          "is_compulsory",
+                                                          "lecturer_name",
+                                                          "lecturer_user_id",
+                                                          "level",
+                                                          "programme_id",
+                                                          "semester",
+                                                          "title"
+                                                      ],
+                                  "draftColumns":  [
+                                                       "code",
+                                                       "credit_units",
+                                                       "department_id",
+                                                       "id",
+                                                       "is_compulsory",
+                                                       "lecturer_name",
+                                                       "lecturer_user_id",
+                                                       "level",
+                                                       "programme_id",
+                                                       "semester",
+                                                       "title"
+                                                   ],
+                                  "inventoryColumns":  [
+                                                           "code",
+                                                           "credit_units",
+                                                           "department_id",
+                                                           "id",
+                                                           "is_compulsory",
+                                                           "lecturer_name",
+                                                           "lecturer_user_id",
+                                                           "level",
+                                                           "programme_id",
+                                                           "semester",
+                                                           "title"
+                                                       ],
+                                  "originalVsDraft":  {
+                                                          "Match":  true,
+                                                          "Missing":  [
+
+                                                                      ],
+                                                          "Extra":  [
+
+                                                                    ]
+                                                      },
+                                  "originalVsInventory":  {
+                                                              "Match":  true,
+                                                              "Missing":  [
+
+                                                                          ],
+                                                              "Extra":  [
+
+                                                                        ]
+                                                          },
+                                  "draftVsInventory":  {
+                                                           "Match":  true,
+                                                           "Missing":  [
+
+                                                                       ],
+                                                           "Extra":  [
+
+                                                                     ]
+                                                       }
+                              },
+                              {
+                                  "table":  "admission_applications",
+                                  "originalColumns":  [
+                                                          "application_number",
+                                                          "date_of_birth",
+                                                          "decision_at",
+                                                          "email",
+                                                          "fee_activation_required_at",
+                                                          "first_name",
+                                                          "gender",
+                                                          "id",
+                                                          "last_name",
+                                                          "lga",
+                                                          "o_level_results",
+                                                          "other_names",
+                                                          "phone",
+                                                          "photo_url",
+                                                          "programme_id",
+                                                          "residential_address",
+                                                          "reviewer_display_snapshot",
+                                                          "reviewer_user_id",
+                                                          "screening_notes",
+                                                          "session",
+                                                          "state_of_origin",
+                                                          "status",
+                                                          "submitted_at",
+                                                          "user_id"
+                                                      ],
+                                  "draftColumns":  [
+                                                       "application_number",
+                                                       "date_of_birth",
+                                                       "decision_at",
+                                                       "email",
+                                                       "fee_activation_required_at",
+                                                       "first_name",
+                                                       "gender",
+                                                       "id",
+                                                       "last_name",
+                                                       "lga",
+                                                       "o_level_results",
+                                                       "other_names",
+                                                       "phone",
+                                                       "photo_url",
+                                                       "programme_id",
+                                                       "residential_address",
+                                                       "reviewer_display_snapshot",
+                                                       "reviewer_user_id",
+                                                       "screening_notes",
+                                                       "session",
+                                                       "state_of_origin",
+                                                       "status",
+                                                       "submitted_at",
+                                                       "user_id"
+                                                   ],
+                                  "inventoryColumns":  [
+                                                           "application_number",
+                                                           "date_of_birth",
+                                                           "decision_at",
+                                                           "email",
+                                                           "fee_activation_required_at",
+                                                           "first_name",
+                                                           "gender",
+                                                           "id",
+                                                           "last_name",
+                                                           "lga",
+                                                           "o_level_results",
+                                                           "other_names",
+                                                           "phone",
+                                                           "photo_url",
+                                                           "programme_id",
+                                                           "residential_address",
+                                                           "reviewer_display_snapshot",
+                                                           "reviewer_user_id",
+                                                           "screening_notes",
+                                                           "session",
+                                                           "state_of_origin",
+                                                           "status",
+                                                           "submitted_at",
+                                                           "user_id"
+                                                       ],
+                                  "originalVsDraft":  {
+                                                          "Match":  true,
+                                                          "Missing":  [
+
+                                                                      ],
+                                                          "Extra":  [
+
+                                                                    ]
+                                                      },
+                                  "originalVsInventory":  {
+                                                              "Match":  true,
+                                                              "Missing":  [
+
+                                                                          ],
+                                                              "Extra":  [
+
+                                                                        ]
+                                                          },
+                                  "draftVsInventory":  {
+                                                           "Match":  true,
+                                                           "Missing":  [
+
+                                                                       ],
+                                                           "Extra":  [
+
+                                                                     ]
+                                                       }
+                              },
+                              {
+                                  "table":  "students",
+                                  "originalColumns":  [
+                                                          "academic_status",
+                                                          "cgpa",
+                                                          "date_of_birth",
+                                                          "department_id",
+                                                          "emergency_contact",
+                                                          "gender",
+                                                          "id",
+                                                          "level",
+                                                          "matric_number",
+                                                          "next_of_kin",
+                                                          "photo_url",
+                                                          "programme_id",
+                                                          "school_id",
+                                                          "session_admitted",
+                                                          "total_credits_earned",
+                                                          "user_id"
+                                                      ],
+                                  "draftColumns":  [
+                                                       "academic_status",
+                                                       "cgpa",
+                                                       "date_of_birth",
+                                                       "department_id",
+                                                       "emergency_contact",
+                                                       "gender",
+                                                       "id",
+                                                       "level",
+                                                       "matric_number",
+                                                       "next_of_kin",
+                                                       "photo_url",
+                                                       "programme_id",
+                                                       "school_id",
+                                                       "session_admitted",
+                                                       "total_credits_earned",
+                                                       "user_id"
+                                                   ],
+                                  "inventoryColumns":  [
+                                                           "academic_status",
+                                                           "cgpa",
+                                                           "date_of_birth",
+                                                           "department_id",
+                                                           "emergency_contact",
+                                                           "gender",
+                                                           "id",
+                                                           "level",
+                                                           "matric_number",
+                                                           "next_of_kin",
+                                                           "photo_url",
+                                                           "programme_id",
+                                                           "school_id",
+                                                           "session_admitted",
+                                                           "total_credits_earned",
+                                                           "user_id"
+                                                       ],
+                                  "originalVsDraft":  {
+                                                          "Match":  true,
+                                                          "Missing":  [
+
+                                                                      ],
+                                                          "Extra":  [
+
+                                                                    ]
+                                                      },
+                                  "originalVsInventory":  {
+                                                              "Match":  true,
+                                                              "Missing":  [
+
+                                                                          ],
+                                                              "Extra":  [
+
+                                                                        ]
+                                                          },
+                                  "draftVsInventory":  {
+                                                           "Match":  true,
+                                                           "Missing":  [
+
+                                                                       ],
+                                                           "Extra":  [
+
+                                                                     ]
+                                                       }
+                              },
+                              {
+                                  "table":  "legacy_invoices",
+                                  "originalColumns":  [
+                                                          "amount",
+                                                          "amount_paid",
+                                                          "created_at",
+                                                          "due_date",
+                                                          "id",
+                                                          "invoice_number",
+                                                          "session",
+                                                          "status",
+                                                          "student_id",
+                                                          "title"
+                                                      ],
+                                  "draftColumns":  [
+                                                       "amount",
+                                                       "amount_paid",
+                                                       "created_at",
+                                                       "due_date",
+                                                       "id",
+                                                       "invoice_number",
+                                                       "session",
+                                                       "status",
+                                                       "student_id",
+                                                       "title"
+                                                   ],
+                                  "inventoryColumns":  [
+                                                           "amount",
+                                                           "amount_paid",
+                                                           "created_at",
+                                                           "due_date",
+                                                           "id",
+                                                           "invoice_number",
+                                                           "session",
+                                                           "status",
+                                                           "student_id",
+                                                           "title"
+                                                       ],
+                                  "originalVsDraft":  {
+                                                          "Match":  true,
+                                                          "Missing":  [
+
+                                                                      ],
+                                                          "Extra":  [
+
+                                                                    ]
+                                                      },
+                                  "originalVsInventory":  {
+                                                              "Match":  true,
+                                                              "Missing":  [
+
+                                                                          ],
+                                                              "Extra":  [
+
+                                                                        ]
+                                                          },
+                                  "draftVsInventory":  {
+                                                           "Match":  true,
+                                                           "Missing":  [
+
+                                                                       ],
+                                                           "Extra":  [
+
+                                                                     ]
+                                                       }
+                              },
+                              {
+                                  "table":  "legacy_payment_transactions",
+                                  "originalColumns":  [
+                                                          "amount",
+                                                          "channel",
+                                                          "id",
+                                                          "invoice_id",
+                                                          "paid_at",
+                                                          "provider_reference",
+                                                          "reference",
+                                                          "status",
+                                                          "student_id",
+                                                          "verified_by_display"
+                                                      ],
+                                  "draftColumns":  [
+                                                       "amount",
+                                                       "channel",
+                                                       "id",
+                                                       "invoice_id",
+                                                       "paid_at",
+                                                       "provider_reference",
+                                                       "reference",
+                                                       "status",
+                                                       "student_id",
+                                                       "verified_by_display"
+                                                   ],
+                                  "inventoryColumns":  [
+                                                           "amount",
+                                                           "channel",
+                                                           "id",
+                                                           "invoice_id",
+                                                           "paid_at",
+                                                           "provider_reference",
+                                                           "reference",
+                                                           "status",
+                                                           "student_id",
+                                                           "verified_by_display"
+                                                       ],
+                                  "originalVsDraft":  {
+                                                          "Match":  true,
+                                                          "Missing":  [
+
+                                                                      ],
+                                                          "Extra":  [
+
+                                                                    ]
+                                                      },
+                                  "originalVsInventory":  {
+                                                              "Match":  true,
+                                                              "Missing":  [
+
+                                                                          ],
+                                                              "Extra":  [
+
+                                                                        ]
+                                                          },
+                                  "draftVsInventory":  {
+                                                           "Match":  true,
+                                                           "Missing":  [
+
+                                                                       ],
+                                                           "Extra":  [
+
+                                                                     ]
+                                                       }
+                              }
+                          ],
+    "checks":  [
+                   {
+                       "name":  "Original target tables",
+                       "pass":  true,
+                       "details":  {
+                                       "Match":  true,
+                                       "Missing":  [
+
+                                                   ],
+                                       "Extra":  [
+
+                                                 ]
+                                   }
+                   },
+                   {
+                       "name":  "Draft target tables",
+                       "pass":  true,
+                       "details":  {
+                                       "Match":  true,
+                                       "Missing":  [
+
+                                                   ],
+                                       "Extra":  [
+
+                                                 ]
+                                   }
+                   },
+                   {
+                       "name":  "Inventory target tables",
+                       "pass":  true,
+                       "details":  {
+                                       "Match":  true,
+                                       "Missing":  [
+
+                                                   ],
+                                       "Extra":  [
+
+                                                 ]
+                                   }
+                   },
+                   {
+                       "name":  "Nine CREATE TABLE declarations in original and draft",
+                       "pass":  true,
+                       "details":  {
+                                       "draft":  9,
+                                       "original":  9
+                                   }
+                   },
+                   {
+                       "name":  "Fourteen CREATE INDEX declarations in original and draft",
+                       "pass":  true,
+                       "details":  {
+                                       "draft":  14,
+                                       "original":  14
+                                   }
+                   },
+                   {
+                       "name":  "Five ADD CONSTRAINT statements in original",
+                       "pass":  true,
+                       "details":  5
+                   },
+                   {
+                       "name":  "Five guarded FK blocks in draft",
+                       "pass":  true,
+                       "details":  5
+                   },
+                   {
+                       "name":  "All expected FK guard names present",
+                       "pass":  true,
+                       "details":  [
+                                       {
+                                           "name":  "fk_users_department",
+                                           "present":  true
+                                       },
+                                       {
+                                           "name":  "fk_users_school",
+                                           "present":  true
+                                       },
+                                       {
+                                           "name":  "fk_schools_dean",
+                                           "present":  true
+                                       },
+                                       {
+                                           "name":  "fk_departments_hod",
+                                           "present":  true
+                                       },
+                                       {
+                                           "name":  "fk_courses_lecturer",
+                                           "present":  true
+                                       }
+                                   ]
+                   },
+                   {
+                       "name":  "Original and draft column names agree",
+                       "pass":  true,
+                       "details":  [
+
+                                   ]
+                   },
+                   {
+                       "name":  "Original column names agree with inventory",
+                       "pass":  true,
+                       "details":  [
+
+                                   ]
+                   },
+                   {
+                       "name":  "Draft column names agree with inventory",
+                       "pass":  true,
+                       "details":  [
+
+                                   ]
+                   }
+               ],
+    "totals":  {
+                   "checksPassed":  11,
+                   "checksFailed":  0
+               },
+    "status":  "STATIC_RECONCILIATION_PASS"
+}

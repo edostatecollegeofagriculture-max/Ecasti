@@ -1,0 +1,1828 @@
+﻿{
+    "mode":  "READ_ONLY_SCHEMA_INVENTORY",
+    "schema":  "public",
+    "tables":  [
+                   {
+                       "table":  "admission_applications",
+                       "columns":  [
+                                       {
+                                           "udt":  "text",
+                                           "name":  "id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  1
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "application_number",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  2
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "user_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  3
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "programme_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  4
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "session",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  5
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "first_name",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  6
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "last_name",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  7
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "other_names",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  8
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "gender",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  9
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "date_of_birth",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  10
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "phone",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  11
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "email",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  12
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "photo_url",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  13
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "state_of_origin",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  14
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "lga",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  15
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "residential_address",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  16
+                                       },
+                                       {
+                                           "udt":  "jsonb",
+                                           "name":  "o_level_results",
+                                           "type":  "jsonb",
+                                           "default":  "\u0027[]\u0027::jsonb",
+                                           "nullable":  "NO",
+                                           "position":  17
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "status",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  18
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "screening_notes",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  19
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "reviewer_user_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  20
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "reviewer_display_snapshot",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  21
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "submitted_at",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  22
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "decision_at",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  23
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "fee_activation_required_at",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  24
+                                       }
+                                   ]
+                   },
+                   {
+                       "table":  "courses",
+                       "columns":  [
+                                       {
+                                           "udt":  "text",
+                                           "name":  "id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  1
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "department_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  2
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "programme_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  3
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "code",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  4
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "title",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  5
+                                       },
+                                       {
+                                           "udt":  "int4",
+                                           "name":  "credit_units",
+                                           "type":  "integer",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  6
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "level",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  7
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "semester",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  8
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "lecturer_user_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  9
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "lecturer_name",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  10
+                                       },
+                                       {
+                                           "udt":  "bool",
+                                           "name":  "is_compulsory",
+                                           "type":  "boolean",
+                                           "default":  "true",
+                                           "nullable":  "NO",
+                                           "position":  11
+                                       }
+                                   ]
+                   },
+                   {
+                       "table":  "departments",
+                       "columns":  [
+                                       {
+                                           "udt":  "text",
+                                           "name":  "id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  1
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "school_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  2
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "code",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  3
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "name",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  4
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "hod_user_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  5
+                                       }
+                                   ]
+                   },
+                   {
+                       "table":  "legacy_invoices",
+                       "columns":  [
+                                       {
+                                           "udt":  "text",
+                                           "name":  "id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  1
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "invoice_number",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  2
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "student_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  3
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "session",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  4
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "title",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  5
+                                       },
+                                       {
+                                           "udt":  "numeric",
+                                           "name":  "amount",
+                                           "type":  "numeric",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  6
+                                       },
+                                       {
+                                           "udt":  "numeric",
+                                           "name":  "amount_paid",
+                                           "type":  "numeric",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  7
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "status",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  8
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "due_date",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  9
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "created_at",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  10
+                                       }
+                                   ]
+                   },
+                   {
+                       "table":  "legacy_payment_transactions",
+                       "columns":  [
+                                       {
+                                           "udt":  "text",
+                                           "name":  "id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  1
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "reference",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  2
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "invoice_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  3
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "student_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  4
+                                       },
+                                       {
+                                           "udt":  "numeric",
+                                           "name":  "amount",
+                                           "type":  "numeric",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  5
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "channel",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  6
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "status",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  7
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "provider_reference",
+                                           "type":  "text",
+                                           "default":  "\u0027\u0027::text",
+                                           "nullable":  "NO",
+                                           "position":  8
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "paid_at",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  9
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "verified_by_display",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  10
+                                       }
+                                   ]
+                   },
+                   {
+                       "table":  "programmes",
+                       "columns":  [
+                                       {
+                                           "udt":  "text",
+                                           "name":  "id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  1
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "department_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  2
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "code",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  3
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "name",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  4
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "qualification",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  5
+                                       },
+                                       {
+                                           "udt":  "int4",
+                                           "name":  "duration_years",
+                                           "type":  "integer",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  6
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "description",
+                                           "type":  "text",
+                                           "default":  "\u0027\u0027::text",
+                                           "nullable":  "NO",
+                                           "position":  7
+                                       },
+                                       {
+                                           "udt":  "jsonb",
+                                           "name":  "requirements",
+                                           "type":  "jsonb",
+                                           "default":  "\u0027[]\u0027::jsonb",
+                                           "nullable":  "NO",
+                                           "position":  8
+                                       }
+                                   ]
+                   },
+                   {
+                       "table":  "schools",
+                       "columns":  [
+                                       {
+                                           "udt":  "text",
+                                           "name":  "id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  1
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "code",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  2
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "name",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  3
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "dean_user_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  4
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "description",
+                                           "type":  "text",
+                                           "default":  "\u0027\u0027::text",
+                                           "nullable":  "NO",
+                                           "position":  5
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "image_url",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  6
+                                       }
+                                   ]
+                   },
+                   {
+                       "table":  "students",
+                       "columns":  [
+                                       {
+                                           "udt":  "text",
+                                           "name":  "id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  1
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "matric_number",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  2
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "user_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  3
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "photo_url",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  4
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "programme_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  5
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "department_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  6
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "school_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  7
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "level",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  8
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "session_admitted",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  9
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "academic_status",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  10
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "gender",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  11
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "date_of_birth",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  12
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "emergency_contact",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  13
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "next_of_kin",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  14
+                                       },
+                                       {
+                                           "udt":  "numeric",
+                                           "name":  "cgpa",
+                                           "type":  "numeric",
+                                           "default":  "0",
+                                           "nullable":  "NO",
+                                           "position":  15
+                                       },
+                                       {
+                                           "udt":  "int4",
+                                           "name":  "total_credits_earned",
+                                           "type":  "integer",
+                                           "default":  "0",
+                                           "nullable":  "NO",
+                                           "position":  16
+                                       }
+                                   ]
+                   },
+                   {
+                       "table":  "users",
+                       "columns":  [
+                                       {
+                                           "udt":  "text",
+                                           "name":  "id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  1
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "email",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  2
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "password_hash",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  3
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "full_name",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  4
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "role",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  5
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "phone",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  6
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "photo_url",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  7
+                                       },
+                                       {
+                                           "udt":  "bool",
+                                           "name":  "is_active",
+                                           "type":  "boolean",
+                                           "default":  "true",
+                                           "nullable":  "NO",
+                                           "position":  8
+                                       },
+                                       {
+                                           "udt":  "bool",
+                                           "name":  "is_locked",
+                                           "type":  "boolean",
+                                           "default":  "false",
+                                           "nullable":  "NO",
+                                           "position":  9
+                                       },
+                                       {
+                                           "udt":  "int4",
+                                           "name":  "failed_login_attempts",
+                                           "type":  "integer",
+                                           "default":  "0",
+                                           "nullable":  "NO",
+                                           "position":  10
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "department_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  11
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "school_id",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  12
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "created_at",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "NO",
+                                           "position":  13
+                                       },
+                                       {
+                                           "udt":  "text",
+                                           "name":  "last_login",
+                                           "type":  "text",
+                                           "default":  null,
+                                           "nullable":  "YES",
+                                           "position":  14
+                                       }
+                                   ]
+                   }
+               ],
+    "indexes":  [
+                    {
+                        "name":  "admission_applications_application_number_key",
+                        "table":  "admission_applications",
+                        "definition":  "CREATE UNIQUE INDEX admission_applications_application_number_key ON public.admission_applications USING btree (application_number)"
+                    },
+                    {
+                        "name":  "admission_applications_pkey",
+                        "table":  "admission_applications",
+                        "definition":  "CREATE UNIQUE INDEX admission_applications_pkey ON public.admission_applications USING btree (id)"
+                    },
+                    {
+                        "name":  "idx_applications_programme",
+                        "table":  "admission_applications",
+                        "definition":  "CREATE INDEX idx_applications_programme ON public.admission_applications USING btree (programme_id)"
+                    },
+                    {
+                        "name":  "idx_applications_user",
+                        "table":  "admission_applications",
+                        "definition":  "CREATE INDEX idx_applications_user ON public.admission_applications USING btree (user_id)"
+                    },
+                    {
+                        "name":  "courses_pkey",
+                        "table":  "courses",
+                        "definition":  "CREATE UNIQUE INDEX courses_pkey ON public.courses USING btree (id)"
+                    },
+                    {
+                        "name":  "idx_courses_department",
+                        "table":  "courses",
+                        "definition":  "CREATE INDEX idx_courses_department ON public.courses USING btree (department_id)"
+                    },
+                    {
+                        "name":  "idx_courses_programme",
+                        "table":  "courses",
+                        "definition":  "CREATE INDEX idx_courses_programme ON public.courses USING btree (programme_id)"
+                    },
+                    {
+                        "name":  "departments_pkey",
+                        "table":  "departments",
+                        "definition":  "CREATE UNIQUE INDEX departments_pkey ON public.departments USING btree (id)"
+                    },
+                    {
+                        "name":  "idx_departments_school",
+                        "table":  "departments",
+                        "definition":  "CREATE INDEX idx_departments_school ON public.departments USING btree (school_id)"
+                    },
+                    {
+                        "name":  "uq_departments_school_code",
+                        "table":  "departments",
+                        "definition":  "CREATE UNIQUE INDEX uq_departments_school_code ON public.departments USING btree (school_id, code)"
+                    },
+                    {
+                        "name":  "idx_legacy_invoices_student",
+                        "table":  "legacy_invoices",
+                        "definition":  "CREATE INDEX idx_legacy_invoices_student ON public.legacy_invoices USING btree (student_id)"
+                    },
+                    {
+                        "name":  "legacy_invoices_pkey",
+                        "table":  "legacy_invoices",
+                        "definition":  "CREATE UNIQUE INDEX legacy_invoices_pkey ON public.legacy_invoices USING btree (id)"
+                    },
+                    {
+                        "name":  "uq_legacy_invoice_student_pair",
+                        "table":  "legacy_invoices",
+                        "definition":  "CREATE UNIQUE INDEX uq_legacy_invoice_student_pair ON public.legacy_invoices USING btree (id, student_id)"
+                    },
+                    {
+                        "name":  "idx_legacy_payments_invoice_student",
+                        "table":  "legacy_payment_transactions",
+                        "definition":  "CREATE INDEX idx_legacy_payments_invoice_student ON public.legacy_payment_transactions USING btree (invoice_id, student_id)"
+                    },
+                    {
+                        "name":  "idx_legacy_payments_student",
+                        "table":  "legacy_payment_transactions",
+                        "definition":  "CREATE INDEX idx_legacy_payments_student ON public.legacy_payment_transactions USING btree (student_id)"
+                    },
+                    {
+                        "name":  "legacy_payment_transactions_pkey",
+                        "table":  "legacy_payment_transactions",
+                        "definition":  "CREATE UNIQUE INDEX legacy_payment_transactions_pkey ON public.legacy_payment_transactions USING btree (id)"
+                    },
+                    {
+                        "name":  "idx_programmes_department",
+                        "table":  "programmes",
+                        "definition":  "CREATE INDEX idx_programmes_department ON public.programmes USING btree (department_id)"
+                    },
+                    {
+                        "name":  "programmes_pkey",
+                        "table":  "programmes",
+                        "definition":  "CREATE UNIQUE INDEX programmes_pkey ON public.programmes USING btree (id)"
+                    },
+                    {
+                        "name":  "uq_programmes_department_code",
+                        "table":  "programmes",
+                        "definition":  "CREATE UNIQUE INDEX uq_programmes_department_code ON public.programmes USING btree (department_id, code)"
+                    },
+                    {
+                        "name":  "schools_code_key",
+                        "table":  "schools",
+                        "definition":  "CREATE UNIQUE INDEX schools_code_key ON public.schools USING btree (code)"
+                    },
+                    {
+                        "name":  "schools_pkey",
+                        "table":  "schools",
+                        "definition":  "CREATE UNIQUE INDEX schools_pkey ON public.schools USING btree (id)"
+                    },
+                    {
+                        "name":  "idx_students_department",
+                        "table":  "students",
+                        "definition":  "CREATE INDEX idx_students_department ON public.students USING btree (department_id)"
+                    },
+                    {
+                        "name":  "idx_students_programme",
+                        "table":  "students",
+                        "definition":  "CREATE INDEX idx_students_programme ON public.students USING btree (programme_id)"
+                    },
+                    {
+                        "name":  "idx_students_school",
+                        "table":  "students",
+                        "definition":  "CREATE INDEX idx_students_school ON public.students USING btree (school_id)"
+                    },
+                    {
+                        "name":  "idx_students_user",
+                        "table":  "students",
+                        "definition":  "CREATE INDEX idx_students_user ON public.students USING btree (user_id)"
+                    },
+                    {
+                        "name":  "students_matric_number_key",
+                        "table":  "students",
+                        "definition":  "CREATE UNIQUE INDEX students_matric_number_key ON public.students USING btree (matric_number)"
+                    },
+                    {
+                        "name":  "students_pkey",
+                        "table":  "students",
+                        "definition":  "CREATE UNIQUE INDEX students_pkey ON public.students USING btree (id)"
+                    },
+                    {
+                        "name":  "idx_users_email",
+                        "table":  "users",
+                        "definition":  "CREATE INDEX idx_users_email ON public.users USING btree (lower(email))"
+                    },
+                    {
+                        "name":  "users_pkey",
+                        "table":  "users",
+                        "definition":  "CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)"
+                    }
+                ],
+    "database":  "ecasti_mig010_fresh_20261126143004",
+    "constraints":  [
+                        {
+                            "name":  "admission_applications_application_number_key",
+                            "type":  "u",
+                            "table":  "admission_applications",
+                            "definition":  "UNIQUE (application_number)"
+                        },
+                        {
+                            "name":  "admission_applications_application_number_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL application_number"
+                        },
+                        {
+                            "name":  "admission_applications_date_of_birth_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL date_of_birth"
+                        },
+                        {
+                            "name":  "admission_applications_email_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL email"
+                        },
+                        {
+                            "name":  "admission_applications_first_name_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL first_name"
+                        },
+                        {
+                            "name":  "admission_applications_gender_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL gender"
+                        },
+                        {
+                            "name":  "admission_applications_id_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL id"
+                        },
+                        {
+                            "name":  "admission_applications_last_name_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL last_name"
+                        },
+                        {
+                            "name":  "admission_applications_lga_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL lga"
+                        },
+                        {
+                            "name":  "admission_applications_o_level_results_check",
+                            "type":  "c",
+                            "table":  "admission_applications",
+                            "definition":  "CHECK ((jsonb_typeof(o_level_results) = \u0027array\u0027::text))"
+                        },
+                        {
+                            "name":  "admission_applications_o_level_results_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL o_level_results"
+                        },
+                        {
+                            "name":  "admission_applications_phone_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL phone"
+                        },
+                        {
+                            "name":  "admission_applications_pkey",
+                            "type":  "p",
+                            "table":  "admission_applications",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "admission_applications_programme_id_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL programme_id"
+                        },
+                        {
+                            "name":  "admission_applications_residential_address_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL residential_address"
+                        },
+                        {
+                            "name":  "admission_applications_session_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL session"
+                        },
+                        {
+                            "name":  "admission_applications_state_of_origin_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL state_of_origin"
+                        },
+                        {
+                            "name":  "admission_applications_status_check",
+                            "type":  "c",
+                            "table":  "admission_applications",
+                            "definition":  "CHECK ((status = ANY (ARRAY[\u0027DRAFT\u0027::text, \u0027SUBMITTED\u0027::text, \u0027UNDER_REVIEW\u0027::text, \u0027OFFERED\u0027::text, \u0027ACCEPTED\u0027::text, \u0027REJECTED\u0027::text])))"
+                        },
+                        {
+                            "name":  "admission_applications_status_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL status"
+                        },
+                        {
+                            "name":  "admission_applications_user_id_not_null",
+                            "type":  "n",
+                            "table":  "admission_applications",
+                            "definition":  "NOT NULL user_id"
+                        },
+                        {
+                            "name":  "fk_applications_programme",
+                            "type":  "f",
+                            "table":  "admission_applications",
+                            "definition":  "FOREIGN KEY (programme_id) REFERENCES programmes(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "fk_applications_reviewer",
+                            "type":  "f",
+                            "table":  "admission_applications",
+                            "definition":  "FOREIGN KEY (reviewer_user_id) REFERENCES users(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "fk_applications_user",
+                            "type":  "f",
+                            "table":  "admission_applications",
+                            "definition":  "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "courses_code_not_null",
+                            "type":  "n",
+                            "table":  "courses",
+                            "definition":  "NOT NULL code"
+                        },
+                        {
+                            "name":  "courses_credit_units_check",
+                            "type":  "c",
+                            "table":  "courses",
+                            "definition":  "CHECK ((credit_units \u003e 0))"
+                        },
+                        {
+                            "name":  "courses_credit_units_not_null",
+                            "type":  "n",
+                            "table":  "courses",
+                            "definition":  "NOT NULL credit_units"
+                        },
+                        {
+                            "name":  "courses_department_id_not_null",
+                            "type":  "n",
+                            "table":  "courses",
+                            "definition":  "NOT NULL department_id"
+                        },
+                        {
+                            "name":  "courses_id_not_null",
+                            "type":  "n",
+                            "table":  "courses",
+                            "definition":  "NOT NULL id"
+                        },
+                        {
+                            "name":  "courses_is_compulsory_not_null",
+                            "type":  "n",
+                            "table":  "courses",
+                            "definition":  "NOT NULL is_compulsory"
+                        },
+                        {
+                            "name":  "courses_level_not_null",
+                            "type":  "n",
+                            "table":  "courses",
+                            "definition":  "NOT NULL level"
+                        },
+                        {
+                            "name":  "courses_pkey",
+                            "type":  "p",
+                            "table":  "courses",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "courses_semester_check",
+                            "type":  "c",
+                            "table":  "courses",
+                            "definition":  "CHECK ((semester = ANY (ARRAY[\u0027First Semester\u0027::text, \u0027Second Semester\u0027::text])))"
+                        },
+                        {
+                            "name":  "courses_semester_not_null",
+                            "type":  "n",
+                            "table":  "courses",
+                            "definition":  "NOT NULL semester"
+                        },
+                        {
+                            "name":  "courses_title_not_null",
+                            "type":  "n",
+                            "table":  "courses",
+                            "definition":  "NOT NULL title"
+                        },
+                        {
+                            "name":  "fk_courses_department",
+                            "type":  "f",
+                            "table":  "courses",
+                            "definition":  "FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "fk_courses_lecturer",
+                            "type":  "f",
+                            "table":  "courses",
+                            "definition":  "FOREIGN KEY (lecturer_user_id) REFERENCES users(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "fk_courses_programme",
+                            "type":  "f",
+                            "table":  "courses",
+                            "definition":  "FOREIGN KEY (programme_id) REFERENCES programmes(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "departments_code_not_null",
+                            "type":  "n",
+                            "table":  "departments",
+                            "definition":  "NOT NULL code"
+                        },
+                        {
+                            "name":  "departments_id_not_null",
+                            "type":  "n",
+                            "table":  "departments",
+                            "definition":  "NOT NULL id"
+                        },
+                        {
+                            "name":  "departments_name_not_null",
+                            "type":  "n",
+                            "table":  "departments",
+                            "definition":  "NOT NULL name"
+                        },
+                        {
+                            "name":  "departments_pkey",
+                            "type":  "p",
+                            "table":  "departments",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "departments_school_id_not_null",
+                            "type":  "n",
+                            "table":  "departments",
+                            "definition":  "NOT NULL school_id"
+                        },
+                        {
+                            "name":  "fk_departments_hod",
+                            "type":  "f",
+                            "table":  "departments",
+                            "definition":  "FOREIGN KEY (hod_user_id) REFERENCES users(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "fk_departments_school",
+                            "type":  "f",
+                            "table":  "departments",
+                            "definition":  "FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "uq_departments_school_code",
+                            "type":  "u",
+                            "table":  "departments",
+                            "definition":  "UNIQUE (school_id, code)"
+                        },
+                        {
+                            "name":  "fk_legacy_invoice_student",
+                            "type":  "f",
+                            "table":  "legacy_invoices",
+                            "definition":  "FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "legacy_invoices_amount_check",
+                            "type":  "c",
+                            "table":  "legacy_invoices",
+                            "definition":  "CHECK ((amount \u003e= (0)::numeric))"
+                        },
+                        {
+                            "name":  "legacy_invoices_amount_not_null",
+                            "type":  "n",
+                            "table":  "legacy_invoices",
+                            "definition":  "NOT NULL amount"
+                        },
+                        {
+                            "name":  "legacy_invoices_amount_paid_check",
+                            "type":  "c",
+                            "table":  "legacy_invoices",
+                            "definition":  "CHECK ((amount_paid \u003e= (0)::numeric))"
+                        },
+                        {
+                            "name":  "legacy_invoices_amount_paid_not_null",
+                            "type":  "n",
+                            "table":  "legacy_invoices",
+                            "definition":  "NOT NULL amount_paid"
+                        },
+                        {
+                            "name":  "legacy_invoices_created_at_not_null",
+                            "type":  "n",
+                            "table":  "legacy_invoices",
+                            "definition":  "NOT NULL created_at"
+                        },
+                        {
+                            "name":  "legacy_invoices_due_date_not_null",
+                            "type":  "n",
+                            "table":  "legacy_invoices",
+                            "definition":  "NOT NULL due_date"
+                        },
+                        {
+                            "name":  "legacy_invoices_id_not_null",
+                            "type":  "n",
+                            "table":  "legacy_invoices",
+                            "definition":  "NOT NULL id"
+                        },
+                        {
+                            "name":  "legacy_invoices_invoice_number_not_null",
+                            "type":  "n",
+                            "table":  "legacy_invoices",
+                            "definition":  "NOT NULL invoice_number"
+                        },
+                        {
+                            "name":  "legacy_invoices_pkey",
+                            "type":  "p",
+                            "table":  "legacy_invoices",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "legacy_invoices_session_not_null",
+                            "type":  "n",
+                            "table":  "legacy_invoices",
+                            "definition":  "NOT NULL session"
+                        },
+                        {
+                            "name":  "legacy_invoices_status_check",
+                            "type":  "c",
+                            "table":  "legacy_invoices",
+                            "definition":  "CHECK ((status = ANY (ARRAY[\u0027UNPAID\u0027::text, \u0027PARTIAL\u0027::text, \u0027PAID\u0027::text])))"
+                        },
+                        {
+                            "name":  "legacy_invoices_status_not_null",
+                            "type":  "n",
+                            "table":  "legacy_invoices",
+                            "definition":  "NOT NULL status"
+                        },
+                        {
+                            "name":  "legacy_invoices_student_id_not_null",
+                            "type":  "n",
+                            "table":  "legacy_invoices",
+                            "definition":  "NOT NULL student_id"
+                        },
+                        {
+                            "name":  "legacy_invoices_title_not_null",
+                            "type":  "n",
+                            "table":  "legacy_invoices",
+                            "definition":  "NOT NULL title"
+                        },
+                        {
+                            "name":  "uq_legacy_invoice_student_pair",
+                            "type":  "u",
+                            "table":  "legacy_invoices",
+                            "definition":  "UNIQUE (id, student_id)"
+                        },
+                        {
+                            "name":  "fk_legacy_payment_invoice_student",
+                            "type":  "f",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "FOREIGN KEY (invoice_id, student_id) REFERENCES legacy_invoices(id, student_id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_amount_check",
+                            "type":  "c",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "CHECK ((amount \u003e= (0)::numeric))"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_amount_not_null",
+                            "type":  "n",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "NOT NULL amount"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_channel_check",
+                            "type":  "c",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "CHECK ((channel = ANY (ARRAY[\u0027Remita\u0027::text, \u0027Bank Transfer\u0027::text, \u0027Interswitch\u0027::text, \u0027Card\u0027::text])))"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_channel_not_null",
+                            "type":  "n",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "NOT NULL channel"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_id_not_null",
+                            "type":  "n",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "NOT NULL id"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_invoice_id_not_null",
+                            "type":  "n",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "NOT NULL invoice_id"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_paid_at_not_null",
+                            "type":  "n",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "NOT NULL paid_at"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_pkey",
+                            "type":  "p",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_provider_reference_not_null",
+                            "type":  "n",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "NOT NULL provider_reference"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_reference_not_null",
+                            "type":  "n",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "NOT NULL reference"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_status_check",
+                            "type":  "c",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "CHECK ((status = ANY (ARRAY[\u0027VERIFIED\u0027::text, \u0027PENDING\u0027::text, \u0027REJECTED\u0027::text])))"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_status_not_null",
+                            "type":  "n",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "NOT NULL status"
+                        },
+                        {
+                            "name":  "legacy_payment_transactions_student_id_not_null",
+                            "type":  "n",
+                            "table":  "legacy_payment_transactions",
+                            "definition":  "NOT NULL student_id"
+                        },
+                        {
+                            "name":  "fk_programmes_department",
+                            "type":  "f",
+                            "table":  "programmes",
+                            "definition":  "FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "programmes_code_not_null",
+                            "type":  "n",
+                            "table":  "programmes",
+                            "definition":  "NOT NULL code"
+                        },
+                        {
+                            "name":  "programmes_department_id_not_null",
+                            "type":  "n",
+                            "table":  "programmes",
+                            "definition":  "NOT NULL department_id"
+                        },
+                        {
+                            "name":  "programmes_description_not_null",
+                            "type":  "n",
+                            "table":  "programmes",
+                            "definition":  "NOT NULL description"
+                        },
+                        {
+                            "name":  "programmes_duration_years_check",
+                            "type":  "c",
+                            "table":  "programmes",
+                            "definition":  "CHECK ((duration_years \u003e 0))"
+                        },
+                        {
+                            "name":  "programmes_duration_years_not_null",
+                            "type":  "n",
+                            "table":  "programmes",
+                            "definition":  "NOT NULL duration_years"
+                        },
+                        {
+                            "name":  "programmes_id_not_null",
+                            "type":  "n",
+                            "table":  "programmes",
+                            "definition":  "NOT NULL id"
+                        },
+                        {
+                            "name":  "programmes_name_not_null",
+                            "type":  "n",
+                            "table":  "programmes",
+                            "definition":  "NOT NULL name"
+                        },
+                        {
+                            "name":  "programmes_pkey",
+                            "type":  "p",
+                            "table":  "programmes",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "programmes_qualification_check",
+                            "type":  "c",
+                            "table":  "programmes",
+                            "definition":  "CHECK ((qualification = ANY (ARRAY[\u0027ND\u0027::text, \u0027HND\u0027::text, \u0027Certificate\u0027::text])))"
+                        },
+                        {
+                            "name":  "programmes_qualification_not_null",
+                            "type":  "n",
+                            "table":  "programmes",
+                            "definition":  "NOT NULL qualification"
+                        },
+                        {
+                            "name":  "programmes_requirements_check",
+                            "type":  "c",
+                            "table":  "programmes",
+                            "definition":  "CHECK ((jsonb_typeof(requirements) = \u0027array\u0027::text))"
+                        },
+                        {
+                            "name":  "programmes_requirements_not_null",
+                            "type":  "n",
+                            "table":  "programmes",
+                            "definition":  "NOT NULL requirements"
+                        },
+                        {
+                            "name":  "uq_programmes_department_code",
+                            "type":  "u",
+                            "table":  "programmes",
+                            "definition":  "UNIQUE (department_id, code)"
+                        },
+                        {
+                            "name":  "fk_schools_dean",
+                            "type":  "f",
+                            "table":  "schools",
+                            "definition":  "FOREIGN KEY (dean_user_id) REFERENCES users(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "schools_code_key",
+                            "type":  "u",
+                            "table":  "schools",
+                            "definition":  "UNIQUE (code)"
+                        },
+                        {
+                            "name":  "schools_code_not_null",
+                            "type":  "n",
+                            "table":  "schools",
+                            "definition":  "NOT NULL code"
+                        },
+                        {
+                            "name":  "schools_description_not_null",
+                            "type":  "n",
+                            "table":  "schools",
+                            "definition":  "NOT NULL description"
+                        },
+                        {
+                            "name":  "schools_id_not_null",
+                            "type":  "n",
+                            "table":  "schools",
+                            "definition":  "NOT NULL id"
+                        },
+                        {
+                            "name":  "schools_name_not_null",
+                            "type":  "n",
+                            "table":  "schools",
+                            "definition":  "NOT NULL name"
+                        },
+                        {
+                            "name":  "schools_pkey",
+                            "type":  "p",
+                            "table":  "schools",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "fk_students_department",
+                            "type":  "f",
+                            "table":  "students",
+                            "definition":  "FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "fk_students_programme",
+                            "type":  "f",
+                            "table":  "students",
+                            "definition":  "FOREIGN KEY (programme_id) REFERENCES programmes(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "fk_students_school",
+                            "type":  "f",
+                            "table":  "students",
+                            "definition":  "FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "fk_students_user",
+                            "type":  "f",
+                            "table":  "students",
+                            "definition":  "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "students_academic_status_check",
+                            "type":  "c",
+                            "table":  "students",
+                            "definition":  "CHECK ((academic_status = ANY (ARRAY[\u0027Good Standing\u0027::text, \u0027Probation\u0027::text, \u0027Suspended\u0027::text, \u0027Graduated\u0027::text])))"
+                        },
+                        {
+                            "name":  "students_academic_status_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL academic_status"
+                        },
+                        {
+                            "name":  "students_cgpa_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL cgpa"
+                        },
+                        {
+                            "name":  "students_date_of_birth_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL date_of_birth"
+                        },
+                        {
+                            "name":  "students_department_id_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL department_id"
+                        },
+                        {
+                            "name":  "students_emergency_contact_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL emergency_contact"
+                        },
+                        {
+                            "name":  "students_gender_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL gender"
+                        },
+                        {
+                            "name":  "students_id_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL id"
+                        },
+                        {
+                            "name":  "students_level_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL level"
+                        },
+                        {
+                            "name":  "students_matric_number_key",
+                            "type":  "u",
+                            "table":  "students",
+                            "definition":  "UNIQUE (matric_number)"
+                        },
+                        {
+                            "name":  "students_matric_number_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL matric_number"
+                        },
+                        {
+                            "name":  "students_next_of_kin_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL next_of_kin"
+                        },
+                        {
+                            "name":  "students_pkey",
+                            "type":  "p",
+                            "table":  "students",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "students_programme_id_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL programme_id"
+                        },
+                        {
+                            "name":  "students_school_id_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL school_id"
+                        },
+                        {
+                            "name":  "students_session_admitted_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL session_admitted"
+                        },
+                        {
+                            "name":  "students_total_credits_earned_check",
+                            "type":  "c",
+                            "table":  "students",
+                            "definition":  "CHECK ((total_credits_earned \u003e= 0))"
+                        },
+                        {
+                            "name":  "students_total_credits_earned_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL total_credits_earned"
+                        },
+                        {
+                            "name":  "students_user_id_not_null",
+                            "type":  "n",
+                            "table":  "students",
+                            "definition":  "NOT NULL user_id"
+                        },
+                        {
+                            "name":  "fk_users_department",
+                            "type":  "f",
+                            "table":  "users",
+                            "definition":  "FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "fk_users_school",
+                            "type":  "f",
+                            "table":  "users",
+                            "definition":  "FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE RESTRICT"
+                        },
+                        {
+                            "name":  "users_created_at_not_null",
+                            "type":  "n",
+                            "table":  "users",
+                            "definition":  "NOT NULL created_at"
+                        },
+                        {
+                            "name":  "users_email_not_null",
+                            "type":  "n",
+                            "table":  "users",
+                            "definition":  "NOT NULL email"
+                        },
+                        {
+                            "name":  "users_failed_login_attempts_check",
+                            "type":  "c",
+                            "table":  "users",
+                            "definition":  "CHECK ((failed_login_attempts \u003e= 0))"
+                        },
+                        {
+                            "name":  "users_failed_login_attempts_not_null",
+                            "type":  "n",
+                            "table":  "users",
+                            "definition":  "NOT NULL failed_login_attempts"
+                        },
+                        {
+                            "name":  "users_full_name_not_null",
+                            "type":  "n",
+                            "table":  "users",
+                            "definition":  "NOT NULL full_name"
+                        },
+                        {
+                            "name":  "users_id_not_null",
+                            "type":  "n",
+                            "table":  "users",
+                            "definition":  "NOT NULL id"
+                        },
+                        {
+                            "name":  "users_is_active_not_null",
+                            "type":  "n",
+                            "table":  "users",
+                            "definition":  "NOT NULL is_active"
+                        },
+                        {
+                            "name":  "users_is_locked_not_null",
+                            "type":  "n",
+                            "table":  "users",
+                            "definition":  "NOT NULL is_locked"
+                        },
+                        {
+                            "name":  "users_password_hash_not_null",
+                            "type":  "n",
+                            "table":  "users",
+                            "definition":  "NOT NULL password_hash"
+                        },
+                        {
+                            "name":  "users_pkey",
+                            "type":  "p",
+                            "table":  "users",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "users_role_not_null",
+                            "type":  "n",
+                            "table":  "users",
+                            "definition":  "NOT NULL role"
+                        }
+                    ],
+    "server_port":  5433,
+    "server_address":  "127.0.0.1/32",
+    "target_table_count":  9
+}

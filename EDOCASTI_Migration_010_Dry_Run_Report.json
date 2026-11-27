@@ -1,0 +1,254 @@
+{
+  "mode": "LOCAL_READ_ONLY_DRY_RUN",
+  "executedAt": "2026-11-26T13:17:10.871Z",
+  "source": {
+    "file": "data/edocasti_db.json",
+    "sha256": "2247f06ac2cc25a66efdb63e9e08ed815492c751c9b547e6d8a1f467ed36c705",
+    "counts": {
+      "schools": 4,
+      "users": 15,
+      "departments": 10,
+      "programmes": 12,
+      "courses": 8,
+      "applications": 1,
+      "students": 4,
+      "invoices": 4,
+      "payments": 2
+    }
+  },
+  "migration": {
+    "file": "database/migrations/010_core_entities_and_legacy_finance.sql",
+    "sha256": "a6b1c87a02ce191aff7cd335f441a27cea01655d754d5d32cff25a8ad2ae6077",
+    "expectedTables": [
+      "schools",
+      "users",
+      "departments",
+      "programmes",
+      "courses",
+      "admission_applications",
+      "students",
+      "legacy_invoices",
+      "legacy_payment_transactions"
+    ],
+    "declaredTables": [
+      "schools",
+      "users",
+      "departments",
+      "programmes",
+      "courses",
+      "admission_applications",
+      "students",
+      "legacy_invoices",
+      "legacy_payment_transactions"
+    ]
+  },
+  "database": {
+    "name": "ecasti_local",
+    "schema": "public",
+    "address": "127.0.0.1/32",
+    "port": 5433,
+    "verified": true
+  },
+  "targetSchema": {
+    "schools": {
+      "exists": false,
+      "expectedColumnCount": 6,
+      "actualColumnCount": 0,
+      "missingColumns": [
+        "id",
+        "code",
+        "name",
+        "dean_user_id",
+        "description",
+        "image_url"
+      ]
+    },
+    "users": {
+      "exists": false,
+      "expectedColumnCount": 14,
+      "actualColumnCount": 0,
+      "missingColumns": [
+        "id",
+        "email",
+        "password_hash",
+        "full_name",
+        "role",
+        "phone",
+        "photo_url",
+        "is_active",
+        "is_locked",
+        "failed_login_attempts",
+        "department_id",
+        "school_id",
+        "created_at",
+        "last_login"
+      ]
+    },
+    "departments": {
+      "exists": false,
+      "expectedColumnCount": 5,
+      "actualColumnCount": 0,
+      "missingColumns": [
+        "id",
+        "school_id",
+        "code",
+        "name",
+        "hod_user_id"
+      ]
+    },
+    "programmes": {
+      "exists": false,
+      "expectedColumnCount": 8,
+      "actualColumnCount": 0,
+      "missingColumns": [
+        "id",
+        "department_id",
+        "code",
+        "name",
+        "qualification",
+        "duration_years",
+        "description",
+        "requirements"
+      ]
+    },
+    "courses": {
+      "exists": false,
+      "expectedColumnCount": 11,
+      "actualColumnCount": 0,
+      "missingColumns": [
+        "id",
+        "department_id",
+        "programme_id",
+        "code",
+        "title",
+        "credit_units",
+        "level",
+        "semester",
+        "lecturer_user_id",
+        "lecturer_name",
+        "is_compulsory"
+      ]
+    },
+    "admission_applications": {
+      "exists": false,
+      "expectedColumnCount": 24,
+      "actualColumnCount": 0,
+      "missingColumns": [
+        "id",
+        "application_number",
+        "user_id",
+        "programme_id",
+        "session",
+        "first_name",
+        "last_name",
+        "other_names",
+        "gender",
+        "date_of_birth",
+        "phone",
+        "email",
+        "photo_url",
+        "state_of_origin",
+        "lga",
+        "residential_address",
+        "o_level_results",
+        "status",
+        "screening_notes",
+        "reviewer_user_id",
+        "reviewer_display_snapshot",
+        "submitted_at",
+        "decision_at",
+        "fee_activation_required_at"
+      ]
+    },
+    "students": {
+      "exists": false,
+      "expectedColumnCount": 16,
+      "actualColumnCount": 0,
+      "missingColumns": [
+        "id",
+        "matric_number",
+        "user_id",
+        "photo_url",
+        "programme_id",
+        "department_id",
+        "school_id",
+        "level",
+        "session_admitted",
+        "academic_status",
+        "gender",
+        "date_of_birth",
+        "emergency_contact",
+        "next_of_kin",
+        "cgpa",
+        "total_credits_earned"
+      ]
+    },
+    "legacy_invoices": {
+      "exists": false,
+      "expectedColumnCount": 10,
+      "actualColumnCount": 0,
+      "missingColumns": [
+        "id",
+        "invoice_number",
+        "student_id",
+        "session",
+        "title",
+        "amount",
+        "amount_paid",
+        "status",
+        "due_date",
+        "created_at"
+      ]
+    },
+    "legacy_payment_transactions": {
+      "exists": false,
+      "expectedColumnCount": 10,
+      "actualColumnCount": 0,
+      "missingColumns": [
+        "id",
+        "reference",
+        "invoice_id",
+        "student_id",
+        "amount",
+        "channel",
+        "status",
+        "provider_reference",
+        "paid_at",
+        "verified_by_display"
+      ]
+    },
+    "missingTables": [
+      "schools",
+      "users",
+      "departments",
+      "programmes",
+      "courses",
+      "admission_applications",
+      "students",
+      "legacy_invoices",
+      "legacy_payment_transactions"
+    ],
+    "columnMismatches": []
+  },
+  "sourceExceptions": [
+    {
+      "collection": "applications",
+      "recordId": "app-1795622937861",
+      "field": "phone",
+      "issue": "REQUIRED_VALUE_EMPTY"
+    },
+    {
+      "collection": "students",
+      "recordId": "std-1795623290388",
+      "field": "emergencyContact",
+      "issue": "REQUIRED_VALUE_EMPTY"
+    }
+  ],
+  "safety": {
+    "databaseWrites": false,
+    "migrationExecuted": false,
+    "sourceModified": false,
+    "remoteAccessPermitted": false
+  },
+  "status": "BLOCKED"
+}

@@ -1,0 +1,182 @@
+{
+  "mode": "MIGRATION_010_CONSOLIDATED_FILE_ONLY_READINESS",
+  "generatedAt": "2026-11-26T14:00:58.979Z",
+  "status": "REVIEW_REQUIRED",
+  "checks": [
+    {
+      "name": "All expected report files exist",
+      "passed": true,
+      "detail": "All present"
+    },
+    {
+      "name": "All reports parse as JSON",
+      "passed": false,
+      "detail": "Reports checked: 8"
+    },
+    {
+      "name": "Five synthetic/integrity reports have TEST_PASS",
+      "passed": false,
+      "detail": "MANIFEST_VALID, TEST_PASS, TEST_PASS, TEST_PASS, TEST_PASS"
+    },
+    {
+      "name": "Static reconciliation reports pass",
+      "passed": false,
+      "detail": "Status not found"
+    },
+    {
+      "name": "Manifest integrity report has no failures",
+      "passed": true,
+      "detail": "MANIFEST_VALID"
+    },
+    {
+      "name": "Quarantine simulation totals reconcile",
+      "passed": true,
+      "detail": "TEST_PASS"
+    },
+    {
+      "name": "Transformation report does not falsely indicate unrestricted readiness",
+      "passed": true,
+      "detail": "BLOCKED"
+    },
+    {
+      "name": "Authoritative required-field blockers resolved",
+      "passed": false,
+      "detail": "2 unresolved"
+    },
+    {
+      "name": "Destination collision verification completed",
+      "passed": false,
+      "detail": "Not performed; collision testing was synthetic only"
+    },
+    {
+      "name": "Import authorization",
+      "passed": false,
+      "detail": "Blocked pending authoritative data and destination verification"
+    }
+  ],
+  "passed": 4,
+  "failed": 6,
+  "missingFiles": [],
+  "individualReports": [
+    {
+      "file": "EDOCASTI_Migration_010_Final_Static_Reconciliation.json",
+      "exists": true,
+      "parseable": false
+    },
+    {
+      "file": "EDOCASTI_Migration_010_Manifest_Integrity.json",
+      "exists": true,
+      "parseable": true,
+      "status": "MANIFEST_VALID",
+      "passed": null,
+      "failed": null,
+      "findings": null
+    },
+    {
+      "file": "EDOCASTI_Migration_010_Synthetic_Test_Report.json",
+      "exists": true,
+      "parseable": true,
+      "status": "TEST_PASS",
+      "passed": 15,
+      "failed": 0,
+      "findings": null
+    },
+    {
+      "file": "EDOCASTI_Migration_010_Quarantine_Propagation_Test.json",
+      "exists": true,
+      "parseable": true,
+      "status": "TEST_PASS",
+      "passed": 10,
+      "failed": 0,
+      "findings": null
+    },
+    {
+      "file": "EDOCASTI_Migration_010_Dependency_Integrity_Test.json",
+      "exists": true,
+      "parseable": true,
+      "status": "TEST_PASS",
+      "passed": 8,
+      "failed": 0,
+      "findings": null
+    },
+    {
+      "file": "EDOCASTI_Migration_010_Target_Collision_Test.json",
+      "exists": true,
+      "parseable": true,
+      "status": "TEST_PASS",
+      "passed": 8,
+      "failed": 0,
+      "findings": null
+    },
+    {
+      "file": "EDOCASTI_Migration_010_Quarantine_Simulation.json",
+      "exists": true,
+      "parseable": true,
+      "status": "SIMULATION_PASS_REVIEW_REQUIRED",
+      "passed": null,
+      "failed": null,
+      "findings": null
+    },
+    {
+      "file": "EDOCASTI_Migration_010_Transformation_Validation.json",
+      "exists": true,
+      "parseable": true,
+      "status": "BLOCKED",
+      "passed": null,
+      "failed": null,
+      "findings": [
+        {
+          "type": "BLOCK",
+          "collection": "applications",
+          "reason": "Required source value missing",
+          "field": "phone",
+          "count": 1
+        },
+        {
+          "type": "BLOCK",
+          "collection": "students",
+          "reason": "Required source value missing",
+          "field": "emergencyContact",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "sourceDataBlockers": [
+    {
+      "collection": "admission_applications",
+      "issue": "Required phone field missing",
+      "resolved": false
+    },
+    {
+      "collection": "students",
+      "issue": "Required emergency contact missing",
+      "resolved": false
+    }
+  ],
+  "safety": {
+    "sourceModified": false,
+    "databaseConnected": false,
+    "destinationInspected": false,
+    "sqlExecuted": false,
+    "importPerformed": false,
+    "importAuthorized": false
+  },
+  "scope": {
+    "collections": [
+      "schools",
+      "users",
+      "departments",
+      "programmes",
+      "courses",
+      "admission_applications",
+      "students",
+      "legacy_invoices",
+      "legacy_payment_transactions"
+    ],
+    "expectedSourceRecords": 60,
+    "simulatedEligible": 57,
+    "simulatedQuarantined": 3
+  },
+  "note": "This report consolidates file-only validation. It does not authorize or perform a migration."
+}

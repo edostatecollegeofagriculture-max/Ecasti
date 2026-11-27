@@ -1,0 +1,47 @@
+{
+  "mode": "SYNTHETIC_DEPENDENCY_INTEGRITY_TEST",
+  "status": "TEST_PASS",
+  "checks": [
+    {
+      "name": "Valid dependency chain has no errors",
+      "passed": true
+    },
+    {
+      "name": "Valid student invoice and payment remain eligible",
+      "passed": true
+    },
+    {
+      "name": "Orphan invoice is blocked",
+      "passed": true
+    },
+    {
+      "name": "Orphan payment is blocked",
+      "passed": true
+    },
+    {
+      "name": "Duplicate ID is rejected",
+      "passed": true
+    },
+    {
+      "name": "Unknown dependency state fails closed",
+      "passed": true
+    },
+    {
+      "name": "Quarantine propagates through valid dependency chain",
+      "passed": true
+    },
+    {
+      "name": "Original valid fixture remains unchanged",
+      "passed": true
+    }
+  ],
+  "passed": 8,
+  "failed": 0,
+  "safety": {
+    "realSourceUsed": false,
+    "databaseConnected": false,
+    "sqlExecuted": false,
+    "importPerformed": false,
+    "sourceModified": false
+  }
+}

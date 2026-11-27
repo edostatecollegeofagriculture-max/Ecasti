@@ -1,0 +1,211 @@
+﻿  580:                       <th className="p-2.5 text-center">CA ({settings?.caMaxMarks || 40})</th>
+  581:                       <th className="p-2.5 text-center">Exam ({settings?.examMaxMarks || 60})</th>
+  582:                       <th className="p-2.5 text-center">Total (100)</th>
+  583:                       <th className="p-2.5 text-center">Grade</th>
+  584:                       <th className="p-2.5 text-center">Points</th>
+  585:                     </tr>
+  586:                   </thead>
+  587:                   <tbody className="divide-y divide-slate-200 tabular-nums">
+  588:                     {data.resultsList?.map((r: any, i: number) => (
+  589:                       <tr key={r.id || i} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+  590:                         <td className="p-2.5 font-bold font-mono text-emerald-800">{r.courseCode || r.courseId}</td>
+  591:                         <td className="p-2.5">{r.courseTitle || 'Academic Course'}</td>
+  592:                         <td className="p-2.5 text-center">{r.caScore}</td>
+  593:                         <td className="p-2.5 text-center">{r.examScore}</td>
+  594:                         <td className="p-2.5 text-center font-bold">{r.totalScore}</td>
+  595:                         <td className="p-2.5 text-center font-black text-emerald-800">{r.grade}</td>
+  596:                         <td className="p-2.5 text-center font-bold">{r.gradePoint?.toFixed(2)}</td>
+  597:                       </tr>
+  598:                     ))}
+  599:                   </tbody>
+  600:                 </table>
+  601:               </div>
+  602: 
+  603:               <div className="pt-4 flex flex-wrap justify-between items-end gap-4 border-t border-slate-200 text-xs">
+  604:                 {renderOfficialSignature(
+  605:                   settings?.registrarSignatureUrl,
+  606:                   'Dr. O. Iyoha',
+  607:                   'Examination Officer & Registrar',
+  608:                   'Academic Results Authority'
+  609:                 )}
+  610:                 {renderOfficialStamp()}
+  611:               </div>
+  612:             </div>
+  613:           )}
+  614: 
+  615:           {type === 'TRANSCRIPT' && (
+  616:             <div className="mt-6 space-y-5 text-slate-800 text-sm">
+  617:               <div className="flex flex-wrap justify-between items-center gap-4 border-b border-slate-200 pb-4">
+  618:                 <div>
+  619:                   <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
+  620:                     Office of the Registrar â€¢ Academic Records Division
+  621:                   </span>
+  622:                   <h2 className="text-xl font-black text-slate-900 uppercase mt-0.5">
+  623:                     Official Academic Transcript
+  624:                   </h2>
+  625:                   <p className="text-xs font-mono text-slate-600">
+  626:                     Transcript Ref: <strong>{data.documentNumber}</strong> â€¢ Issued: {new Date(data.generatedAt || Date.now()).toLocaleDateString('en-GB')}
+  627:                   </p>
+  628:                 </div>
+  629:                 {renderPassportBox('Student Photo')}
+  630:               </div>
+  631: 
+  632:               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+  633:                 <div>
+  634:                   <span className="text-slate-500 block">Full Name:</span>
+  635:                   <span className="font-bold text-slate-900 uppercase">{data.studentName || studentName}</span>
+  636:                 </div>
+  637:                 <div>
+  638:                   <span className="text-slate-500 block">Matriculation No:</span>
+  639:                   <span className="font-mono font-bold text-emerald-800">{data.matricNumber || matricNumber}</span>
+  640:                 </div>
+  641:                 <div>
+  642:                   <span className="text-slate-500 block">Programme:</span>
+  643:                   <span className="font-bold text-slate-900">{data.programmeName || person.programmeName || 'Agricultural Technology'}</span>
+  644:                 </div>
+  645:                 <div>
+  646:                   <span className="text-slate-500 block">Department / School:</span>
+  647:                   <span className="font-bold text-slate-900">{data.departmentName || data.schoolName || 'Applied Sciences & Tech'}</span>
+  648:                 </div>
+  649:                 <div>
+  650:                   <span className="text-slate-500 block">Cumulative GPA (CGPA):</span>
+  651:                   <span className="font-black text-emerald-800 tabular-nums">{Number(data.cgpa || person.cgpa || 0).toFixed(2)} / 5.00</span>
+  652:                 </div>
+  653:                 <div>
+  654:                   <span className="text-slate-500 block">Honours Classification:</span>
+  655:                   <span className="font-bold text-amber-700">{data.classification || 'Upper Credit'}</span>
+  656:                 </div>
+  657:               </div>
+  658: 
+  659:               <div className="border border-slate-300 rounded-lg overflow-hidden">
+  660:                 <table className="w-full text-xs text-left">
+  661:                   <thead className="bg-emerald-900 text-white uppercase text-[11px]">
+  662:                     <tr>
+  663:                       <th className="p-2.5">Session / Semester</th>
+  664:                       <th className="p-2.5">Code</th>
+  665:                       <th className="p-2.5">Course Title</th>
+  666:                       <th className="p-2.5 text-center">Units</th>
+  667:                       <th className="p-2.5 text-center">Score</th>
+  668:                       <th className="p-2.5 text-center">Grade</th>
+  669:                       <th className="p-2.5 text-center">GP</th>
+  670:                     </tr>
+  671:                   </thead>
+  672:                   <tbody className="divide-y divide-slate-200 tabular-nums">
+  673:                     {data.resultsSnapshot && data.resultsSnapshot.length > 0 ? (
+  674:                       data.resultsSnapshot.map((r: any, idx: number) => (
+  675:                         <tr key={r.id || idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+  676:                           <td className="p-2.5 text-slate-600">{r.session} ({r.semester})</td>
+  677:                           <td className="p-2.5 font-mono font-bold text-emerald-900">{r.courseCode}</td>
+  678:                           <td className="p-2.5">{r.courseTitle}</td>
+  679:                           <td className="p-2.5 text-center">{r.creditUnits || 3}</td>
+  680:                           <td className="p-2.5 text-center font-bold">{r.totalScore}</td>
+  681:                           <td className="p-2.5 text-center font-black text-emerald-800">{r.grade}</td>
+  682:                           <td className="p-2.5 text-center">{Number(r.gradePoint || 0).toFixed(2)}</td>
+  683:                         </tr>
+  684:                       ))
+  685:                     ) : (
+  686:                       <tr>
+  687:                         <td colSpan={7} className="p-4 text-center text-slate-500">
+  688:                           No published course results recorded yet for this student.
+  689:                         </td>
+  690:                       </tr>
+  691:                     )}
+  692:                   </tbody>
+  693:                 </table>
+  694:               </div>
+  695: 
+  696:               {data.remarks && (
+  697:                 <div className="text-xs bg-emerald-50 border border-emerald-200 p-3 rounded-lg text-emerald-950">
+  698:                   <strong>Registrar Remarks:</strong> {data.remarks}
+  699:                 </div>
+  700:               )}
+  701: 
+  702:               <div className="pt-4 flex flex-wrap justify-between items-end gap-4 border-t border-slate-200">
+  703:                 {renderOfficialSignature(
+  704:                   settings?.registrarSignatureUrl,
+  705:                   'Barr. I. Edokpayi',
+  706:                   'Barr. Itohan Edokpayi',
+  707:                   'College Registrar'
+  708:                 )}
+  709:                 {renderOfficialStamp()}
+  710:                 {renderOfficialSignature(
+  711:                   settings?.rectorSignatureUrl,
+  712:                   'Prof. P. O. Aghimien',
+  713:                   'Prof. Patrick O. Aghimien',
+  714:                   'Rector / Provost'
+  715:                 )}
+  716:               </div>
+  717:             </div>
+  718:           )}
+  719: 
+  720:           {type === 'FINAL_CERTIFICATE' && (
+  721:             <div className="mt-6 border-4 border-double border-emerald-900 p-6 sm:p-8 rounded-2xl bg-linear-to-b from-amber-50/40 via-white to-emerald-50/30 space-y-6 text-center">
+  722:               <div className="flex items-center justify-between gap-4">
+  723:                 <div className="text-left text-[10px] font-mono text-slate-600">
+  724:                   <div>CERT NO: <strong>{data.documentNumber}</strong></div>
+  725:                   <div>MATRIC: <strong>{data.matricNumber || matricNumber}</strong></div>
+  726:                 </div>
+  727:                 <Award className="w-10 h-10 text-amber-600" />
+  728:                 {renderPassportBox('Graduate Photo')}
+  729:               </div>
+  730: 
+  731:               <div className="space-y-2">
+  732:                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-800">
+  733:                   By Authority of the Academic Board
+  734:                 </p>
+  735:                 <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight uppercase">
+  736:                   Final Graduation Certificate
+  737:                 </h2>
+  738:                 <p className="text-xs text-slate-600">This is to certify that</p>
+  739:                 <div className="text-2xl font-black text-emerald-900 uppercase tracking-wide py-1 border-b-2 border-amber-400 inline-block px-6">
+  740:                   {data.studentName || studentName}
+  741:                 </div>
+  742:               </div>
+  743: 
+  744:               <p className="text-sm text-slate-700 leading-relaxed max-w-2xl mx-auto">
+  745:                 having completed the prescribed course of study, practical field requirements, and passed all
+  746:                 approved examinations in <strong>{institutionName}</strong>, is hereby awarded the qualification in
+  747:               </p>
+  748: 
+  749:               <div className="space-y-1">
+  750:                 <div className="text-xl font-black text-slate-900 uppercase">
+  751:                   {data.programmeName || person.programmeName || 'Agricultural Technology'}
+  752:                 </div>
+  753:                 <div className="text-sm font-bold text-amber-700 uppercase tracking-wider">
+  754:                   Classification: {data.classification || 'Upper Credit'} â€¢ CGPA: {Number(data.cgpa || person.cgpa || 0).toFixed(2)} / 5.00
+  755:                 </div>
+  756:                 <div className="text-xs text-slate-500">
+  757:                   Academic Session: {data.session || currentSession} â€¢ Awarded on {new Date(data.generatedAt || Date.now()).toLocaleDateString('en-GB')}
+  758:                 </div>
+  759:               </div>
+  760: 
+  761:               <div className="pt-6 flex flex-wrap justify-between items-end gap-4 border-t border-slate-300">
+  762:                 {renderOfficialSignature(
+  763:                   settings?.rectorSignatureUrl,
+  764:                   'Prof. P. O. Aghimien',
+  765:                   'Prof. Patrick O. Aghimien',
+  766:                   'Rector / Provost'
+  767:                 )}
+  768:                 {renderOfficialStamp()}
+  769:                 {renderOfficialSignature(
+  770:                   settings?.registrarSignatureUrl,
+  771:                   'Barr. I. Edokpayi',
+  772:                   'Barr. Itohan Edokpayi',
+  773:                   'College Registrar'
+  774:                 )}
+  775:               </div>
+  776:             </div>
+  777:           )}
+  778: 
+  779:           {type === 'STUDENT_ID' && (
+  780:             <div className="mt-6 space-y-6">
+  781:               <div className="no-print text-center text-xs text-slate-500">
+  782:                 Click the ID card below to rotate between Front and Back views. Both sides are included when printing or downloading.
+  783:               </div>
+  784:               <div className="no-print">
+  785:                 <StudentIdCard
+  786:                   student={{ ...(data.student || data), photoUrl: studentPhoto }}
+  787:                   settings={settings}
+  788:                   interactive={true}
+  789:                 />
+  790:               </div>

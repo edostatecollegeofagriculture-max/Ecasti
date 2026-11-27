@@ -1,0 +1,53 @@
+﻿----- 001_fee_management_schema.sql -----
+CREATE TABLE fee_catalog (
+CREATE TABLE program_fee_schedule (
+CREATE TABLE program_fee_schedule_items (
+CREATE TABLE student_fee_obligations (
+CREATE TABLE student_payments (
+CREATE TABLE student_payment_allocations (
+----- 002_fee_audit_logs.sql -----
+CREATE TABLE fee_audit_logs (
+----- 003_fee_schedule_amount_snapshot.sql -----
+----- 004_admission_activation_ledger.sql -----
+CREATE TABLE admission_fee_activation_ledger (
+----- 005_payment_allocation_scope.sql -----
+----- 006_academic_progression_foundation.sql -----
+CREATE TABLE academic_curriculum_mappings (
+CREATE TABLE academic_curriculum_mapping_courses (
+CREATE TABLE academic_curriculum_mapping_reviews (
+CREATE TABLE student_academic_curriculum_assignments (
+CREATE TABLE academic_curriculum_assignment_ledger (
+CREATE TABLE academic_student_curriculum_exceptions (
+CREATE TABLE academic_student_curriculum_exception_reviews (
+CREATE TABLE student_academic_required_courses (
+CREATE TABLE student_academic_progression (
+CREATE TABLE academic_progression_history (
+CREATE TABLE academic_management_pass_approvals (
+----- 007_fix_management_pass_trigger_ambiguity.sql -----
+----- 008_progression_history_actor.sql -----
+----- 009_authoritative_academic_results.sql -----
+CREATE TABLE academic_result_attempts (
+CREATE TABLE academic_result_events (
+CREATE TABLE academic_result_source_sync (
+----- 010_core_entities_and_legacy_finance.sql -----
+CREATE TABLE IF NOT EXISTS schools (
+CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS departments (
+CREATE TABLE IF NOT EXISTS programmes (
+CREATE TABLE IF NOT EXISTS courses (
+CREATE TABLE IF NOT EXISTS admission_applications (
+CREATE TABLE IF NOT EXISTS students (
+CREATE TABLE IF NOT EXISTS legacy_invoices (
+CREATE TABLE IF NOT EXISTS legacy_payment_transactions (
+----- 010_core_entities_and_legacy_finance_RERUN_SAFE_REVIEW.sql -----
+CREATE TABLE IF NOT EXISTS schools (
+CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS departments (
+CREATE TABLE IF NOT EXISTS programmes (
+CREATE TABLE IF NOT EXISTS courses (
+CREATE TABLE IF NOT EXISTS admission_applications (
+CREATE TABLE IF NOT EXISTS students (
+CREATE TABLE IF NOT EXISTS legacy_invoices (
+CREATE TABLE IF NOT EXISTS legacy_payment_transactions (
+----- 011_staging_durable_application_state.sql -----
+CREATE TABLE IF NOT EXISTS ecasti_application_state (

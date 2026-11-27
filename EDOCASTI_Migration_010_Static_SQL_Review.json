@@ -1,0 +1,23 @@
+{
+  "mode": "LOCAL_STATIC_SQL_REVIEW",
+  "originalSha256": "a6b1c87a02ce191aff7cd335f441a27cea01655d754d5d32cff25a8ad2ae6077",
+  "draftSha256": "5c39f7e9bc082a8d5e76bed29f25d72c241c0dc2624d04861c3f37e0f0452268",
+  "originalUnchanged": true,
+  "tableDeclarations": 9,
+  "indexDeclarations": 14,
+  "guardedForeignKeyBlocks": 5,
+  "expectedForeignKeys": [
+    "fk_users_department",
+    "fk_users_school",
+    "fk_schools_dean",
+    "fk_departments_hod",
+    "fk_courses_lecturer"
+  ],
+  "transactionBeginPresent": true,
+  "transactionCommitPresent": true,
+  "detectedDestructiveStatements": [],
+  "findings": [],
+  "status": "STATIC_REVIEW_PASS",
+  "databaseConnected": false,
+  "sqlExecuted": false
+}

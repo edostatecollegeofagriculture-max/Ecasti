@@ -1,0 +1,85 @@
+{
+  "mode": "POSTGRES_ELIGIBILITY_VERIFY",
+  "generatedAt": "2026-11-27T09:39:40.423Z",
+  "database": "ecasti_local",
+  "students": [
+    {
+      "studentId": "std-1",
+      "preview": {
+        "basis": "LIVE_CATALOGUE_PREVIEW_ONLY",
+        "passed": 2,
+        "required": 4,
+        "eligible": false
+      },
+      "snapshot": {
+        "basis": "SNAPSHOT_VERIFIED",
+        "passed": 2,
+        "required": 4,
+        "eligible": false,
+        "stage": "EXTENSION_1"
+      },
+      "agreedOnCounts": true
+    },
+    {
+      "studentId": "std-2",
+      "preview": {
+        "basis": "LIVE_CATALOGUE_PREVIEW_ONLY",
+        "passed": 1,
+        "required": 2,
+        "eligible": false
+      },
+      "snapshot": {
+        "basis": "SNAPSHOT_VERIFIED",
+        "passed": 1,
+        "required": 2,
+        "eligible": false,
+        "stage": "ND_II"
+      },
+      "agreedOnCounts": true
+    },
+    {
+      "studentId": "std-1795622008157",
+      "preview": {
+        "basis": "LIVE_CATALOGUE_PREVIEW_ONLY",
+        "passed": 0,
+        "required": 4,
+        "eligible": false
+      },
+      "snapshot": {
+        "basis": "SNAPSHOT_VERIFIED",
+        "passed": 0,
+        "required": 4,
+        "eligible": false,
+        "stage": "ND_I"
+      },
+      "agreedOnCounts": true
+    },
+    {
+      "studentId": "std-1795623290388",
+      "preview": {
+        "basis": "LIVE_CATALOGUE_PREVIEW_ONLY",
+        "passed": 4,
+        "required": 4,
+        "eligible": false
+      },
+      "snapshot": {
+        "basis": "SNAPSHOT_VERIFIED",
+        "passed": 4,
+        "required": 4,
+        "eligible": false,
+        "stage": "ND_I"
+      },
+      "agreedOnCounts": true
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "agreed": 4,
+    "disagreed": 0,
+    "allSnapshotVerified": true
+  },
+  "safety": {
+    "sourceJsonModified": false,
+    "stagingTouched": false
+  }
+}

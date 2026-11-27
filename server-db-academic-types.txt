@@ -1,0 +1,109 @@
+﻿
+===========================================================================
+TYPE: Programme
+   99: export interface Programme {
+  100:   id: string;
+  101:   departmentId: string;
+  102:   code: string;
+  103:   name: string;
+  104:   qualification: 'ND' | 'HND' | 'Certificate';
+  105:   durationYears: number;
+  106:   description: string;
+  107:   requirements: string[];
+  108: }
+
+===========================================================================
+TYPE: Course
+  110: export interface Course {
+  111:   id: string;
+  112:   departmentId: string;
+  113:   programmeId?: string;
+  114:   code: string;
+  115:   title: string;
+  116:   creditUnits: number;
+  117:   level: string; // "ND I", "ND II", "HND I", "HND II"
+  118:   semester: 'First Semester' | 'Second Semester';
+  119:   lecturerId?: string;
+  120:   lecturerName?: string;
+  121:   isCompulsory: boolean;
+  122: }
+
+===========================================================================
+TYPE: Student
+  150: export interface Student {
+  151:   id: string;
+  152:   matricNumber: string;
+  153:   userId: string;
+  154:   photoUrl?: string;
+  155:   programmeId: string;
+  156:   departmentId: string;
+  157:   schoolId: string;
+  158:   level: string;
+  159:   sessionAdmitted: string;
+  160:   academicStatus: 'Good Standing' | 'Probation' | 'Suspended' | 'Graduated';
+  161:   gender: string;
+  162:   dob: string;
+  163:   emergencyContact: string;
+  164:   nextOfKin: string;
+  165:   cgpa: number;
+  166:   totalCreditsEarned: number;
+  167: }
+
+===========================================================================
+TYPE: DatabaseState
+  467: export interface DatabaseState {
+  468:   settings: InstitutionSettings;
+  469:   users: User[];
+  470:   schools: School[];
+  471:   departments: Department[];
+  472:   programmes: Programme[];
+  473:   courses: Course[];
+  474:   applications: AdmissionApplication[];
+  475:   students: Student[];
+  476:   registrations: CourseRegistration[];
+  477:   results: AssessmentResult[];
+  478:   feeSchedules: FeeSchedule[];
+  479:   invoices: Invoice[];
+  480:   payments: PaymentTransaction[];
+  481:   attendance: AttendanceSession[];
+  482:   supportTickets: SupportTicket[];
+  483:   auditLogs: AuditLog[];
+  484:   newsArticles: NewsArticle[];
+  485:   // Fee Management Enhancement (additive, optional for backward compatibility)
+  486:   feeCatalogItems?: FeeCatalogItem[];
+  487:   programFeeSchedules?: ProgramFeeSchedule[];
+  488:   programFeeScheduleItems?: ProgramFeeScheduleItem[];
+  489:   studentFeeObligations?: StudentFeeObligation[];
+  490:   studentPayments?: StudentPayment[];
+  491:   studentPaymentAllocations?: StudentPaymentAllocation[];  sliderSlides: HeroSlide[];
+  492:   pageContent: PageContent;
+  493:   issuedDocuments: IssuedDocument[];
+  494: }
+
+===========================================================================
+TYPE: InstitutionSettings
+   39: export interface InstitutionSettings {
+   40:   id: string;
+   41:   institutionName: string;
+   42:   shortName: string;
+   43:   motto: string;
+   44:   state: string;
+   45:   country: string;
+   46:   currentSession: string;
+   47:   currentSemester: string;
+   48:   admissionsOpen: boolean;
+   49:   courseRegistrationOpen: boolean;
+   50:   feePaymentRequiredForReg: boolean;
+   51:   contactEmail: string;
+   52:   contactPhone: string;
+   53:   address: string;
+   54:   caMaxMarks: number;
+   55:   examMaxMarks: number;
+   56:   logoUrl?: string;
+   57:   registrarSignatureUrl?: string;
+   58:   rectorSignatureUrl?: string;
+   59:   bursarSignatureUrl?: string;
+   60:   schoolStampUrl?: string;
+   61:   transcriptFee?: number;
+   62:   certificateFee?: number;
+   63: }

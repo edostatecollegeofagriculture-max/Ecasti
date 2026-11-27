@@ -1,0 +1,49 @@
+{
+  "mode": "SYNTHETIC_TARGET_COLLISION_TEST",
+  "status": "TEST_PASS",
+  "checks": [
+    {
+      "name": "Identical existing record recognized safely",
+      "passed": true
+    },
+    {
+      "name": "New ID classified for simulated insertion",
+      "passed": true
+    },
+    {
+      "name": "Conflicting ID content rejected",
+      "passed": true
+    },
+    {
+      "name": "Duplicate incoming IDs rejected",
+      "passed": true
+    },
+    {
+      "name": "Duplicate destination IDs detected",
+      "passed": true
+    },
+    {
+      "name": "Case-insensitive business identifier collision detected",
+      "passed": true
+    },
+    {
+      "name": "Existing records remain unchanged",
+      "passed": true
+    },
+    {
+      "name": "Incoming conflict fixture remains unchanged",
+      "passed": true
+    }
+  ],
+  "passed": 8,
+  "failed": 0,
+  "safety": {
+    "realSourceUsed": false,
+    "destinationInspected": false,
+    "databaseConnected": false,
+    "sqlExecuted": false,
+    "importPerformed": false,
+    "sourceModified": false,
+    "destinationModified": false
+  }
+}

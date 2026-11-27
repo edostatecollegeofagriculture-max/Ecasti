@@ -1,0 +1,110 @@
+{
+  "mode": "MIGRATION_010_FINAL_CONSOLIDATED_READINESS",
+  "status": "REVIEW_REQUIRED",
+  "checks": [
+    {
+      "name": "Static reconciliation",
+      "pass": true,
+      "detail": "11/11"
+    },
+    {
+      "name": "Manifest integrity",
+      "pass": true,
+      "detail": "46/46"
+    },
+    {
+      "name": "Synthetic safety logic",
+      "pass": true,
+      "detail": "15/15"
+    },
+    {
+      "name": "Quarantine propagation",
+      "pass": true,
+      "detail": "10/10"
+    },
+    {
+      "name": "Dependency integrity",
+      "pass": true,
+      "detail": "8/8"
+    },
+    {
+      "name": "Target collision simulation",
+      "pass": true,
+      "detail": "8/8"
+    },
+    {
+      "name": "Quarantine simulation recognized",
+      "pass": true,
+      "detail": "SIMULATION_PASS_REVIEW_REQUIRED"
+    },
+    {
+      "name": "Transformation blockers retained",
+      "pass": true,
+      "detail": "2 findings"
+    },
+    {
+      "name": "Source record total",
+      "pass": true,
+      "detail": "60"
+    },
+    {
+      "name": "Eligible/quarantined totals reconcile",
+      "pass": true,
+      "detail": "57+3=60"
+    },
+    {
+      "name": "Nine collections verified",
+      "pass": true,
+      "detail": "9"
+    },
+    {
+      "name": "Per-collection totals reconcile",
+      "pass": true,
+      "detail": "60 source; 57 eligible; 3 quarantined"
+    },
+    {
+      "name": "Reference integrity",
+      "pass": true,
+      "detail": "65 checks; 0 failures"
+    },
+    {
+      "name": "Required source fields resolved",
+      "pass": false,
+      "detail": "Application phone and student emergency contact remain unresolved"
+    },
+    {
+      "name": "Destination verification",
+      "pass": false,
+      "detail": "Actual destination not inspected"
+    },
+    {
+      "name": "Import authorization",
+      "pass": false,
+      "detail": "Not authorized"
+    }
+  ],
+  "passed": 13,
+  "reviewItems": 3,
+  "simulationTotals": {
+    "collections": 9,
+    "sourceRecords": 60,
+    "eligible": 57,
+    "quarantined": 3,
+    "referenceChecks": 65,
+    "referenceFailures": 0
+  },
+  "blockers": [
+    "Application required phone missing",
+    "Student required emergency contact missing",
+    "Destination not inspected",
+    "Import not authorized"
+  ],
+  "safety": {
+    "databaseConnected": false,
+    "sqlExecuted": false,
+    "sourceModified": false,
+    "destinationInspected": false,
+    "importPerformed": false,
+    "importAuthorized": false
+  }
+}

@@ -1,0 +1,397 @@
+﻿{
+    "settings":  {
+                     "type":  "object",
+                     "keys":  [
+                                  "id",
+                                  "institutionName",
+                                  "shortName",
+                                  "motto",
+                                  "state",
+                                  "country",
+                                  "currentSession",
+                                  "currentSemester",
+                                  "admissionsOpen",
+                                  "courseRegistrationOpen",
+                                  "feePaymentRequiredForReg",
+                                  "contactEmail",
+                                  "contactPhone",
+                                  "address",
+                                  "caMaxMarks",
+                                  "examMaxMarks",
+                                  "transcriptFee",
+                                  "certificateFee",
+                                  "logoUrl",
+                                  "logoWatermarkOpacity"
+                              ]
+                 },
+    "users":  {
+                  "type":  "array",
+                  "count":  15,
+                  "keys":  [
+                               "id",
+                               "email",
+                               "passwordHash",
+                               "fullName",
+                               "role",
+                               "phone",
+                               "isActive",
+                               "isLocked",
+                               "failedLoginAttempts",
+                               "createdAt",
+                               "lastLogin"
+                           ]
+              },
+    "schools":  {
+                    "type":  "array",
+                    "count":  4,
+                    "keys":  [
+                                 "id",
+                                 "code",
+                                 "name",
+                                 "description"
+                             ]
+                },
+    "departments":  {
+                        "type":  "array",
+                        "count":  10,
+                        "keys":  [
+                                     "id",
+                                     "schoolId",
+                                     "code",
+                                     "name"
+                                 ]
+                    },
+    "programmes":  {
+                       "type":  "array",
+                       "count":  12,
+                       "keys":  [
+                                    "id",
+                                    "departmentId",
+                                    "code",
+                                    "name",
+                                    "qualification",
+                                    "durationYears",
+                                    "description",
+                                    "requirements"
+                                ]
+                   },
+    "courses":  {
+                    "type":  "array",
+                    "count":  8,
+                    "keys":  [
+                                 "id",
+                                 "departmentId",
+                                 "code",
+                                 "title",
+                                 "creditUnits",
+                                 "level",
+                                 "semester",
+                                 "lecturerId",
+                                 "lecturerName",
+                                 "isCompulsory",
+                                 "programmeId"
+                             ]
+                },
+    "applications":  {
+                         "type":  "array",
+                         "count":  1,
+                         "keys":  [
+                                      "id",
+                                      "applicationNumber",
+                                      "userId",
+                                      "programmeId",
+                                      "session",
+                                      "firstName",
+                                      "lastName",
+                                      "otherNames",
+                                      "gender",
+                                      "dob",
+                                      "phone",
+                                      "email",
+                                      "photoUrl",
+                                      "stateOfOrigin",
+                                      "lga",
+                                      "residentialAddress",
+                                      "oLevelResults",
+                                      "status",
+                                      "submittedAt",
+                                      "screeningNotes",
+                                      "reviewedBy",
+                                      "decisionAt"
+                                  ]
+                     },
+    "students":  {
+                     "type":  "array",
+                     "count":  4,
+                     "keys":  [
+                                  "id",
+                                  "matricNumber",
+                                  "userId",
+                                  "programmeId",
+                                  "departmentId",
+                                  "schoolId",
+                                  "level",
+                                  "sessionAdmitted",
+                                  "academicStatus",
+                                  "gender",
+                                  "dob",
+                                  "emergencyContact",
+                                  "nextOfKin",
+                                  "cgpa",
+                                  "totalCreditsEarned"
+                              ]
+                 },
+    "registrations":  {
+                          "type":  "array",
+                          "count":  1,
+                          "keys":  [
+                                       "id",
+                                       "studentId",
+                                       "session",
+                                       "semester",
+                                       "level",
+                                       "courseIds",
+                                       "totalCredits",
+                                       "status",
+                                       "createdAt",
+                                       "approvedAt",
+                                       "approvedBy"
+                                   ]
+                      },
+    "results":  {
+                    "type":  "array",
+                    "count":  11,
+                    "keys":  [
+                                 "id",
+                                 "courseId",
+                                 "studentId",
+                                 "matricNumber",
+                                 "studentName",
+                                 "session",
+                                 "semester",
+                                 "caScore",
+                                 "examScore",
+                                 "totalScore",
+                                 "grade",
+                                 "gradePoint",
+                                 "status",
+                                 "submittedBy",
+                                 "verifiedBy",
+                                 "approvedBy",
+                                 "publishedAt"
+                             ]
+                },
+    "feeSchedules":  {
+                         "type":  "array",
+                         "count":  4,
+                         "keys":  [
+                                      "id",
+                                      "level",
+                                      "session",
+                                      "title",
+                                      "category",
+                                      "amount"
+                                  ]
+                     },
+    "invoices":  {
+                     "type":  "array",
+                     "count":  4,
+                     "keys":  [
+                                  "id",
+                                  "invoiceNumber",
+                                  "studentId",
+                                  "session",
+                                  "title",
+                                  "amount",
+                                  "amountPaid",
+                                  "status",
+                                  "dueDate",
+                                  "createdAt"
+                              ]
+                 },
+    "payments":  {
+                     "type":  "array",
+                     "count":  2,
+                     "keys":  [
+                                  "id",
+                                  "reference",
+                                  "invoiceId",
+                                  "studentId",
+                                  "amount",
+                                  "channel",
+                                  "status",
+                                  "providerReference",
+                                  "paidAt",
+                                  "verifiedBy"
+                              ]
+                 },
+    "attendance":  {
+                       "type":  "array",
+                       "count":  2,
+                       "keys":  [
+                                    "id",
+                                    "courseId",
+                                    "lecturerId",
+                                    "date",
+                                    "type",
+                                    "topic",
+                                    "records"
+                                ]
+                   },
+    "supportTickets":  {
+                           "type":  "array",
+                           "count":  1,
+                           "keys":  [
+                                        "id",
+                                        "ticketNumber",
+                                        "userId",
+                                        "userName",
+                                        "userEmail",
+                                        "subject",
+                                        "category",
+                                        "priority",
+                                        "status",
+                                        "messages",
+                                        "createdAt"
+                                    ]
+                       },
+    "auditLogs":  {
+                      "type":  "array",
+                      "count":  116,
+                      "keys":  [
+                                   "id",
+                                   "timestamp",
+                                   "userId",
+                                   "userEmail",
+                                   "action",
+                                   "resource",
+                                   "details",
+                                   "ipAddress"
+                               ]
+                  },
+    "newsArticles":  {
+                         "type":  "array",
+                         "count":  4,
+                         "keys":  [
+                                      "id",
+                                      "title",
+                                      "slug",
+                                      "summary",
+                                      "content",
+                                      "category",
+                                      "isFeaturedInSlider",
+                                      "status",
+                                      "author",
+                                      "publishedAt",
+                                      "views",
+                                      "imageUrl"
+                                  ]
+                     },
+    "sliderSlides":  {
+                         "type":  "array",
+                         "count":  3,
+                         "keys":  [
+                                      "id",
+                                      "title",
+                                      "subtitle",
+                                      "badge",
+                                      "bgGradient",
+                                      "accentColor",
+                                      "ctaText",
+                                      "ctaTab",
+                                      "ctaSubSection",
+                                      "iconName",
+                                      "order",
+                                      "isActive",
+                                      "bgColor",
+                                      "imageUrl"
+                                  ]
+                     },
+    "pageContent":  {
+                        "type":  "object",
+                        "keys":  [
+                                     "portalBannerText",
+                                     "portalBadgeText",
+                                     "newsSectionKicker",
+                                     "newsSectionHeading",
+                                     "rectorName",
+                                     "rectorTitle",
+                                     "rectorInstitution",
+                                     "rectorKicker",
+                                     "rectorHeadline",
+                                     "rectorParagraph1",
+                                     "rectorParagraph2",
+                                     "rectorCtaText",
+                                     "rectorAvatarEmoji",
+                                     "schoolsSectionKicker",
+                                     "schoolsSectionHeading",
+                                     "schoolsSectionSubheading",
+                                     "calendarSectionKicker",
+                                     "calendarSectionHeading",
+                                     "calendarItems",
+                                     "faqSectionKicker",
+                                     "faqSectionHeading",
+                                     "faqs",
+                                     "footerBrandTitle",
+                                     "footerBrandSubtitle",
+                                     "footerDescription",
+                                     "footerLocationHeading",
+                                     "footerLocationAddress",
+                                     "footerContactHeading",
+                                     "sectionOrder",
+                                     "hiddenSections",
+                                     "customSections",
+                                     "rectorPhotoUrl",
+                                     "rectorBgColor"
+                                 ]
+                    },
+    "issuedDocuments":  {
+                            "type":  "array",
+                            "count":  0,
+                            "keys":  [
+
+                                     ]
+                        },
+    "feeCatalogItems":  {
+                            "type":  "array",
+                            "count":  0,
+                            "keys":  [
+
+                                     ]
+                        },
+    "programFeeSchedules":  {
+                                "type":  "array",
+                                "count":  0,
+                                "keys":  [
+
+                                         ]
+                            },
+    "programFeeScheduleItems":  {
+                                    "type":  "array",
+                                    "count":  0,
+                                    "keys":  [
+
+                                             ]
+                                },
+    "studentFeeObligations":  {
+                                  "type":  "array",
+                                  "count":  0,
+                                  "keys":  [
+
+                                           ]
+                              },
+    "studentPayments":  {
+                            "type":  "array",
+                            "count":  0,
+                            "keys":  [
+
+                                     ]
+                        },
+    "studentPaymentAllocations":  {
+                                      "type":  "array",
+                                      "count":  0,
+                                      "keys":  [
+
+                                               ]
+                                  }
+}

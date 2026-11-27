@@ -1,0 +1,187 @@
+{
+  "manifestVersion": 1,
+  "mode": "DRY_RUN_ONLY",
+  "status": "REVIEW_REQUIRED",
+  "generatedAt": "2026-11-26T13:54:21.486Z",
+  "scope": [
+    "schools",
+    "users",
+    "departments",
+    "programmes",
+    "courses",
+    "applications",
+    "students",
+    "invoices",
+    "payments"
+  ],
+  "importOrder": [
+    "schools",
+    "users",
+    "departments",
+    "programmes",
+    "courses",
+    "applications",
+    "students",
+    "invoices",
+    "payments"
+  ],
+  "dependencies": {
+    "schools": [],
+    "users": [
+      "schools",
+      "departments"
+    ],
+    "departments": [
+      "schools",
+      "users"
+    ],
+    "programmes": [
+      "departments"
+    ],
+    "courses": [
+      "departments",
+      "programmes",
+      "users"
+    ],
+    "applications": [
+      "users",
+      "programmes"
+    ],
+    "students": [
+      "users",
+      "schools",
+      "departments",
+      "programmes"
+    ],
+    "invoices": [
+      "students"
+    ],
+    "payments": [
+      "students",
+      "invoices"
+    ]
+  },
+  "collections": {
+    "schools": {
+      "sourceCount": 4,
+      "simulatedEligible": 4,
+      "simulatedQuarantined": 0,
+      "dependencies": [],
+      "status": "REVIEW_REQUIRED"
+    },
+    "users": {
+      "sourceCount": 15,
+      "simulatedEligible": 15,
+      "simulatedQuarantined": 0,
+      "dependencies": [
+        "schools",
+        "departments"
+      ],
+      "status": "REVIEW_REQUIRED"
+    },
+    "departments": {
+      "sourceCount": 10,
+      "simulatedEligible": 10,
+      "simulatedQuarantined": 0,
+      "dependencies": [
+        "schools",
+        "users"
+      ],
+      "status": "REVIEW_REQUIRED"
+    },
+    "programmes": {
+      "sourceCount": 12,
+      "simulatedEligible": 12,
+      "simulatedQuarantined": 0,
+      "dependencies": [
+        "departments"
+      ],
+      "status": "REVIEW_REQUIRED"
+    },
+    "courses": {
+      "sourceCount": 8,
+      "simulatedEligible": 8,
+      "simulatedQuarantined": 0,
+      "dependencies": [
+        "departments",
+        "programmes",
+        "users"
+      ],
+      "status": "REVIEW_REQUIRED"
+    },
+    "applications": {
+      "sourceCount": 1,
+      "simulatedEligible": 0,
+      "simulatedQuarantined": 1,
+      "dependencies": [
+        "users",
+        "programmes"
+      ],
+      "status": "REVIEW_REQUIRED"
+    },
+    "students": {
+      "sourceCount": 4,
+      "simulatedEligible": 3,
+      "simulatedQuarantined": 1,
+      "dependencies": [
+        "users",
+        "schools",
+        "departments",
+        "programmes"
+      ],
+      "status": "REVIEW_REQUIRED"
+    },
+    "invoices": {
+      "sourceCount": 4,
+      "simulatedEligible": 3,
+      "simulatedQuarantined": 1,
+      "dependencies": [
+        "students"
+      ],
+      "status": "REVIEW_REQUIRED"
+    },
+    "payments": {
+      "sourceCount": 2,
+      "simulatedEligible": 2,
+      "simulatedQuarantined": 0,
+      "dependencies": [
+        "students",
+        "invoices"
+      ],
+      "status": "REVIEW_REQUIRED"
+    }
+  },
+  "totals": {
+    "collections": 9,
+    "sourceRecords": 60,
+    "simulatedEligible": 57,
+    "simulatedQuarantined": 3
+  },
+  "validation": {
+    "transformationStatus": "BLOCKED",
+    "transformationFindings": 2,
+    "referenceFailures": 0,
+    "targetCollisionCheck": "NOT_PERFORMED",
+    "databaseValidation": "NOT_PERFORMED"
+  },
+  "hashes": {
+    "source": "2247f06ac2cc25a66efdb63e9e08ed815492c751c9b547e6d8a1f467ed36c705",
+    "simulation": "736495f3739d13b9e60b18537e974a0a991a81b682fca6db7d319eb3dd5e40dc",
+    "transformation": "1c146c7aadc171ec171faebe210a423a0689a16e88616987f32e70d753fd457f"
+  },
+  "limitations": [
+    "Manifest does not establish target ID collision safety.",
+    "Manifest does not validate actual target database schema.",
+    "Circular user and department references require staged resolution.",
+    "Import ordering is a proposed logical order, not an executable plan.",
+    "Transformation blockers remain unresolved.",
+    "Actual database import is not authorized by this manifest."
+  ],
+  "safety": {
+    "databaseConnected": false,
+    "sqlExecuted": false,
+    "importPerformed": false,
+    "sourceModified": false,
+    "recordsPrinted": false
+  }
+}

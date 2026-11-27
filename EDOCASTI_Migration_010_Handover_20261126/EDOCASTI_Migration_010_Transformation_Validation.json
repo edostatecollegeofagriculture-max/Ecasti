@@ -1,0 +1,169 @@
+{
+  "mode": "LOCAL_FILE_ONLY",
+  "status": "BLOCKED",
+  "sourceHash": "2247f06ac2cc25a66efdb63e9e08ed815492c751c9b547e6d8a1f467ed36c705",
+  "migrationHash": "5c39f7e9bc082a8d5e76bed29f25d72c241c0dc2624d04861c3f37e0f0452268",
+  "totals": {
+    "collections": 9,
+    "records": 60,
+    "mappedFields": 102,
+    "findings": 2
+  },
+  "summaries": [
+    {
+      "collection": "schools",
+      "records": 4,
+      "mappedFields": 5,
+      "missingRequired": [],
+      "optionalGaps": [
+        {
+          "field": "imageUrl",
+          "count": 4
+        }
+      ],
+      "duplicateIDs": 0
+    },
+    {
+      "collection": "users",
+      "records": 15,
+      "mappedFields": 14,
+      "missingRequired": [],
+      "optionalGaps": [
+        {
+          "field": "phone",
+          "count": 1
+        },
+        {
+          "field": "photoUrl",
+          "count": 14
+        },
+        {
+          "field": "departmentId",
+          "count": 12
+        },
+        {
+          "field": "schoolId",
+          "count": 11
+        },
+        {
+          "field": "lastLogin",
+          "count": 6
+        }
+      ],
+      "duplicateIDs": 0
+    },
+    {
+      "collection": "departments",
+      "records": 10,
+      "mappedFields": 5,
+      "missingRequired": [],
+      "optionalGaps": [
+        {
+          "field": "hodUserId",
+          "count": 10
+        }
+      ],
+      "duplicateIDs": 0
+    },
+    {
+      "collection": "programmes",
+      "records": 12,
+      "mappedFields": 8,
+      "missingRequired": [],
+      "optionalGaps": [],
+      "duplicateIDs": 0
+    },
+    {
+      "collection": "courses",
+      "records": 8,
+      "mappedFields": 11,
+      "missingRequired": [],
+      "optionalGaps": [],
+      "duplicateIDs": 0
+    },
+    {
+      "collection": "applications",
+      "records": 1,
+      "mappedFields": 23,
+      "missingRequired": [
+        {
+          "field": "phone",
+          "count": 1
+        }
+      ],
+      "optionalGaps": [
+        {
+          "field": "otherNames",
+          "count": 1
+        },
+        {
+          "field": "feeActivationRequiredAt",
+          "count": 1
+        }
+      ],
+      "duplicateIDs": 0
+    },
+    {
+      "collection": "students",
+      "records": 4,
+      "mappedFields": 16,
+      "missingRequired": [
+        {
+          "field": "emergencyContact",
+          "count": 1
+        }
+      ],
+      "optionalGaps": [
+        {
+          "field": "photoUrl",
+          "count": 3
+        }
+      ],
+      "duplicateIDs": 0
+    },
+    {
+      "collection": "invoices",
+      "records": 4,
+      "mappedFields": 10,
+      "missingRequired": [],
+      "optionalGaps": [],
+      "duplicateIDs": 0
+    },
+    {
+      "collection": "payments",
+      "records": 2,
+      "mappedFields": 10,
+      "missingRequired": [],
+      "optionalGaps": [],
+      "duplicateIDs": 0
+    }
+  ],
+  "findings": [
+    {
+      "type": "BLOCK",
+      "collection": "applications",
+      "reason": "Required source value missing",
+      "field": "phone",
+      "count": 1
+    },
+    {
+      "type": "BLOCK",
+      "collection": "students",
+      "reason": "Required source value missing",
+      "field": "emergencyContact",
+      "count": 1
+    }
+  ],
+  "limitations": [
+    "No database connected.",
+    "Existing target collisions cannot be checked.",
+    "No SQL executed or import performed.",
+    "This report validates field coverage only; transformations require separate review."
+  ],
+  "safety": {
+    "databaseConnected": false,
+    "sqlExecuted": false,
+    "importPerformed": false,
+    "sourceModified": false
+  }
+}

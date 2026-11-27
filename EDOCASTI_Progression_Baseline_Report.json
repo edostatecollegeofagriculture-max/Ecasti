@@ -1,0 +1,184 @@
+{
+  "mode": "PROGRESSION_BASELINE_VERIFY",
+  "generatedAt": "2026-11-27T11:58:16.933Z",
+  "database": "ecasti_local",
+  "rowCounts": {
+    "progressions": 4,
+    "history": 10,
+    "requiredCourses": 14,
+    "mappings": 3,
+    "assignments": 4
+  },
+  "progressionState": [
+    {
+      "student_id": "std-1",
+      "programme_id": "prog-nd-agric",
+      "current_stage": "EXTENSION_1",
+      "progression_status": "EXTENSION",
+      "current_session": "2027/2028",
+      "extension_year": 1
+    },
+    {
+      "student_id": "std-1795622008157",
+      "programme_id": "prog-nd-agric",
+      "current_stage": "ND_II",
+      "progression_status": "ACTIVE",
+      "current_session": "2026/2027",
+      "extension_year": 0
+    },
+    {
+      "student_id": "std-1795623290388",
+      "programme_id": "prog-nd-agric",
+      "current_stage": "GRADUATED",
+      "progression_status": "GRADUATED",
+      "current_session": "2027/2028",
+      "extension_year": 0
+    },
+    {
+      "student_id": "std-2",
+      "programme_id": "prog-nd-cs",
+      "current_stage": "ND_II",
+      "progression_status": "ACTIVE",
+      "current_session": "2026/2027",
+      "extension_year": 0
+    }
+  ],
+  "historyTimeline": [
+    {
+      "student_id": "std-1",
+      "from_stage": null,
+      "to_stage": "ND_I",
+      "from_status": null,
+      "to_status": "ACTIVE",
+      "decision_type": "INITIAL_RECORD",
+      "academic_session": "2025/2026",
+      "extension_year": 0
+    },
+    {
+      "student_id": "std-2",
+      "from_stage": null,
+      "to_stage": "ND_I",
+      "from_status": null,
+      "to_status": "ACTIVE",
+      "decision_type": "INITIAL_RECORD",
+      "academic_session": "2025/2026",
+      "extension_year": 0
+    },
+    {
+      "student_id": "std-1795622008157",
+      "from_stage": null,
+      "to_stage": "ND_I",
+      "from_status": null,
+      "to_status": "ACTIVE",
+      "decision_type": "INITIAL_RECORD",
+      "academic_session": "2025/2026",
+      "extension_year": 0
+    },
+    {
+      "student_id": "std-1795623290388",
+      "from_stage": null,
+      "to_stage": "ND_I",
+      "from_status": null,
+      "to_status": "ACTIVE",
+      "decision_type": "INITIAL_RECORD",
+      "academic_session": "2025/2026",
+      "extension_year": 0
+    },
+    {
+      "student_id": "std-1",
+      "from_stage": "ND_I",
+      "to_stage": "ND_II",
+      "from_status": "ACTIVE",
+      "to_status": "ACTIVE",
+      "decision_type": "SESSION_ROLLOVER",
+      "academic_session": "2026/2027",
+      "extension_year": 0
+    },
+    {
+      "student_id": "std-2",
+      "from_stage": "ND_I",
+      "to_stage": "ND_II",
+      "from_status": "ACTIVE",
+      "to_status": "ACTIVE",
+      "decision_type": "SESSION_ROLLOVER",
+      "academic_session": "2026/2027",
+      "extension_year": 0
+    },
+    {
+      "student_id": "std-1",
+      "from_stage": "ND_II",
+      "to_stage": "EXTENSION_1",
+      "from_status": "ACTIVE",
+      "to_status": "EXTENSION",
+      "decision_type": "SESSION_ROLLOVER",
+      "academic_session": "2027/2028",
+      "extension_year": 1
+    },
+    {
+      "student_id": "std-1795623290388",
+      "from_stage": "ND_I",
+      "to_stage": "ND_II",
+      "from_status": "ACTIVE",
+      "to_status": "ACTIVE",
+      "decision_type": "SESSION_ROLLOVER",
+      "academic_session": "2026/2027",
+      "extension_year": 0
+    },
+    {
+      "student_id": "std-1795622008157",
+      "from_stage": "ND_I",
+      "to_stage": "ND_II",
+      "from_status": "ACTIVE",
+      "to_status": "ACTIVE",
+      "decision_type": "SESSION_ROLLOVER",
+      "academic_session": "2026/2027",
+      "extension_year": 0
+    },
+    {
+      "student_id": "std-1795623290388",
+      "from_stage": "ND_II",
+      "to_stage": "GRADUATED",
+      "from_status": "ACTIVE",
+      "to_status": "GRADUATED",
+      "decision_type": "NORMAL_CLEARANCE",
+      "academic_session": "2027/2028",
+      "extension_year": 0
+    }
+  ],
+  "assertions": [
+    {
+      "name": "All JSON students have progression rows",
+      "passed": true
+    },
+    {
+      "name": "Every student has INITIAL_RECORD in history",
+      "passed": true
+    },
+    {
+      "name": "Every student's Postgres stage is at or beyond their JSON level",
+      "passed": true,
+      "detail": "std-1: ND I → EXTENSION_1 ✅; std-2: ND I → ND_II ✅; std-1795622008157: ND I → ND_II ✅; std-1795623290388: ND I → GRADUATED ✅"
+    },
+    {
+      "name": "Every current mapping is APPROVED",
+      "passed": true
+    },
+    {
+      "name": "Every student has a current curriculum assignment",
+      "passed": true
+    },
+    {
+      "name": "Every progression stage has a matching latest history to_stage",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "status": "BASELINE_VALID"
+  },
+  "safety": {
+    "sourceJsonModified": false,
+    "stagingTouched": false
+  }
+}

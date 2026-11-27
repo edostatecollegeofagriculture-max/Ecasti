@@ -1,0 +1,87 @@
+{
+  "mode": "LOCAL_IN_MEMORY_QUARANTINE_SIMULATION",
+  "status": "SIMULATION_PASS_REVIEW_REQUIRED",
+  "source": {
+    "file": "data/edocasti_db.json",
+    "sha256": "2247f06ac2cc25a66efdb63e9e08ed815492c751c9b547e6d8a1f467ed36c705"
+  },
+  "migration": {
+    "file": "database/migrations/010_core_entities_and_legacy_finance_RERUN_SAFE_REVIEW.sql",
+    "sha256": "5c39f7e9bc082a8d5e76bed29f25d72c241c0dc2624d04861c3f37e0f0452268"
+  },
+  "totals": {
+    "collections": 9,
+    "sourceRecords": 60,
+    "simulatedEligible": 57,
+    "simulatedQuarantined": 3,
+    "referenceChecks": 65,
+    "referenceFailures": 0
+  },
+  "collectionSummary": {
+    "schools": {
+      "sourceRecords": 4,
+      "simulatedEligible": 4,
+      "simulatedQuarantined": 0
+    },
+    "users": {
+      "sourceRecords": 15,
+      "simulatedEligible": 15,
+      "simulatedQuarantined": 0
+    },
+    "departments": {
+      "sourceRecords": 10,
+      "simulatedEligible": 10,
+      "simulatedQuarantined": 0
+    },
+    "programmes": {
+      "sourceRecords": 12,
+      "simulatedEligible": 12,
+      "simulatedQuarantined": 0
+    },
+    "courses": {
+      "sourceRecords": 8,
+      "simulatedEligible": 8,
+      "simulatedQuarantined": 0
+    },
+    "applications": {
+      "sourceRecords": 1,
+      "simulatedEligible": 0,
+      "simulatedQuarantined": 1
+    },
+    "students": {
+      "sourceRecords": 4,
+      "simulatedEligible": 3,
+      "simulatedQuarantined": 1
+    },
+    "invoices": {
+      "sourceRecords": 4,
+      "simulatedEligible": 3,
+      "simulatedQuarantined": 1
+    },
+    "payments": {
+      "sourceRecords": 2,
+      "simulatedEligible": 2,
+      "simulatedQuarantined": 0
+    }
+  },
+  "quarantineReasonCounts": {
+    "REQUIRED_PHONE_MISSING": 1,
+    "REQUIRED_EMERGENCY_CONTACT_MISSING": 1,
+    "DEPENDENT_STUDENT_QUARANTINED": 1
+  },
+  "limitations": [
+    "This is an in-memory simulation, not an importer.",
+    "No PostgreSQL connection or SQL execution occurred.",
+    "Existing target ID collisions and record equality are not evaluated.",
+    "Full SQL constraint enforcement is not simulated.",
+    "Quarantine policy requires independent review before adoption.",
+    "The source JSON remains untouched."
+  ],
+  "safety": {
+    "databaseConnected": false,
+    "sqlExecuted": false,
+    "importPerformed": false,
+    "sourceModified": false,
+    "recordValuesPrinted": false
+  }
+}

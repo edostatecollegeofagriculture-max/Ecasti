@@ -1,0 +1,77 @@
+{
+  "mode": "IN_MEMORY_SYNTHETIC_TEST",
+  "status": "TEST_PASS",
+  "checks": [
+    {
+      "name": "Synthetic fixture collections exist",
+      "passed": true
+    },
+    {
+      "name": "Fabricated fixture IDs are present",
+      "passed": true
+    },
+    {
+      "name": "School dependency reference exists",
+      "passed": true
+    },
+    {
+      "name": "Programme dependency reference exists",
+      "passed": true
+    },
+    {
+      "name": "Course dependency reference exists",
+      "passed": true
+    },
+    {
+      "name": "Student dependency reference exists",
+      "passed": true
+    },
+    {
+      "name": "Invoice dependency reference exists",
+      "passed": true
+    },
+    {
+      "name": "Payment dependency references exist",
+      "passed": true
+    },
+    {
+      "name": "Incomplete student fixture is detectable",
+      "passed": true
+    },
+    {
+      "name": "Dependent invoice fixture is identifiable",
+      "passed": true
+    },
+    {
+      "name": "Duplicate fixture is correctly identified",
+      "passed": true
+    },
+    {
+      "name": "Duplicate IDs rejected",
+      "passed": true
+    },
+    {
+      "name": "Failed simulated transaction rolls back",
+      "passed": true
+    },
+    {
+      "name": "Successful simulated transaction commits",
+      "passed": true
+    },
+    {
+      "name": "No actual database operation is represented",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "totalChecks": 15,
+  "passed": 15,
+  "failed": 0,
+  "safety": {
+    "realSourceUsed": false,
+    "databaseConnected": false,
+    "sqlExecuted": false,
+    "importPerformed": false,
+    "sourceModified": false
+  }
+}

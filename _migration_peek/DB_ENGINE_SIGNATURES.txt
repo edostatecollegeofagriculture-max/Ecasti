@@ -1,0 +1,156 @@
+﻿----- server\db.ts: exports and methods -----
+const DB_FILE = process.env.EDOCASTI_DATA_FILE
+const DATA_DIR = path.dirname(DB_FILE);
+const STAGING_DEMO_ONLY = process.env.EDOCASTI_STAGING_DEMO_ONLY === 'true';
+const STAGING_RENDER_SERVICE_ID = 'srv-dc2cgr142hec73feeqg0';
+const STAGING_INIT_MARKER = `${DB_FILE}.staging-demo-only-initialized`;
+const STAGING_QUICK_ACCESS_EMAILS = new Set([
+export interface AuditLog {
+export interface InstitutionSettings {
+export interface User {
+export interface School {
+export interface Department {
+export interface AcademicPeriod {
+export interface AcademicStage {
+export interface ProgrammeAcademicStructure {
+export interface Programme {
+export interface Course {
+export interface AdmissionApplication {
+export interface Student {
+export interface CourseRegistration {
+export interface AssessmentResult {
+export interface FeeSchedule {
+export interface Invoice {
+export interface PaymentTransaction {
+export interface AttendanceSession {
+export interface SupportTicket {
+export interface NewsArticle {
+export interface HeroSlide {
+export interface CalendarHighlight {
+export interface FaqItem {
+export interface CustomPageSection {
+export interface PageContent {
+export interface IssuedDocument {
+export interface FeeCatalogItem {
+export interface ProgramFeeSchedule {
+export interface ProgramFeeScheduleItem {
+export interface StudentFeeObligation {
+export interface StudentPayment {
+export interface StudentPaymentAllocation {
+export interface DatabaseState {
+function computeGradeAndPoints(total: number): { grade: string; gradePoint: number } {
+  if (total >= 70) return { grade: 'A', gradePoint: 5.0 };
+  if (total >= 60) return { grade: 'B', gradePoint: 4.0 };
+  if (total >= 50) return { grade: 'C', gradePoint: 3.0 };
+  if (total >= 45) return { grade: 'D', gradePoint: 2.0 };
+  if (total >= 40) return { grade: 'E', gradePoint: 1.0 };
+export class DatabaseEngine {
+    if (!STAGING_DEMO_ONLY) return;
+    if (process.env.RENDER_SERVICE_ID !== STAGING_RENDER_SERVICE_ID) {
+    const client = await neonPool.connect();
+      const identity = await client.query(
+      const connectedDatabaseName = String(identity.rows[0]?.database_name || 'unknown');
+      if (connectedDatabaseName !== 'ecasti_staging_db') {
+        const stored = await client.query(
+        if (stored.rowCount === 1) {
+          const publicContentRestored = this.restoreMissingStagingPublicContent(this.state);
+          if (publicContentRestored) {
+    if (this.persistentWriteError) {
+    const seed = this.generateSeedData();
+    if (!Array.isArray(state.schools) || state.schools.length === 0) {
+    if (!Array.isArray(state.departments) || state.departments.length === 0) {
+    if (!Array.isArray(state.programmes) || state.programmes.length === 0) {
+    if (!Array.isArray(state.newsArticles) || state.newsArticles.length === 0) {
+      const publishedAt = '2026-11-24T09:00:00.000Z';
+    if (!Array.isArray(state.sliderSlides) || state.sliderSlides.length === 0) {
+    const defaults = seed.pageContent as unknown as Record<string, unknown>;
+    const current = (state.pageContent || {}) as unknown as Record<string, unknown>;
+    for (const [key, fallback] of Object.entries(defaults)) {
+      const value = current[key];
+      const missing = value === undefined || value === null ||
+      if (missing) {
+  constructor() {
+    if (STAGING_DEMO_ONLY) {
+      const expectedDataFile = path.resolve(process.cwd(), 'data', 'edocasti_db.json');
+      const serviceGuardPassed = process.env.RENDER_SERVICE_ID === STAGING_RENDER_SERVICE_ID;
+      const dataFileGuardPassed = path.resolve(process.env.EDOCASTI_DATA_FILE || '') === expectedDataFile;
+      if (!serviceGuardPassed || !dataFileGuardPassed) {
+      if (STAGING_DEMO_ONLY) {
+    if (fs.existsSync(STAGING_INIT_MARKER) && fs.existsSync(DB_FILE)) {
+        const current = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')) as DatabaseState;
+        const existingEmails = new Set((current.users || []).map((user) => user.email.toLowerCase()));
+        const missingDemoUsers = this.generateSeedData().users.filter((user) =>
+        if (missingDemoUsers.length > 0) {
+        if (this.restoreMissingStagingPublicContent(current)) {
+    if (fs.existsSync(DB_FILE)) {
+    const seed = this.generateSeedData();
+    const usersByEmail = new Map<string, User>();
+    for (const user of seed.users) {
+      const email = user.email.toLowerCase();
+      if (STAGING_QUICK_ACCESS_EMAILS.has(email)) usersByEmail.set(email, user);
+    if (Array.isArray(existing.users)) {
+      for (const user of existing.users) {
+        if (user && typeof user.email === 'string') {
+          const email = user.email.toLowerCase();
+          if (STAGING_QUICK_ACCESS_EMAILS.has(email)) usersByEmail.set(email, user);
+    const emptyPageContent: PageContent = {
+    const state: DatabaseState = {
+    if (STAGING_DEMO_ONLY) return this.loadStagingDemoOnlyDatabase();
+    if (fs.existsSync(DB_FILE)) {
+        const raw = fs.readFileSync(DB_FILE, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (!parsed.newsArticles || !parsed.sliderSlides || !parsed.pageContent) {
+          const fresh = this.generateSeedData();
+        const freshForAcademics = this.generateSeedData();
+        if (parsed.departments && !parsed.departments.some((d: Department) => d.schoolId === 'sch-eng')) {
+          for (const dept of freshForAcademics.departments) {
+            if (!parsed.departments.some((d: Department) => d.id === dept.id)) {
+        if (parsed.programmes) {
+          for (const prog of freshForAcademics.programmes) {
+            if (!parsed.programmes.some((p: Programme) => p.id === prog.id)) {
+        if (parsed.users) {
+          for (const u of freshForAcademics.users) {
+            if (!parsed.users.some((eu: User) => eu.email === u.email)) {
+        if (!parsed.issuedDocuments) {
+        if (!parsed.feeCatalogItems)           { parsed.feeCatalogItems = []; dirty = true; }
+        if (!parsed.programFeeSchedules)       { parsed.programFeeSchedules = []; dirty = true; }
+        if (!parsed.programFeeScheduleItems)   { parsed.programFeeScheduleItems = []; dirty = true; }
+        if (!parsed.studentFeeObligations)     { parsed.studentFeeObligations = []; dirty = true; }
+        if (!parsed.studentPayments)           { parsed.studentPayments = []; dirty = true; }
+        if (!parsed.studentPaymentAllocations) { parsed.studentPaymentAllocations = []; dirty = true; }
+        if (parsed.settings) {
+          if (parsed.settings.transcriptFee === undefined) {
+          if (parsed.settings.certificateFee === undefined) {
+        if (dirty) {
+    const seed = this.generateSeedData();
+    const toSave = customState || this.state;
+    const snapshot = JSON.stringify(toSave);
+    const temporaryFile = `${DB_FILE}.tmp`;
+    if (this.persistentClient) {
+      const client = this.persistentClient;
+          const result = await client.query(
+          if (result.rowCount !== 1) {
+    const entry: AuditLog = {
+    if (this.state.auditLogs.length > 2000) {
+    const passwordHash = bcrypt.hashSync('Password123!', 10);
+    const settings: InstitutionSettings = {
+    const schools: School[] = [
+    const departments: Department[] = [
+    const programmes: Programme[] = [
+    const users: User[] = [
+    const courses: Course[] = [
+    const students: Student[] = [
+    const applications: AdmissionApplication[] = [
+    const feeSchedules: FeeSchedule[] = [
+    const invoices: Invoice[] = [
+    const payments: PaymentTransaction[] = [
+    const registrations: CourseRegistration[] = [
+    const results: AssessmentResult[] = [
+    const attendance: AttendanceSession[] = [
+    const supportTickets: SupportTicket[] = [
+    const auditLogs: AuditLog[] = [
+    const newsArticles: NewsArticle[] = [
+    const sliderSlides: HeroSlide[] = [
+    const pageContent: PageContent = {
+    const issuedDocuments: IssuedDocument[] = [];
+export const db = new DatabaseEngine();

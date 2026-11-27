@@ -1,0 +1,135 @@
+{
+  "validFixture": {
+    "schools": [
+      {
+        "id": "test_school_9b6bd5cf0eff",
+        "code": "SYN-SCH",
+        "name": "Synthetic Test School",
+        "description": "Fabricated test fixture"
+      }
+    ],
+    "users": [
+      {
+        "id": "test_user_898782bc1174",
+        "fullName": "Synthetic Test User",
+        "email": "synthetic@example.invalid",
+        "role": "INSTITUTION_ADMIN",
+        "isActive": true,
+        "isLocked": false,
+        "failedLoginAttempts": 0,
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "schoolId": "test_school_9b6bd5cf0eff",
+        "departmentId": "test_department_37d0534864b6"
+      }
+    ],
+    "departments": [
+      {
+        "id": "test_department_37d0534864b6",
+        "code": "SYN-DEP",
+        "name": "Synthetic Test Department",
+        "schoolId": "test_school_9b6bd5cf0eff",
+        "hodUserId": "test_user_898782bc1174"
+      }
+    ],
+    "programmes": [
+      {
+        "id": "test_programme_be3d89c5ef6c",
+        "departmentId": "test_department_37d0534864b6",
+        "code": "SYN-PROG",
+        "name": "Synthetic Test Programme",
+        "qualification": "ND",
+        "durationYears": 2,
+        "description": "Fabricated test fixture",
+        "requirements": []
+      }
+    ],
+    "courses": [
+      {
+        "id": "test_course_8d2276b2bfbd",
+        "departmentId": "test_department_37d0534864b6",
+        "programmeId": "test_programme_be3d89c5ef6c",
+        "code": "SYN-101",
+        "title": "Synthetic Test Course",
+        "creditUnits": 2,
+        "level": "ND I",
+        "semester": "First Semester",
+        "isCompulsory": true,
+        "lecturerId": "test_user_898782bc1174",
+        "lecturerName": "Synthetic Test User"
+      }
+    ],
+    "applications": [],
+    "students": [
+      {
+        "id": "test_student_739aaa8ead2b",
+        "userId": "test_user_898782bc1174",
+        "programmeId": "test_programme_be3d89c5ef6c",
+        "schoolId": "test_school_9b6bd5cf0eff",
+        "departmentId": "test_department_37d0534864b6",
+        "matricNumber": "SYNTHETIC-001",
+        "level": "ND I",
+        "sessionAdmitted": "2026/2027",
+        "academicStatus": "ACTIVE",
+        "cgpa": 0,
+        "totalCreditsEarned": 0,
+        "dob": "2000-01-01",
+        "gender": "Other",
+        "emergencyContact": "Synthetic Contact",
+        "nextOfKin": "Synthetic Kin"
+      }
+    ],
+    "invoices": [
+      {
+        "id": "test_invoice_721f1c56ae57",
+        "studentId": "test_student_739aaa8ead2b",
+        "invoiceNumber": "SYN-INV-001",
+        "title": "Synthetic Test Invoice",
+        "amount": 100,
+        "amountPaid": 0,
+        "status": "PENDING",
+        "session": "2026/2027",
+        "createdAt": "2026-01-01T00:00:00.000Z"
+      }
+    ],
+    "payments": [
+      {
+        "id": "test_payment_7d72053dac1a",
+        "studentId": "test_student_739aaa8ead2b",
+        "invoiceId": "test_invoice_721f1c56ae57",
+        "amount": 100,
+        "reference": "SYN-PAY-001",
+        "providerReference": "SYN-PROV-001",
+        "channel": "TEST",
+        "status": "PENDING",
+        "verifiedBy": null
+      }
+    ]
+  },
+  "quarantineFixtures": {
+    "incompleteStudent": {
+      "id": "quarantine_student_84320b86e56a",
+      "emergencyContact": null
+    },
+    "dependentInvoice": {
+      "id": "quarantine_invoice_1f05a6c6c18a",
+      "studentId": "QUARANTINED_STUDENT_REFERENCE"
+    }
+  },
+  "duplicateIdFixture": {
+    "collection": "schools",
+    "duplicateId": "test_school_9b6bd5cf0eff",
+    "description": "Must be rejected by the test importer"
+  },
+  "expected": {
+    "validSchoolCount": 1,
+    "validUserCount": 1,
+    "validDepartmentCount": 1,
+    "validProgrammeCount": 1,
+    "validCourseCount": 1,
+    "validStudentCount": 1,
+    "validInvoiceCount": 1,
+    "validPaymentCount": 1,
+    "expectedQuarantineCount": 2,
+    "duplicateIdRejectionRequired": true
+  }
+}

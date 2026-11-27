@@ -1,0 +1,93 @@
+{
+  "mode": "READ_ONLY_SCHEMA_APPLICATION_PREFLIGHT",
+  "migration": "010_core_entities_and_legacy_finance.sql",
+  "statements": {
+    "createTables": [
+      {
+        "table": "schools",
+        "guarded": true
+      },
+      {
+        "table": "users",
+        "guarded": true
+      },
+      {
+        "table": "departments",
+        "guarded": true
+      },
+      {
+        "table": "programmes",
+        "guarded": true
+      },
+      {
+        "table": "courses",
+        "guarded": true
+      },
+      {
+        "table": "admission_applications",
+        "guarded": true
+      },
+      {
+        "table": "students",
+        "guarded": true
+      },
+      {
+        "table": "legacy_invoices",
+        "guarded": true
+      },
+      {
+        "table": "legacy_payment_transactions",
+        "guarded": true
+      }
+    ],
+    "addConstraints": [
+      {
+        "table": "users",
+        "constraint": "fk_users_department",
+        "guarded": false
+      },
+      {
+        "table": "users",
+        "constraint": "fk_users_school",
+        "guarded": false
+      },
+      {
+        "table": "schools",
+        "constraint": "fk_schools_dean",
+        "guarded": false
+      },
+      {
+        "table": "departments",
+        "constraint": "fk_departments_hod",
+        "guarded": false
+      },
+      {
+        "table": "courses",
+        "constraint": "fk_courses_lecturer",
+        "guarded": false
+      }
+    ],
+    "destructiveStatements": [],
+    "transactionMarkers": {
+      "begin": true,
+      "commit": true
+    }
+  },
+  "database": {
+    "db": "ecasti_local",
+    "schema": "public",
+    "address": "127.0.0.1/32",
+    "port": 5433,
+    "verified": true
+  },
+  "existingApplicationState": {
+    "tableExists": true,
+    "rowCount": 1
+  },
+  "existingTargetTables": [],
+  "existingTargetConstraints": [],
+  "risks": [
+    "ADD CONSTRAINT statements are not protected by IF NOT EXISTS; inspect before reruns."
+  ],
+  "status": "REVIEW"
+}

@@ -1,0 +1,91 @@
+{
+  "mode": "MIGRATION_010_CONSOLIDATED_READINESS_V2",
+  "status": "REVIEW_REQUIRED",
+  "checks": [
+    {
+      "name": "Static reconciliation passed",
+      "pass": true,
+      "detail": "11 passed; 0 failed"
+    },
+    {
+      "name": "Manifest integrity passed",
+      "pass": true,
+      "detail": "46/46; failures 0"
+    },
+    {
+      "name": "Synthetic safety logic passed",
+      "pass": true,
+      "detail": "15/15; failures 0"
+    },
+    {
+      "name": "Quarantine propagation passed",
+      "pass": true,
+      "detail": "10/10; failures 0"
+    },
+    {
+      "name": "Dependency integrity passed",
+      "pass": true,
+      "detail": "8/8; failures 0"
+    },
+    {
+      "name": "Target collision simulation passed",
+      "pass": true,
+      "detail": "8/8; failures 0"
+    },
+    {
+      "name": "Quarantine simulation status recognized",
+      "pass": true,
+      "detail": "SIMULATION_PASS_REVIEW_REQUIRED"
+    },
+    {
+      "name": "Transformation validation retains source blockers",
+      "pass": true,
+      "detail": "2 findings; status BLOCKED"
+    },
+    {
+      "name": "Simulation source record total",
+      "pass": true,
+      "detail": "60"
+    },
+    {
+      "name": "Simulation eligible total",
+      "pass": false,
+      "detail": "field not found"
+    },
+    {
+      "name": "Simulation quarantined total",
+      "pass": false,
+      "detail": "field not found"
+    },
+    {
+      "name": "Required source data blockers resolved",
+      "pass": false,
+      "detail": "2 unresolved"
+    },
+    {
+      "name": "Destination collision verification completed",
+      "pass": false,
+      "detail": "Real destination not inspected"
+    },
+    {
+      "name": "Import authorized",
+      "pass": false,
+      "detail": "Not authorized"
+    }
+  ],
+  "passed": 9,
+  "reviewItems": 5,
+  "blockers": [
+    "Application required phone missing",
+    "Student required emergency contact missing"
+  ],
+  "safety": {
+    "databaseConnected": false,
+    "sqlExecuted": false,
+    "sourceModified": false,
+    "destinationInspected": false,
+    "importPerformed": false,
+    "importAuthorized": false
+  },
+  "note": "Validation summary only. Does not authorize or execute migration."
+}

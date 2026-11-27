@@ -1,0 +1,1795 @@
+{
+  "mode": "LOCAL_READ_ONLY_MAPPING_AUDIT",
+  "generatedAt": "2026-11-26T13:46:59.905Z",
+  "databaseConnected": false,
+  "sqlExecuted": false,
+  "sourceModified": false,
+  "importPerformed": false,
+  "files": {
+    "source": {
+      "file": "data/edocasti_db.json",
+      "sha256": "2247f06ac2cc25a66efdb63e9e08ed815492c751c9b547e6d8a1f467ed36c705"
+    },
+    "migration": {
+      "file": "database/migrations/010_core_entities_and_legacy_finance_RERUN_SAFE_REVIEW.sql",
+      "sha256": "5c39f7e9bc082a8d5e76bed29f25d72c241c0dc2624d04861c3f37e0f0452268"
+    }
+  },
+  "collections": [
+    {
+      "sourceCollection": "schools",
+      "targetTable": "schools",
+      "sourceRecordCount": 4,
+      "targetColumns": [
+        "code",
+        "dean_user_id",
+        "description",
+        "id",
+        "image_url",
+        "name"
+      ],
+      "fieldMappings": [
+        {
+          "sourceField": "id",
+          "targetColumn": "id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "code",
+          "targetColumn": "code",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "name",
+          "targetColumn": "name",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "description",
+          "targetColumn": "description",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "imageUrl",
+          "targetColumn": "image_url",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 0,
+            "missing": 4,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "missing": 4
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sourceCollection": "users",
+      "targetTable": "users",
+      "sourceRecordCount": 15,
+      "targetColumns": [
+        "created_at",
+        "department_id",
+        "email",
+        "failed_login_attempts",
+        "full_name",
+        "id",
+        "is_active",
+        "is_locked",
+        "last_login",
+        "password_hash",
+        "phone",
+        "photo_url",
+        "role",
+        "school_id"
+      ],
+      "fieldMappings": [
+        {
+          "sourceField": "id",
+          "targetColumn": "id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 15,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 15
+            }
+          }
+        },
+        {
+          "sourceField": "email",
+          "targetColumn": "email",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 15,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 15
+            }
+          }
+        },
+        {
+          "sourceField": "passwordHash",
+          "targetColumn": "password_hash",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 15,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 15
+            }
+          }
+        },
+        {
+          "sourceField": "fullName",
+          "targetColumn": "full_name",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 15,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 15
+            }
+          }
+        },
+        {
+          "sourceField": "role",
+          "targetColumn": "role",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 15,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 15
+            }
+          }
+        },
+        {
+          "sourceField": "phone",
+          "targetColumn": "phone",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 15,
+            "missing": 0,
+            "null": 0,
+            "blank": 1,
+            "typeCounts": {
+              "string": 14,
+              "blank": 1
+            }
+          }
+        },
+        {
+          "sourceField": "photoUrl",
+          "targetColumn": "photo_url",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 1,
+            "missing": 14,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "missing": 14,
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "isActive",
+          "targetColumn": "is_active",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 15,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "boolean": 15
+            }
+          }
+        },
+        {
+          "sourceField": "isLocked",
+          "targetColumn": "is_locked",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 15,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "boolean": 15
+            }
+          }
+        },
+        {
+          "sourceField": "failedLoginAttempts",
+          "targetColumn": "failed_login_attempts",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 15,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "number": 15
+            }
+          }
+        },
+        {
+          "sourceField": "departmentId",
+          "targetColumn": "department_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 3,
+            "missing": 12,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "missing": 12,
+              "string": 3
+            }
+          }
+        },
+        {
+          "sourceField": "schoolId",
+          "targetColumn": "school_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 4,
+            "missing": 11,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "missing": 11,
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "createdAt",
+          "targetColumn": "created_at",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 15,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 15
+            }
+          }
+        },
+        {
+          "sourceField": "lastLogin",
+          "targetColumn": "last_login",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 15,
+            "present": 9,
+            "missing": 6,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 9,
+              "missing": 6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sourceCollection": "departments",
+      "targetTable": "departments",
+      "sourceRecordCount": 10,
+      "targetColumns": [
+        "code",
+        "hod_user_id",
+        "id",
+        "name",
+        "school_id"
+      ],
+      "fieldMappings": [
+        {
+          "sourceField": "id",
+          "targetColumn": "id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 10,
+            "present": 10,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 10
+            }
+          }
+        },
+        {
+          "sourceField": "schoolId",
+          "targetColumn": "school_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 10,
+            "present": 10,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 10
+            }
+          }
+        },
+        {
+          "sourceField": "code",
+          "targetColumn": "code",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 10,
+            "present": 10,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 10
+            }
+          }
+        },
+        {
+          "sourceField": "name",
+          "targetColumn": "name",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 10,
+            "present": 10,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 10
+            }
+          }
+        },
+        {
+          "sourceField": "hodUserId",
+          "targetColumn": "hod_user_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 10,
+            "present": 0,
+            "missing": 10,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "missing": 10
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sourceCollection": "programmes",
+      "targetTable": "programmes",
+      "sourceRecordCount": 12,
+      "targetColumns": [
+        "code",
+        "department_id",
+        "description",
+        "duration_years",
+        "id",
+        "name",
+        "qualification",
+        "requirements"
+      ],
+      "fieldMappings": [
+        {
+          "sourceField": "id",
+          "targetColumn": "id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 12,
+            "present": 12,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 12
+            }
+          }
+        },
+        {
+          "sourceField": "departmentId",
+          "targetColumn": "department_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 12,
+            "present": 12,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 12
+            }
+          }
+        },
+        {
+          "sourceField": "code",
+          "targetColumn": "code",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 12,
+            "present": 12,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 12
+            }
+          }
+        },
+        {
+          "sourceField": "name",
+          "targetColumn": "name",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 12,
+            "present": 12,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 12
+            }
+          }
+        },
+        {
+          "sourceField": "qualification",
+          "targetColumn": "qualification",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 12,
+            "present": 12,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 12
+            }
+          }
+        },
+        {
+          "sourceField": "durationYears",
+          "targetColumn": "duration_years",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 12,
+            "present": 12,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "number": 12
+            }
+          }
+        },
+        {
+          "sourceField": "description",
+          "targetColumn": "description",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 12,
+            "present": 12,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 12
+            }
+          }
+        },
+        {
+          "sourceField": "requirements",
+          "targetColumn": "requirements",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 12,
+            "present": 12,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "array": 12
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sourceCollection": "courses",
+      "targetTable": "courses",
+      "sourceRecordCount": 8,
+      "targetColumns": [
+        "code",
+        "credit_units",
+        "department_id",
+        "id",
+        "is_compulsory",
+        "lecturer_name",
+        "lecturer_user_id",
+        "level",
+        "programme_id",
+        "semester",
+        "title"
+      ],
+      "fieldMappings": [
+        {
+          "sourceField": "id",
+          "targetColumn": "id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 8,
+            "present": 8,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 8
+            }
+          }
+        },
+        {
+          "sourceField": "departmentId",
+          "targetColumn": "department_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 8,
+            "present": 8,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 8
+            }
+          }
+        },
+        {
+          "sourceField": "programmeId",
+          "targetColumn": "programme_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 8,
+            "present": 8,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 8
+            }
+          }
+        },
+        {
+          "sourceField": "code",
+          "targetColumn": "code",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 8,
+            "present": 8,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 8
+            }
+          }
+        },
+        {
+          "sourceField": "title",
+          "targetColumn": "title",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 8,
+            "present": 8,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 8
+            }
+          }
+        },
+        {
+          "sourceField": "creditUnits",
+          "targetColumn": "credit_units",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 8,
+            "present": 8,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "number": 8
+            }
+          }
+        },
+        {
+          "sourceField": "level",
+          "targetColumn": "level",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 8,
+            "present": 8,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 8
+            }
+          }
+        },
+        {
+          "sourceField": "semester",
+          "targetColumn": "semester",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 8,
+            "present": 8,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 8
+            }
+          }
+        },
+        {
+          "sourceField": "lecturerId",
+          "targetColumn": "lecturer_user_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 8,
+            "present": 8,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 8
+            }
+          }
+        },
+        {
+          "sourceField": "lecturerName",
+          "targetColumn": "lecturer_name",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 8,
+            "present": 8,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 8
+            }
+          }
+        },
+        {
+          "sourceField": "isCompulsory",
+          "targetColumn": "is_compulsory",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 8,
+            "present": 8,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "boolean": 8
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sourceCollection": "applications",
+      "targetTable": "admission_applications",
+      "sourceRecordCount": 1,
+      "targetColumns": [
+        "application_number",
+        "date_of_birth",
+        "decision_at",
+        "email",
+        "fee_activation_required_at",
+        "first_name",
+        "gender",
+        "id",
+        "last_name",
+        "lga",
+        "o_level_results",
+        "other_names",
+        "phone",
+        "photo_url",
+        "programme_id",
+        "residential_address",
+        "reviewer_display_snapshot",
+        "reviewer_user_id",
+        "screening_notes",
+        "session",
+        "state_of_origin",
+        "status",
+        "submitted_at",
+        "user_id"
+      ],
+      "fieldMappings": [
+        {
+          "sourceField": "id",
+          "targetColumn": "id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "applicationNumber",
+          "targetColumn": "application_number",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "userId",
+          "targetColumn": "user_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "programmeId",
+          "targetColumn": "programme_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "session",
+          "targetColumn": "session",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "firstName",
+          "targetColumn": "first_name",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "lastName",
+          "targetColumn": "last_name",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "otherNames",
+          "targetColumn": "other_names",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 1,
+            "typeCounts": {
+              "blank": 1
+            }
+          }
+        },
+        {
+          "sourceField": "gender",
+          "targetColumn": "gender",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "dob",
+          "targetColumn": "date_of_birth",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "phone",
+          "targetColumn": "phone",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 1,
+            "typeCounts": {
+              "blank": 1
+            }
+          }
+        },
+        {
+          "sourceField": "email",
+          "targetColumn": "email",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "photoUrl",
+          "targetColumn": "photo_url",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "stateOfOrigin",
+          "targetColumn": "state_of_origin",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "lga",
+          "targetColumn": "lga",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "residentialAddress",
+          "targetColumn": "residential_address",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "oLevelResults",
+          "targetColumn": "o_level_results",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "array": 1
+            }
+          }
+        },
+        {
+          "sourceField": "status",
+          "targetColumn": "status",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "screeningNotes",
+          "targetColumn": "screening_notes",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "reviewedBy",
+          "targetColumn": "reviewer_display_snapshot",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "submittedAt",
+          "targetColumn": "submitted_at",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "decisionAt",
+          "targetColumn": "decision_at",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 1,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "feeActivationRequiredAt",
+          "targetColumn": "fee_activation_required_at",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 1,
+            "present": 0,
+            "missing": 1,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "missing": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sourceCollection": "students",
+      "targetTable": "students",
+      "sourceRecordCount": 4,
+      "targetColumns": [
+        "academic_status",
+        "cgpa",
+        "date_of_birth",
+        "department_id",
+        "emergency_contact",
+        "gender",
+        "id",
+        "level",
+        "matric_number",
+        "next_of_kin",
+        "photo_url",
+        "programme_id",
+        "school_id",
+        "session_admitted",
+        "total_credits_earned",
+        "user_id"
+      ],
+      "fieldMappings": [
+        {
+          "sourceField": "id",
+          "targetColumn": "id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "matricNumber",
+          "targetColumn": "matric_number",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "userId",
+          "targetColumn": "user_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "photoUrl",
+          "targetColumn": "photo_url",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 2,
+            "missing": 2,
+            "null": 0,
+            "blank": 1,
+            "typeCounts": {
+              "missing": 2,
+              "blank": 1,
+              "string": 1
+            }
+          }
+        },
+        {
+          "sourceField": "programmeId",
+          "targetColumn": "programme_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "departmentId",
+          "targetColumn": "department_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "schoolId",
+          "targetColumn": "school_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "level",
+          "targetColumn": "level",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "sessionAdmitted",
+          "targetColumn": "session_admitted",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "academicStatus",
+          "targetColumn": "academic_status",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "gender",
+          "targetColumn": "gender",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "dob",
+          "targetColumn": "date_of_birth",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "emergencyContact",
+          "targetColumn": "emergency_contact",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 1,
+            "typeCounts": {
+              "string": 3,
+              "blank": 1
+            }
+          }
+        },
+        {
+          "sourceField": "nextOfKin",
+          "targetColumn": "next_of_kin",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "cgpa",
+          "targetColumn": "cgpa",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "number": 4
+            }
+          }
+        },
+        {
+          "sourceField": "totalCreditsEarned",
+          "targetColumn": "total_credits_earned",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "number": 4
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sourceCollection": "invoices",
+      "targetTable": "legacy_invoices",
+      "sourceRecordCount": 4,
+      "targetColumns": [
+        "amount",
+        "amount_paid",
+        "created_at",
+        "due_date",
+        "id",
+        "invoice_number",
+        "session",
+        "status",
+        "student_id",
+        "title"
+      ],
+      "fieldMappings": [
+        {
+          "sourceField": "id",
+          "targetColumn": "id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "studentId",
+          "targetColumn": "student_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "invoiceNumber",
+          "targetColumn": "invoice_number",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "title",
+          "targetColumn": "title",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "session",
+          "targetColumn": "session",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "amount",
+          "targetColumn": "amount",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "number": 4
+            }
+          }
+        },
+        {
+          "sourceField": "amountPaid",
+          "targetColumn": "amount_paid",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "number": 4
+            }
+          }
+        },
+        {
+          "sourceField": "dueDate",
+          "targetColumn": "due_date",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "status",
+          "targetColumn": "status",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        },
+        {
+          "sourceField": "createdAt",
+          "targetColumn": "created_at",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 4,
+            "present": 4,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 4
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sourceCollection": "payments",
+      "targetTable": "legacy_payment_transactions",
+      "sourceRecordCount": 2,
+      "targetColumns": [
+        "amount",
+        "channel",
+        "id",
+        "invoice_id",
+        "paid_at",
+        "provider_reference",
+        "reference",
+        "status",
+        "student_id",
+        "verified_by_display"
+      ],
+      "fieldMappings": [
+        {
+          "sourceField": "id",
+          "targetColumn": "id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 2,
+            "present": 2,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 2
+            }
+          }
+        },
+        {
+          "sourceField": "invoiceId",
+          "targetColumn": "invoice_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 2,
+            "present": 2,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 2
+            }
+          }
+        },
+        {
+          "sourceField": "studentId",
+          "targetColumn": "student_id",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 2,
+            "present": 2,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 2
+            }
+          }
+        },
+        {
+          "sourceField": "reference",
+          "targetColumn": "reference",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 2,
+            "present": 2,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 2
+            }
+          }
+        },
+        {
+          "sourceField": "providerReference",
+          "targetColumn": "provider_reference",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 2,
+            "present": 2,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 2
+            }
+          }
+        },
+        {
+          "sourceField": "amount",
+          "targetColumn": "amount",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 2,
+            "present": 2,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "number": 2
+            }
+          }
+        },
+        {
+          "sourceField": "channel",
+          "targetColumn": "channel",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 2,
+            "present": 2,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 2
+            }
+          }
+        },
+        {
+          "sourceField": "status",
+          "targetColumn": "status",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 2,
+            "present": 2,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 2
+            }
+          }
+        },
+        {
+          "sourceField": "paidAt",
+          "targetColumn": "paid_at",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 2,
+            "present": 2,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 2
+            }
+          }
+        },
+        {
+          "sourceField": "verifiedBy",
+          "targetColumn": "verified_by_display",
+          "targetColumnExists": true,
+          "sourceStats": {
+            "total": 2,
+            "present": 2,
+            "missing": 0,
+            "null": 0,
+            "blank": 0,
+            "typeCounts": {
+              "string": 2
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "missingCollections": [],
+  "unresolvedTargetColumns": [],
+  "knownExceptions": [
+    {
+      "collection": "applications",
+      "recordId": "app-1795622937861",
+      "field": "phone",
+      "reason": "Known missing authoritative source value",
+      "resolution": "Requires authoritative value or approved schema policy"
+    },
+    {
+      "collection": "students",
+      "recordId": "std-1795623290388",
+      "field": "emergencyContact",
+      "reason": "Known missing authoritative source value",
+      "resolution": "Requires authoritative value or approved schema policy"
+    }
+  ],
+  "circularReferenceOrderingPlan": [
+    "schools with leadership fields initially NULL",
+    "departments with HOD initially NULL",
+    "users with circular school/department assignments deferred",
+    "update user school/department assignments",
+    "programmes",
+    "courses",
+    "admission_applications",
+    "students",
+    "legacy_invoices",
+    "legacy_payment_transactions"
+  ],
+  "displaySnapshotMappings": [
+    {
+      "sourceField": "applications.reviewedBy",
+      "targetColumn": "admission_applications.reviewer_display_snapshot",
+      "treatment": "Display snapshot; not converted to reviewer_user_id"
+    },
+    {
+      "sourceField": "payments.verifiedBy",
+      "targetColumn": "legacy_payment_transactions.verified_by_display",
+      "treatment": "Display snapshot; not converted to user foreign key"
+    }
+  ],
+  "reviewWarnings": [
+    "No importer was executed or evaluated at runtime.",
+    "Field mapping coverage does not establish transformation correctness.",
+    "The missing phone and emergency-contact values remain unresolved.",
+    "Existing ID collisions and target-record equality remain untested.",
+    "The ordering plan is conceptual and requires importer implementation review.",
+    "Legacy feeSchedules are outside these nine target collections.",
+    "The source-to-target mappings are proposed mappings, not verified transformations."
+  ],
+  "status": "MAPPING_STRUCTURE_PASS_REVIEW_REQUIRED"
+}

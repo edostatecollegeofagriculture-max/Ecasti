@@ -1,0 +1,197 @@
+{
+  "mode": "FILE_ONLY",
+  "status": "MANIFEST_VALID",
+  "checks": [
+    {
+      "label": "File exists: ./data/edocasti_db.json",
+      "passed": true
+    },
+    {
+      "label": "File exists: ./EDOCASTI_Migration_010_Quarantine_Simulation.json",
+      "passed": true
+    },
+    {
+      "label": "File exists: ./EDOCASTI_Migration_010_Transformation_Validation.json",
+      "passed": true
+    },
+    {
+      "label": "File exists: ./EDOCASTI_Migration_010_Dry_Run_Manifest.json",
+      "passed": true
+    },
+    {
+      "label": "Manifest mode is dry-run only",
+      "passed": true
+    },
+    {
+      "label": "Manifest collection scope exact",
+      "passed": true
+    },
+    {
+      "label": "Manifest order exact",
+      "passed": true
+    },
+    {
+      "label": "Manifest collection count",
+      "passed": true
+    },
+    {
+      "label": "Manifest source total",
+      "passed": true
+    },
+    {
+      "label": "Manifest eligible total",
+      "passed": true
+    },
+    {
+      "label": "Manifest quarantine total",
+      "passed": true
+    },
+    {
+      "label": "Manifest source hash matches",
+      "passed": true
+    },
+    {
+      "label": "Manifest simulation hash matches",
+      "passed": true
+    },
+    {
+      "label": "Manifest transformation hash matches",
+      "passed": true
+    },
+    {
+      "label": "Simulation has zero reference failures",
+      "passed": true
+    },
+    {
+      "label": "Transformation findings remain two",
+      "passed": true
+    },
+    {
+      "label": "Manifest has no SQL payload",
+      "passed": true
+    },
+    {
+      "label": "Safety flags remain false",
+      "passed": true
+    },
+    {
+      "label": "Source array exists: schools",
+      "passed": true
+    },
+    {
+      "label": "Manifest entry exists: schools",
+      "passed": true
+    },
+    {
+      "label": "Source count reconciles: schools",
+      "passed": true
+    },
+    {
+      "label": "Source array exists: users",
+      "passed": true
+    },
+    {
+      "label": "Manifest entry exists: users",
+      "passed": true
+    },
+    {
+      "label": "Source count reconciles: users",
+      "passed": true
+    },
+    {
+      "label": "Source array exists: departments",
+      "passed": true
+    },
+    {
+      "label": "Manifest entry exists: departments",
+      "passed": true
+    },
+    {
+      "label": "Source count reconciles: departments",
+      "passed": true
+    },
+    {
+      "label": "Source array exists: programmes",
+      "passed": true
+    },
+    {
+      "label": "Manifest entry exists: programmes",
+      "passed": true
+    },
+    {
+      "label": "Source count reconciles: programmes",
+      "passed": true
+    },
+    {
+      "label": "Source array exists: courses",
+      "passed": true
+    },
+    {
+      "label": "Manifest entry exists: courses",
+      "passed": true
+    },
+    {
+      "label": "Source count reconciles: courses",
+      "passed": true
+    },
+    {
+      "label": "Source array exists: applications",
+      "passed": true
+    },
+    {
+      "label": "Manifest entry exists: applications",
+      "passed": true
+    },
+    {
+      "label": "Source count reconciles: applications",
+      "passed": true
+    },
+    {
+      "label": "Source array exists: students",
+      "passed": true
+    },
+    {
+      "label": "Manifest entry exists: students",
+      "passed": true
+    },
+    {
+      "label": "Source count reconciles: students",
+      "passed": true
+    },
+    {
+      "label": "Source array exists: invoices",
+      "passed": true
+    },
+    {
+      "label": "Manifest entry exists: invoices",
+      "passed": true
+    },
+    {
+      "label": "Source count reconciles: invoices",
+      "passed": true
+    },
+    {
+      "label": "Source array exists: payments",
+      "passed": true
+    },
+    {
+      "label": "Manifest entry exists: payments",
+      "passed": true
+    },
+    {
+      "label": "Source count reconciles: payments",
+      "passed": true
+    },
+    {
+      "label": "Source count independently reconciles",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "safety": {
+    "databaseConnected": false,
+    "sqlExecuted": false,
+    "importPerformed": false,
+    "sourceModified": false
+  }
+}

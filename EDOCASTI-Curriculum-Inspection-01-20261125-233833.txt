@@ -1,0 +1,1166 @@
+﻿
+============================================================
+PROGRESSION SERVICE
+============================================================
+
+import type { DatabaseState } from './db';
+
+export const ND_PASS_MARK = 40;
+
+export type GraduationCourseStatus =
+  | 'PASSED'
+  | 'FAILED'
+  | 'MISSING_RESULT'
+  | 'UNPUBLISHED_RESULT';
+
+export interface GraduationCourseCheck {
+  courseId: string;
+  code: string;
+  title: string;
+  level: string;
+  status: GraduationCourseStatus;
+  publishedScore?: number;
+  publishedGrade?: string;
+}
+
+export interface NdGraduationEligibility {
+  studentId: string;
+  programmeId: string;
+  eligible: boolean;
+  preliminaryEligible: boolean;
+  eligibilityBasis: 'LIVE_CATALOGUE_PREVIEW_ONLY';
+  configurationValid: boolean;
+  passMark: number;
+  requiredCourseCount: number;
+  passedCourseCount: number;
+  outstandingCourseCount: number;
+  missingResultCount: number;
+  unpublishedResultCount: number;
+  failedCourseCount: number;
+  unmappedCompulsoryCourseCount: number;
+  courses: GraduationCourseCheck[];
+  warnings: string[];
+}
+
+export function evaluateNdGraduationEligibility(
+  state: DatabaseState,
+  studentId: string
+): NdGraduationEligibility {
+  const student = state.students.find((item) => item.id === studentId);
+
+  if (!student) {
+    throw new Error('Student record not found.');
+  }
+
+  const ndLevels = new Set(['ND I', 'ND II']);
+
+  const requiredCourses = state.courses.filter(
+    (course) =>
+      course.programmeId === student.programmeId &&
+      course.isCompulsory === true &&
+      ndLevels.has(course.level)
+  );
+
+  const unmappedCompulsoryCourses = state.courses.filter(
+    (course) =>
+      !course.programmeId &&
+      course.departmentId === student.departmentId &&
+      course.isCompulsory === true &&
+      ndLevels.has(course.level)
+  );
+
+  const warnings: string[] = [];
+
+  if (requiredCourses.length === 0) {
+    warnings.push(
+      'No compulsory ND I or ND II courses are explicitly assigned to this programme. Graduation eligibility cannot be confirmed.'
+    );
+  }
+
+  if (unmappedCompulsoryCourses.length > 0) {
+    warnings.push(
+      `${unmappedCompulsoryCourses.length} compulsory ND course(s) in the student's department are not assigned to a programme. Review course configuration.`
+    );
+  }
+
+  const courses: GraduationCourseCheck[] = requiredCourses.map((course) => {
+    const courseResults = state.results.filter(
+      (result) =>
+        result.studentId === studentId &&
+        result.courseId === course.id
+    );
+
+    const publishedResults = courseResults
+      .filter((result) => result.status === 'PUBLISHED')
+      .sort((a, b) => {
+        const sessionCompare = b.session.localeCompare(a.session);
+        return sessionCompare || b.semester.localeCompare(a.semester);
+      });
+
+    const passingResult = publishedResults.find(
+      (result) => Number(result.totalScore) >= ND_PASS_MARK
+    );
+
+    if (passingResult) {
+      return {
+        courseId: course.id,
+        code: course.code,
+        title: course.title,
+        level: course.level,
+        status: 'PASSED',
+        publishedScore: Number(passingResult.totalScore),
+        publishedGrade: passingResult.grade,
+      };
+    }
+
+    const latestPublished = publishedResults[0];
+
+    if (latestPublished) {
+      return {
+        courseId: course.id,
+        code: course.code,
+        title: course.title,
+        level: course.level,
+        status: 'FAILED',
+        publishedScore: Number(latestPublished.totalScore),
+        publishedGrade: latestPublished.grade,
+      };
+    }
+
+
+    return {
+      courseId: course.id,
+      code: course.code,
+      title: course.title,
+      level: course.level,
+      status: courseResults.length > 0
+        ? 'UNPUBLISHED_RESULT'
+        : 'MISSING_RESULT',
+    };
+  });
+
+  const passedCourseCount = courses.filter(
+    (course) => course.status === 'PASSED'
+  ).length;
+
+  const failedCourseCount = courses.filter(
+    (course) => course.status === 'FAILED'
+  ).length;
+
+  const missingResultCount = courses.filter(
+    (course) => course.status === 'MISSING_RESULT'
+  ).length;
+
+  const unpublishedResultCount = courses.filter(
+    (course) => course.status === 'UNPUBLISHED_RESULT'
+  ).length;
+
+  const outstandingCourseCount = courses.length - passedCourseCount;
+
+  const configurationValid =
+    requiredCourses.length > 0 &&
+    unmappedCompulsoryCourses.length === 0;
+
+  warnings.push(
+
+    'PRELIMINARY ONLY: final graduation clearance is disabled until student-specific curriculum snapshots are populated and used for evaluation.'
+
+  );
+
+  return {
+    studentId,
+    programmeId: student.programmeId,
+    eligible: false,
+    preliminaryEligible: configurationValid && outstandingCourseCount === 0,
+    eligibilityBasis: 'LIVE_CATALOGUE_PREVIEW_ONLY',
+    configurationValid,
+    passMark: ND_PASS_MARK,
+    requiredCourseCount: courses.length,
+    passedCourseCount,
+    outstandingCourseCount,
+    missingResultCount,
+    unpublishedResultCount,
+    failedCourseCount,
+    unmappedCompulsoryCourseCount: unmappedCompulsoryCourses.length,
+    courses,
+    warnings,
+  };
+}
+
+
+============================================================
+PROGRESSION DECISION SERVICE
+============================================================
+
+import { randomUUID } from 'node:crypto';
+import type { PoolClient } from 'pg';
+import { neonPool } from './neon';
+
+type Stage = 'ND_I' | 'ND_II' | 'EXTENSION_1' | 'EXTENSION_2' | 'EXTENSION_3' | 'GRADUATED';
+type Status = 'ACTIVE' | 'EXTENSION' | 'GRADUATION_PENDING' | 'GRADUATED' | 'WITHDRAWN';
+
+async function transaction<T>(work: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await neonPool.connect();
+  let open = false;
+  try {
+    await client.query('BEGIN');
+    open = true;
+    const value = await work(client);
+    await client.query('COMMIT');
+    open = false;
+    return value;
+  } catch (error) {
+    if (open) await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+function required(value: unknown, label: string): string {
+  if (typeof value !== 'string' || !value.trim() || value.trim().length > 200) {
+    throw new Error(`${label} is required and must be valid.`);
+  }
+  return value.trim();
+}
+
+function id(prefix: string): string {
+  return `${prefix}-${randomUUID()}`;
+}
+
+export async function initializeStudentProgression(input: {
+  studentId: string;
+  programmeId: string;
+  academicSession: string;
+  decidedBy: string;
+}) {
+  const studentId = required(input.studentId, 'Student ID');
+  const programmeId = required(input.programmeId, 'Programme ID');
+  const academicSession = required(input.academicSession, 'Academic session');
+  const decidedBy = required(input.decidedBy, 'Decision maker');
+
+  return transaction(async (client) => {
+    await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`progression:${studentId}`]);
+    const existing = await client.query(
+      'SELECT programme_id, current_stage, progression_status, current_session, extension_year FROM student_academic_progression WHERE student_id = $1 FOR UPDATE',
+      [studentId]
+    );
+    if (existing.rows[0]) {
+      if (existing.rows[0].programme_id !== programmeId) {
+        throw new Error('The existing progression programme does not match the student programme.');
+      }
+      return { created: false, progression: existing.rows[0] };
+    }
+
+    const assignment = await client.query(
+      `SELECT a.programme_id, COUNT(r.id)::int AS required_count
+         FROM student_academic_curriculum_assignments a
+         LEFT JOIN student_academic_required_courses r
+           ON r.student_id = a.student_id AND r.is_required = TRUE
+        WHERE a.student_id = $1 AND a.is_current = TRUE
+        GROUP BY a.programme_id`,
+      [studentId]
+    );
+    if (!assignment.rows[0]) throw new Error('A current approved curriculum assignment is required before progression can be initialized.');
+    if (assignment.rows[0].programme_id !== programmeId) throw new Error('The curriculum assignment programme does not match the student programme.');
+    if (Number(assignment.rows[0].required_count) < 1) throw new Error('The student has no effective required-course snapshots.');
+
+    const progressionId = id('progression');
+    const historyId = id('progression-history');
+    await client.query(
+      `INSERT INTO student_academic_progression
+         (id, student_id, programme_id, current_stage, progression_status, current_session, extension_year)
+       VALUES ($1, $2, $3, 'ND_I', 'ACTIVE', $4, 0)`,
+      [progressionId, studentId, programmeId, academicSession]
+    );
+    await client.query(
+      `INSERT INTO academic_progression_history
+         (id, student_id, programme_id, from_stage, to_stage, from_status, to_status,
+          academic_session, extension_year, decision_type, outstanding_course_ids,
+          missing_result_course_ids, reason, decided_by, idempotency_key)
+       VALUES ($1, $2, $3, NULL, 'ND_I', NULL, 'ACTIVE', $4, 0, 'INITIAL_RECORD',
+               '[]'::jsonb, '[]'::jsonb, 'Initial ND academic progression record',
+               $5, $6)`,
+      [historyId, studentId, programmeId, academicSession, decidedBy, `progression-initial:${studentId}`]
+    );
+    return {
+      created: true,
+      progression: { id: progressionId, student_id: studentId, programme_id: programmeId,
+        current_stage: 'ND_I' as Stage, progression_status: 'ACTIVE' as Status,
+        current_session: academicSession, extension_year: 0 },
+    };
+  });
+}
+
+export async function advanceStudentProgression(input: {
+  studentId: string;
+  academicSession: string;
+  passedCourseIds: string[];
+  missingResultCourseIds: string[];
+  decidedBy: string;
+}) {
+  const studentId = required(input.studentId, 'Student ID');
+  const academicSession = required(input.academicSession, 'Academic session');
+  const decidedBy = required(input.decidedBy, 'Decision maker');
+  const passed = new Set(input.passedCourseIds.map((value) => required(value, 'Passed course ID')));
+  const missing = new Set(input.missingResultCourseIds.map((value) => required(value, 'Missing-result course ID')));
+
+  return transaction(async (client) => {
+    await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`progression:${studentId}`]);
+    const currentResult = await client.query(
+      'SELECT * FROM student_academic_progression WHERE student_id = $1 FOR UPDATE',
+      [studentId]
+    );
+    const current = currentResult.rows[0];
+    if (!current) throw new Error('Student progression has not been initialized.');
+    if (current.progression_status === 'WITHDRAWN') throw new Error('Withdrawn students require an authorized correction workflow.');
+    if (current.progression_status === 'GRADUATED') throw new Error('The student has already graduated.');
+    if (current.current_session === academicSession) throw new Error('A progression decision has already been recorded for this academic session.');
+
+    const snapshotResult = await client.query(
+      `SELECT course_id, course_level_snapshot, programme_id FROM student_academic_required_courses
+        WHERE student_id = $1 AND is_required = TRUE
+        ORDER BY course_level_snapshot, semester_snapshot, course_code_snapshot`,
+      [studentId]
+    );
+    const requiredIds = snapshotResult.rows.map((row: { course_id: string }) => String(row.course_id));
+    if (!requiredIds.length) throw new Error('No effective required-course snapshots exist for this student.');
+    if (snapshotResult.rows.some((row: { programme_id: string }) => row.programme_id !== current.programme_id)) {
+      throw new Error('The progression programme does not match the student required-course snapshots.');
+    }
+    for (const courseId of passed) {
+      if (!requiredIds.includes(courseId)) throw new Error('A passed course does not belong to the student required-course snapshots.');
+    }
+    for (const courseId of missing) {
+      if (!requiredIds.includes(courseId)) throw new Error('A missing-result course does not belong to the student required-course snapshots.');
+    }
+
+    const fromStage = current.current_stage as Stage;
+    // ND I history tracks only ND I courses; ND II and later decisions evaluate every effective requirement.
+    const evaluatedIds = fromStage === 'ND_I'
+      ? snapshotResult.rows
+          .filter((row: { course_level_snapshot: string }) => row.course_level_snapshot === 'ND I')
+          .map((row: { course_id: string }) => String(row.course_id))
+      : requiredIds;
+    const outstanding = evaluatedIds.filter((courseId: string) => !passed.has(courseId));
+    const fromStatus = current.progression_status as Status;
+    let toStage: Stage = fromStage;
+    let toStatus: Status = fromStatus;
+    let extensionYear = Number(current.extension_year);
+    let decisionType: 'SESSION_ROLLOVER' | 'NORMAL_CLEARANCE' = 'SESSION_ROLLOVER';
+
+    if (fromStage === 'ND_I') {
+      // ND I students always advance to ND II, regardless of outstanding courses.
+      toStage = 'ND_II';
+      toStatus = 'ACTIVE';
+      decisionType = 'SESSION_ROLLOVER';
+    } else if (outstanding.length === 0) {
+      toStage = 'GRADUATED';
+      toStatus = 'GRADUATED';
+      decisionType = 'NORMAL_CLEARANCE';
+    } else if (fromStage === 'ND_II') {
+      toStage = 'EXTENSION_1';
+      toStatus = 'EXTENSION';
+      extensionYear = 1;
+    } else if (fromStage === 'EXTENSION_1') {
+      toStage = 'EXTENSION_2';
+      toStatus = 'EXTENSION';
+      extensionYear = 2;
+    } else if (fromStage === 'EXTENSION_2') {
+      toStage = 'EXTENSION_3';
+      toStatus = 'EXTENSION';
+      extensionYear = 3;
+    } else if (fromStage === 'EXTENSION_3') {
+      toStage = 'EXTENSION_3';
+      toStatus = 'EXTENSION';
+      extensionYear = 3;
+    } else {
+      throw new Error('Unsupported progression stage.');
+    }
+
+    const historyId = id('progression-history');
+    const key = `progression-decision:${studentId}:${academicSession}`;
+    await client.query(
+      `INSERT INTO academic_progression_history
+         (id, student_id, programme_id, from_stage, to_stage, from_status, to_status,
+          academic_session, extension_year, decision_type, outstanding_course_ids,
+          missing_result_course_ids, reason, decided_by, approved_by, idempotency_key)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12::jsonb,$13,$14,NULL,$15)`,
+      [historyId, studentId, current.programme_id, fromStage, toStage, fromStatus, toStatus,
+       academicSession, extensionYear, decisionType, JSON.stringify(outstanding),
+       JSON.stringify([...missing].filter((courseId) => outstanding.includes(courseId))),
+       fromStage === 'ND_I'
+         ? 'ND I to ND II progression; outstanding ND I courses remain required.'
+         : outstanding.length === 0
+           ? 'All effective ND I and ND II required courses have published passing results.'
+           : 'Outstanding required courses carried forward into the extension pathway.',
+       decidedBy, key]
+    );
+    await client.query(
+      `UPDATE student_academic_progression
+          SET current_stage = $2, progression_status = $3, current_session = $4,
+              extension_year = $5, updated_at = NOW()
+        WHERE student_id = $1`,
+      [studentId, toStage, toStatus, academicSession, extensionYear]
+    );
+
+    return {
+      studentId, fromStage, toStage, progressionStatus: toStatus,
+      academicSession, extensionYear, requiredCourseCount: requiredIds.length,
+      passedCourseCount: passed.size, outstandingCourseIds: outstanding,
+      missingResultCourseIds: [...missing].filter((courseId) => outstanding.includes(courseId)),
+      historyId,
+    };
+  });
+}
+
+export async function approveExtensionYearThreeManagementPass(input: {
+  studentId: string;
+  academicSession: string;
+  approverUserId: string;
+  reason: string;
+  outstandingCourseIds: string[];
+  missingResultCourseIds: string[];
+}) {
+  const studentId = required(input.studentId, 'Student ID');
+  const academicSession = required(input.academicSession, 'Academic session');
+  const approverUserId = required(input.approverUserId, 'Approver ID');
+  const reason = required(input.reason, 'Management-pass reason');
+  const outstandingCourseIds = [...new Set(input.outstandingCourseIds.map((value) => required(value, 'Outstanding course ID')))];
+  const missingResultCourseIds = [...new Set(input.missingResultCourseIds.map((value) => required(value, 'Missing-result course ID')))];
+  if (!outstandingCourseIds.length) throw new Error('Management pass is available only when required courses remain outstanding.');
+  if (missingResultCourseIds.some((courseId) => !outstandingCourseIds.includes(courseId))) {
+    throw new Error('Missing-result courses must also be listed as outstanding.');
+  }
+
+  return transaction(async (client) => {
+    await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`progression:${studentId}`]);
+    const result = await client.query(
+      'SELECT * FROM student_academic_progression WHERE student_id = $1 FOR UPDATE',
+      [studentId]
+    );
+    const current = result.rows[0];
+    if (!current) throw new Error('Student progression record not found.');
+    if (current.current_stage !== 'EXTENSION_3' || current.progression_status !== 'EXTENSION' || Number(current.extension_year) !== 3) {
+      throw new Error('Management pass is available only to students currently in Extension Year 3.');
+    }
+
+    const requiredResult = await client.query(
+      `SELECT course_id, programme_id FROM student_academic_required_courses
+        WHERE student_id = $1 AND is_required = TRUE`,
+      [studentId]
+    );
+    const requiredIds = new Set(requiredResult.rows.map((row: { course_id: string }) => String(row.course_id)));
+    if (!requiredIds.size) throw new Error('No effective required-course snapshots exist for this student.');
+    if (requiredResult.rows.some((row: { programme_id: string }) => row.programme_id !== current.programme_id)) {
+      throw new Error('The progression programme does not match the student required-course snapshots.');
+    }
+    if (outstandingCourseIds.some((courseId) => !requiredIds.has(courseId))) {
+      throw new Error('An outstanding course does not belong to the student required-course snapshots.');
+    }
+
+    const historyId = id('progression-history');
+    const key = `management-pass:${studentId}`;
+    await client.query(
+      `INSERT INTO academic_progression_history
+         (id, student_id, programme_id, from_stage, to_stage, from_status, to_status,
+          academic_session, extension_year, decision_type, outstanding_course_ids,
+          missing_result_course_ids, reason, decided_by, approved_by, idempotency_key)
+       VALUES ($1,$2,$3,'EXTENSION_3','GRADUATED','EXTENSION','GRADUATED',
+               $4,3,'MANAGEMENT_APPROVED_PASS',$5::jsonb,$6::jsonb,$7,$8,$8,$9)`,
+      [historyId, studentId, current.programme_id, academicSession,
+       JSON.stringify(outstandingCourseIds), JSON.stringify(missingResultCourseIds),
+       reason, approverUserId, key]
+    );
+    await client.query(
+      `UPDATE student_academic_progression
+          SET current_stage = 'GRADUATED', progression_status = 'GRADUATED',
+              current_session = $2, updated_at = NOW()
+        WHERE student_id = $1`,
+      [studentId, academicSession]
+    );
+    await client.query(
+      `INSERT INTO academic_management_pass_approvals
+         (id, student_id, extension_year, approved_by, approval_reason, history_id)
+       VALUES ($1,$2,3,$3,$4,$5)`,
+      [id('management-pass-approval'), studentId, approverUserId, reason, historyId]
+    );
+    return { studentId, status: 'GRADUATED' as const, decisionType: 'MANAGEMENT_APPROVED_PASS' as const, historyId };
+  });
+}
+
+============================================================
+CURRICULUM MAPPING SERVICE
+============================================================
+
+import { randomUUID } from 'crypto';
+import type { PoolClient } from 'pg';
+import { neonPool } from './neon';
+
+export type MappingReviewDecision = 'APPROVE' | 'REJECT';
+
+export interface CreateCurriculumMappingInput {
+  programmeId: string;
+  cohortSession: string;
+  preparedBy: string;
+}
+
+export interface CurriculumMappingSummary {
+  id: string;
+  programmeId: string;
+  cohortSession: string;
+  version: number;
+  status: string;
+  preparedBy: string;
+  isCurrent: boolean;
+  createdAt: string;
+  submittedAt: string | null;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  rejectionReason: string | null;
+  courseCount: number;
+}
+
+async function transaction<T>(work: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await neonPool.connect();
+  let open = false;
+  let destroy = false;
+  try {
+    await client.query('BEGIN');
+    open = true;
+    const result = await work(client);
+    await client.query('COMMIT');
+    open = false;
+    return result;
+  } catch (error) {
+    if (open) {
+      try {
+        await client.query('ROLLBACK');
+      } catch {
+        destroy = true;
+      }
+    }
+    throw error;
+  } finally {
+    client.release(destroy);
+  }
+}
+
+function required(value: unknown, label: string, max = 200): string {
+  if (typeof value !== 'string') throw new Error(`${label} is required.`);
+  const result = value.trim();
+  if (!result || result.length > max) throw new Error(`${label} is invalid.`);
+  return result;
+}
+
+function newId(prefix: string): string {
+  return `${prefix}-${randomUUID()}`;
+}
+
+function mapSummary(row: any): CurriculumMappingSummary {
+  return {
+    id: String(row.id),
+    programmeId: String(row.programme_id),
+    cohortSession: String(row.cohort_session),
+    version: Number(row.version),
+    status: String(row.status),
+    preparedBy: String(row.prepared_by),
+    isCurrent: Boolean(row.is_current),
+    createdAt: new Date(row.created_at).toISOString(),
+    submittedAt: row.submitted_at ? new Date(row.submitted_at).toISOString() : null,
+    approvedBy: row.approved_by ? String(row.approved_by) : null,
+    approvedAt: row.approved_at ? new Date(row.approved_at).toISOString() : null,
+    rejectionReason: row.rejection_reason ? String(row.rejection_reason) : null,
+    courseCount: Number(row.course_count ?? 0),
+  };
+}
+
+export async function listCurriculumMappings(filters: {
+  programmeId?: string;
+  programmeIds?: string[];
+  cohortSession?: string;
+} = {}): Promise<CurriculumMappingSummary[]> {
+  const values: unknown[] = [];
+  const where: string[] = [];
+  if (filters.programmeId) {
+    values.push(filters.programmeId);
+    where.push(`m.programme_id = $${values.length}`);
+  } else if (filters.programmeIds) {
+    if (filters.programmeIds.length === 0) return [];
+    values.push(filters.programmeIds);
+    where.push(`m.programme_id = ANY($${values.length}::text[])`);
+  }
+  if (filters.cohortSession) {
+    values.push(filters.cohortSession);
+    where.push(`m.cohort_session = $${values.length}`);
+  }
+  const result = await neonPool.query(
+    `SELECT m.*,
+            COUNT(mc.id)::int AS course_count
+       FROM academic_curriculum_mappings m
+       LEFT JOIN academic_curriculum_mapping_courses mc ON mc.mapping_id = m.id
+       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+      GROUP BY m.id
+      ORDER BY m.programme_id, m.cohort_session, m.version DESC`,
+    values
+  );
+  return result.rows.map(mapSummary);
+}
+
+export async function getCurriculumMapping(mappingIdInput: string) {
+  const mappingId = required(mappingIdInput, 'Mapping ID');
+  const result = await neonPool.query(
+    `SELECT m.*,
+            COUNT(mc.id)::int AS course_count
+       FROM academic_curriculum_mappings m
+       LEFT JOIN academic_curriculum_mapping_courses mc ON mc.mapping_id = m.id
+      WHERE m.id = $1
+      GROUP BY m.id`,
+    [mappingId]
+  );
+  if (!result.rows[0]) return null;
+
+  const courses = await neonPool.query(
+    `SELECT id, course_id AS "courseId",
+            course_code_snapshot AS "courseCode",
+            course_title_snapshot AS "courseTitle",
+            course_level_snapshot AS level,
+            semester_snapshot AS semester,
+            credit_units_snapshot AS "creditUnits",
+            is_compulsory_snapshot AS compulsory
+       FROM academic_curriculum_mapping_courses
+      WHERE mapping_id = $1
+      ORDER BY course_level_snapshot, semester_snapshot, course_code_snapshot`,
+    [mappingId]
+  );
+  return { ...mapSummary(result.rows[0]), courses: courses.rows };
+}
+
+export async function createCurriculumMapping(input: CreateCurriculumMappingInput) {
+  const programmeId = required(input.programmeId, 'Programme ID');
+  const cohortSession = required(input.cohortSession, 'Cohort session');
+  const preparedBy = required(input.preparedBy, 'Preparer ID');
+
+  return transaction(async (client) => {
+    const lockKey = `${programmeId}:${cohortSession}`;
+    await client.query(
+      'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
+      [lockKey]
+    );
+    const versionResult = await client.query(
+      `SELECT COALESCE(MAX(version), 0)::int + 1 AS next_version
+         FROM academic_curriculum_mappings
+        WHERE programme_id = $1 AND cohort_session = $2`,
+      [programmeId, cohortSession]
+    );
+    const id = newId('curriculum');
+    const inserted = await client.query(
+      `INSERT INTO academic_curriculum_mappings
+         (id, programme_id, cohort_session, version, status, prepared_by)
+       VALUES ($1, $2, $3, $4, 'DRAFT', $5)
+       RETURNING *`,
+      [id, programmeId, cohortSession, versionResult.rows[0].next_version, preparedBy]
+    );
+    return mapSummary({ ...inserted.rows[0], course_count: 0 });
+  });
+}
+
+export async function addCurriculumCourse(
+  mappingIdInput: string,
+  course: {
+    courseId: string;
+    courseCode: string;
+    courseTitle: string;
+    level: string;
+    semester: string;
+    creditUnits: number;
+    compulsory: boolean;
+  }
+) {
+  const mappingId = required(mappingIdInput, 'Mapping ID');
+  const courseId = required(course.courseId, 'Course ID');
+  return transaction(async (client) => {
+    const mapping = await client.query(
+      'SELECT status FROM academic_curriculum_mappings WHERE id = $1 FOR UPDATE',
+      [mappingId]
+    );
+    if (!mapping.rows[0]) throw new Error('Curriculum mapping not found.');
+    if (mapping.rows[0].status !== 'DRAFT') throw new Error('Courses can only be changed while a mapping is in DRAFT status.');
+    const id = newId('mapping-course');
+    await client.query(
+      `INSERT INTO academic_curriculum_mapping_courses
+         (id, mapping_id, course_id, course_code_snapshot,
+          course_title_snapshot, course_level_snapshot,
+          semester_snapshot, credit_units_snapshot, is_compulsory_snapshot)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      [id, mappingId, courseId, course.courseCode, course.courseTitle,
+       course.level, course.semester, course.creditUnits, course.compulsory]
+    );
+    return { id, mappingId, courseId };
+  });
+}
+
+export async function removeCurriculumCourse(mappingIdInput: string, courseIdInput: string) {
+  const mappingId = required(mappingIdInput, 'Mapping ID');
+  const courseId = required(courseIdInput, 'Course ID');
+  return transaction(async (client) => {
+    const mapping = await client.query(
+      'SELECT status FROM academic_curriculum_mappings WHERE id = $1 FOR UPDATE',
+      [mappingId]
+    );
+    if (!mapping.rows[0]) throw new Error('Curriculum mapping not found.');
+    if (mapping.rows[0].status !== 'DRAFT') throw new Error('Courses can only be changed while a mapping is in DRAFT status.');
+    const deleted = await client.query(
+      'DELETE FROM academic_curriculum_mapping_courses WHERE mapping_id = $1 AND course_id = $2 RETURNING id',
+      [mappingId, courseId]
+    );
+    if (deleted.rowCount !== 1) throw new Error('Course is not part of this curriculum mapping.');
+    return { mappingId, courseId, removed: true };
+  });
+}
+
+export async function submitCurriculumMapping(mappingIdInput: string, actorIdInput: string) {
+  const mappingId = required(mappingIdInput, 'Mapping ID');
+  const actorId = required(actorIdInput, 'Actor ID');
+  return transaction(async (client) => {
+    const mapping = await client.query(
+      'SELECT status, prepared_by FROM academic_curriculum_mappings WHERE id = $1 FOR UPDATE',
+      [mappingId]
+    );
+    if (!mapping.rows[0]) throw new Error('Curriculum mapping not found.');
+    if (mapping.rows[0].status !== 'DRAFT') throw new Error('Only a DRAFT mapping can be submitted.');
+    if (mapping.rows[0].prepared_by !== actorId) throw new Error('Only the mapping preparer may submit this draft.');
+    const count = await client.query(
+      `SELECT COUNT(*)::int AS count,
+              COUNT(*) FILTER (WHERE is_compulsory_snapshot = TRUE)::int AS compulsory_count
+         FROM academic_curriculum_mapping_courses WHERE mapping_id = $1`,
+      [mappingId]
+    );
+    if (Number(count.rows[0].count) < 1 || Number(count.rows[0].compulsory_count) < 1) throw new Error('Add at least one course, including at least one compulsory course, before submitting the mapping.');
+    await client.query(
+      `UPDATE academic_curriculum_mappings
+          SET status = 'SUBMITTED', submitted_at = NOW()
+        WHERE id = $1`,
+      [mappingId]
+    );
+    await client.query(
+      `INSERT INTO academic_curriculum_mapping_reviews
+         (id, mapping_id, action, actor_user_id, reason)
+       VALUES ($1, $2, 'SUBMITTED', $3, $4)`,
+      [newId('mapping-review'), mappingId, actorId, 'Submitted for Registrar review']
+    );
+    return { mappingId, status: 'SUBMITTED' as const };
+  });
+}
+
+export async function reviewCurriculumMapping(
+  mappingIdInput: string,
+  reviewerIdInput: string,
+  decision: MappingReviewDecision,
+  reasonInput?: string
+) {
+  const mappingId = required(mappingIdInput, 'Mapping ID');
+  const reviewerId = required(reviewerIdInput, 'Reviewer ID');
+  const reason = reasonInput?.trim() || null;
+  if (decision !== 'APPROVE' && decision !== 'REJECT') throw new Error('Review decision must be APPROVE or REJECT.');
+  if (decision === 'REJECT' && !reason) throw new Error('A rejection reason is required.');
+
+  return transaction(async (client) => {
+    await client.query(
+      'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
+      [`curriculum-review:${mappingId}`]
+    );
+    const mappingResult = await client.query(
+      'SELECT * FROM academic_curriculum_mappings WHERE id = $1 FOR UPDATE',
+      [mappingId]
+    );
+    const mapping = mappingResult.rows[0];
+    if (!mapping) throw new Error('Curriculum mapping not found.');
+    if (mapping.status !== 'SUBMITTED') throw new Error('Only a SUBMITTED mapping can be reviewed.');
+    if (mapping.prepared_by === reviewerId) throw new Error('The preparer cannot review their own curriculum mapping.');
+
+    const courseCount = await client.query(
+      `SELECT COUNT(*)::int AS count,
+              COUNT(*) FILTER (WHERE is_compulsory_snapshot = TRUE)::int AS compulsory_count
+         FROM academic_curriculum_mapping_courses WHERE mapping_id = $1`,
+      [mappingId]
+    );
+    if (Number(courseCount.rows[0].count) < 1 || Number(courseCount.rows[0].compulsory_count) < 1) throw new Error('A curriculum mapping must contain at least one course, including at least one compulsory course.');
+
+    if (decision === 'APPROVE') {
+      const current = await client.query(
+        `SELECT id FROM academic_curriculum_mappings
+          WHERE programme_id = $1 AND cohort_session = $2
+            AND is_current = TRUE
+          FOR UPDATE`,
+        [mapping.programme_id, mapping.cohort_session]
+      );
+      const makeCurrent = current.rowCount === 0;
+      await client.query(
+        `UPDATE academic_curriculum_mappings
+            SET status = 'APPROVED',
+                approved_by = $2,
+                approved_at = NOW(),
+                is_current = $3
+          WHERE id = $1`,
+        [mappingId, reviewerId, makeCurrent]
+      );
+      await client.query(
+        `INSERT INTO academic_curriculum_mapping_reviews
+           (id, mapping_id, action, actor_user_id)
+         VALUES ($1, $2, 'APPROVED', $3)`,
+        [newId('mapping-review'), mappingId, reviewerId]
+      );
+      return {
+        mappingId,
+        status: 'APPROVED' as const,
+        isCurrent: makeCurrent,
+        activationPending: !makeCurrent,
+        message: makeCurrent
+          ? 'Curriculum mapping approved and set as current for this programme and cohort.'
+          : 'Curriculum mapping approved. An existing current mapping remains active; student assignments must be transferred through the controlled cohort transition before this version can become current.',
+      };
+    }
+
+    await client.query(
+      `UPDATE academic_curriculum_mappings
+          SET status = 'REJECTED', rejection_reason = $2
+        WHERE id = $1`,
+      [mappingId, reason]
+    );
+    await client.query(
+      `INSERT INTO academic_curriculum_mapping_reviews
+         (id, mapping_id, action, actor_user_id, reason)
+       VALUES ($1, $2, 'REJECTED', $3, $4)`,
+      [newId('mapping-review'), mappingId, reviewerId, reason]
+    );
+    return { mappingId, status: 'REJECTED' as const };
+  });
+}
+
+
+export interface AssignStudentCurriculumInput {
+  studentId: string;
+  programmeId: string;
+  cohortSession: string;
+  assignedBy: string;
+}
+
+export async function assignStudentCurriculum(input: AssignStudentCurriculumInput) {
+  const studentId = required(input.studentId, 'Student ID');
+  const programmeId = required(input.programmeId, 'Programme ID');
+  const cohortSession = required(input.cohortSession, 'Cohort session');
+  const assignedBy = required(input.assignedBy, 'Assigner ID');
+  const ledgerIdempotencyKey = `curriculum-assignment:${studentId}:${programmeId}:${cohortSession}`;
+
+  return transaction(async (client) => {
+    await client.query(
+      'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
+      [`student-curriculum-assignment:${studentId}`]
+    );
+
+    const existingAssignment = await client.query(
+      `SELECT a.id, a.programme_id, a.cohort_session, a.mapping_id,
+              a.is_current, a.assigned_at, a.assigned_by
+         FROM student_academic_curriculum_assignments a
+        WHERE a.student_id = $1
+        ORDER BY a.is_current DESC, a.assigned_at DESC
+        LIMIT 1
+        FOR UPDATE`,
+      [studentId]
+    );
+    if (existingAssignment.rows[0]) {
+      const existing = existingAssignment.rows[0];
+      if (
+        existing.programme_id !== programmeId ||
+        existing.cohort_session !== cohortSession
+      ) {
+        throw new Error('The student already has a curriculum assignment for a different programme or admission cohort. Registry review is required.');
+      }
+      const courseCount = await client.query(
+        `SELECT COUNT(*)::int AS count
+           FROM student_academic_required_courses
+          WHERE student_id = $1 AND is_required = TRUE`,
+        [studentId]
+      );
+      if (Number(courseCount.rows[0]?.count ?? 0) < 1) {
+        throw new Error('An existing student assignment has no effective required-course snapshots. Registry review is required.');
+      }
+      if (existing.is_current) {
+        const existingLedger = await client.query(
+          `SELECT id, status, mapping_id
+             FROM academic_curriculum_assignment_ledger
+            WHERE student_id = $1 AND programme_id = $2 AND cohort_session = $3
+            FOR UPDATE`,
+          [studentId, programmeId, cohortSession]
+        );
+        if (existingLedger.rows[0]) {
+          const currentLedger = existingLedger.rows[0];
+          if (currentLedger.status === 'REVIEW_REQUIRED' || currentLedger.status === 'FAILED') {
+            await client.query(
+              `UPDATE academic_curriculum_assignment_ledger
+                  SET status = 'PENDING',
+                      mapping_id = NULL,
+                      attempt_count = attempt_count + 1,
+                      last_attempt_at = NOW(),
+                      assigned_at = NULL,
+                      review_reason = NULL,
+                      error_code = NULL,
+                      updated_at = NOW()
+                WHERE id = $1`,
+              [currentLedger.id]
+            );
+          }
+          if (currentLedger.status !== 'ASSIGNED' || currentLedger.mapping_id !== existing.mapping_id) {
+            await client.query(
+              `UPDATE academic_curriculum_assignment_ledger
+                  SET status = 'ASSIGNED', mapping_id = $2,
+                      assigned_at = COALESCE(assigned_at, $3),
+                      review_reason = NULL, error_code = NULL,
+                      updated_at = NOW()
+                WHERE id = $1`,
+              [currentLedger.id, existing.mapping_id, existing.assigned_at]
+            );
+          }
+        } else {
+          await client.query(
+            `INSERT INTO academic_curriculum_assignment_ledger
+               (id, student_id, programme_id, cohort_session, idempotency_key,
+                status, mapping_id, attempt_count, last_attempt_at, assigned_at)
+             VALUES ($1, $2, $3, $4, $5, 'ASSIGNED', $6, 1, NOW(), $7)`,
+            [newId('assignment-ledger'), studentId, programmeId, cohortSession, ledgerIdempotencyKey, existing.mapping_id, existing.assigned_at]
+          );
+        }
+      }
+      return {
+        status: 'ALREADY_ASSIGNED' as const,
+        assignmentId: String(existing.id),
+        mappingId: String(existing.mapping_id),
+        programmeId,
+        cohortSession,
+        isCurrent: Boolean(existing.is_current),
+        requiredCourseCount: Number(courseCount.rows[0]?.count ?? 0),
+      };
+    }
+
+    const ledgerResult = await client.query(
+      `SELECT id, status
+         FROM academic_curriculum_assignment_ledger
+        WHERE student_id = $1
+          AND programme_id = $2
+          AND cohort_session = $3
+        FOR UPDATE`,
+      [studentId, programmeId, cohortSession]
+    );
+    const ledger = ledgerResult.rows[0];
+
+    const mappingResult = await client.query(
+      `SELECT id
+         FROM academic_curriculum_mappings
+        WHERE programme_id = $1
+          AND cohort_session = $2
+          AND status = 'APPROVED'
+          AND is_current = TRUE
+        ORDER BY version DESC
+        LIMIT 1
+        FOR SHARE`,
+      [programmeId, cohortSession]
+    );
+
+    if (!mappingResult.rows[0]) {
+      const reviewReason = 'No current approved curriculum mapping exists for this programme and admission cohort.';
+      if (ledger?.status === 'ASSIGNED') {
+        throw new Error('The assignment ledger indicates completion but no student assignment exists. Registry review is required.');
+      }
+      if (ledger) {
+        if (ledger.status === 'FAILED') {
+          await client.query(
+            `UPDATE academic_curriculum_assignment_ledger
+                SET status = 'PENDING',
+                    mapping_id = NULL,
+                    attempt_count = attempt_count + 1,
+                    last_attempt_at = NOW(),
+                    assigned_at = NULL,
+                    review_reason = NULL,
+                    error_code = NULL,
+                    updated_at = NOW()
+              WHERE id = $1`,
+            [ledger.id]
+          );
+        }
+        await client.query(
+          `UPDATE academic_curriculum_assignment_ledger
+              SET status = 'REVIEW_REQUIRED',
+                  mapping_id = NULL,
+                  attempt_count = attempt_count + CASE WHEN $3 THEN 0 ELSE 1 END,
+                  last_attempt_at = NOW(),
+                  assigned_at = NULL,
+                  review_reason = $2,
+                  error_code = NULL,
+                  updated_at = NOW()
+            WHERE id = $1`,
+          [ledger.id, reviewReason, ledger.status === 'FAILED']
+        );
+      } else {
+        await client.query(
+          `INSERT INTO academic_curriculum_assignment_ledger
+             (id, student_id, programme_id, cohort_session, idempotency_key,
+              status, attempt_count, last_attempt_at, review_reason)
+           VALUES ($1, $2, $3, $4, $5, 'REVIEW_REQUIRED', 1, NOW(), $6)`,
+          [newId('assignment-ledger'), studentId, programmeId, cohortSession, ledgerIdempotencyKey, reviewReason]
+        );
+      }
+      return {
+        status: 'REVIEW_REQUIRED' as const,
+        programmeId,
+        cohortSession,
+        message: reviewReason,
+      };
+    }
+
+    const mappingId = String(mappingResult.rows[0].id);
+    const mappingCourses = await client.query(
+      `SELECT id, course_id, course_code_snapshot, course_title_snapshot,
+              course_level_snapshot, semester_snapshot, credit_units_snapshot
+         FROM academic_curriculum_mapping_courses
+        WHERE mapping_id = $1
+          AND is_compulsory_snapshot = TRUE
+        ORDER BY course_level_snapshot, semester_snapshot, course_code_snapshot`,
+      [mappingId]
+    );
+    if (Number(mappingCourses.rowCount ?? 0) < 1) {
+      throw new Error('The current approved mapping has no compulsory course snapshots. Registry review is required.');
+    }
+
+    const assignmentId = newId('student-curriculum-assignment');
+    await client.query(
+      `INSERT INTO student_academic_curriculum_assignments
+         (id, student_id, programme_id, cohort_session, mapping_id,
+          is_current, assigned_by)
+       VALUES ($1, $2, $3, $4, $5, TRUE, $6)`,
+      [assignmentId, studentId, programmeId, cohortSession, mappingId, assignedBy]
+    );
+
+    for (const course of mappingCourses.rows) {
+      await client.query(
+        `INSERT INTO student_academic_required_courses
+           (id, student_id, programme_id, cohort_session, course_id,
+            course_code_snapshot, course_title_snapshot, course_level_snapshot,
+            semester_snapshot, credit_units_snapshot, is_required, mapping_course_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, TRUE, $11)`,
+        [
+          newId('student-required-course'),
+          studentId,
+          programmeId,
+          cohortSession,
+          course.course_id,
+          course.course_code_snapshot,
+          course.course_title_snapshot,
+          course.course_level_snapshot,
+          course.semester_snapshot,
+          course.credit_units_snapshot,
+          course.id,
+        ]
+      );
+    }
+
+    if (ledger) {
+      const retryingLedger = ledger.status === 'REVIEW_REQUIRED' || ledger.status === 'FAILED';
+      if (retryingLedger) {
+        await client.query(
+          `UPDATE academic_curriculum_assignment_ledger
+              SET status = 'PENDING',
+                  mapping_id = NULL,
+                  attempt_count = attempt_count + 1,
+                  last_attempt_at = NOW(),
+                  assigned_at = NULL,
+                  review_reason = NULL,
+                  error_code = NULL,
+                  updated_at = NOW()
+            WHERE id = $1`,
+          [ledger.id]
+        );
+      }
+      await client.query(
+        `UPDATE academic_curriculum_assignment_ledger
+            SET status = 'ASSIGNED',
+                mapping_id = $2,
+                attempt_count = attempt_count + CASE WHEN $3 THEN 0 ELSE 1 END,
+                last_attempt_at = NOW(),
+                assigned_at = NOW(),
+                review_reason = NULL,
+                error_code = NULL,
+                updated_at = NOW()
+          WHERE id = $1`,
+        [ledger.id, mappingId, retryingLedger]
+      );
+    } else {
+      await client.query(
+        `INSERT INTO academic_curriculum_assignment_ledger
+           (id, student_id, programme_id, cohort_session, idempotency_key,
+            status, mapping_id, attempt_count, last_attempt_at, assigned_at)
+         VALUES ($1, $2, $3, $4, $5, 'ASSIGNED', $6, 1, NOW(), NOW())`,
+        [newId('assignment-ledger'), studentId, programmeId, cohortSession, ledgerIdempotencyKey, mappingId]
+      );
+    }
+
+    return {
+      status: 'ASSIGNED' as const,
+      assignmentId,
+      mappingId,
+      programmeId,
+      cohortSession,
+      isCurrent: true,
+      requiredCourseCount: Number(mappingCourses.rowCount ?? 0),
+    };
+  });
+}
+
+export async function getStudentCurriculumAssignment(studentIdInput: string) {
+  const studentId = required(studentIdInput, 'Student ID');
+  const assignmentResult = await neonPool.query(
+    `SELECT a.id, a.student_id, a.programme_id, a.cohort_session,
+            a.mapping_id, a.is_current, a.assigned_by, a.assigned_at,
+            m.version AS mapping_version, m.status AS mapping_status
+       FROM student_academic_curriculum_assignments a
+       JOIN academic_curriculum_mappings m ON m.id = a.mapping_id
+      WHERE a.student_id = $1
+      ORDER BY a.is_current DESC, a.assigned_at DESC
+      LIMIT 1`,
+    [studentId]
+  );
+  const ledgerResult = await neonPool.query(
+    `SELECT status, attempt_count, last_attempt_at, review_reason, assigned_at
+       FROM academic_curriculum_assignment_ledger
+      WHERE student_id = $1
+      ORDER BY updated_at DESC
+      LIMIT 1`,
+    [studentId]
+  );
+  if (!assignmentResult.rows[0]) {
+    return {
+      assignment: null,
+      courses: [],
+      ledger: ledgerResult.rows[0] ?? null,
+    };
+  }
+  const assignment = assignmentResult.rows[0];
+  const coursesResult = await neonPool.query(
+    `SELECT id, course_id AS "courseId",
+            course_code_snapshot AS "courseCode",
+            course_title_snapshot AS "courseTitle",
+            course_level_snapshot AS level,
+            semester_snapshot AS semester,
+            credit_units_snapshot AS "creditUnits",
+            is_required AS "isRequired"
+       FROM student_academic_required_courses
+      WHERE student_id = $1
+      ORDER BY course_level_snapshot, semester_snapshot, course_code_snapshot`,
+    [studentId]
+  );
+  return {
+    assignment,
+    courses: coursesResult.rows,
+    ledger: ledgerResult.rows[0] ?? null,
+  };
+}

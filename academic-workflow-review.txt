@@ -1,0 +1,2068 @@
+﻿EDOCASTI ACADEMIC WORKFLOW SOURCE REVIEW
+Generated: 2026-11-26 00:07:10
+
+===== COURSE REGISTRATION AND RESULTS ROUTES =====
+ 2011:         title: course!.title,
+ 2012:         creditUnits: course!.creditUnits,
+ 2013:         level: course!.level,
+ 2014:         semester: course!.semester,
+ 2015:         lecturerName: course!.lecturerName,
+ 2016:       }));
+ 2017:     return {
+ 2018:       ...registration,
+ 2019:       studentName: user?.fullName || 'Unknown Student',
+ 2020:       matricNumber: student?.matricNumber || '',
+ 2021:       programmeName: state.programmes.find((p) => p.id === student?.programmeId)?.name || '',
+ 2022:       departmentName: state.departments.find((d) => d.id === student?.departmentId)?.name || '',
+ 2023:       courses,
+ 2024:     };
+ 2025:   });
+ 2026:   return res.json({ success: true, registrations });
+ 2027: });
+ 2028: 
+ 2029: apiRouter.get('/registrations/my-registration', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+ 2030:   const state = db.getState();
+ 2031:   const student = state.students.find((s) => s.userId === req.user!.id);
+ 2032:   if (!student) {
+ 2033:     return res.status(404).json({ success: false, message: 'Student record not found.' });
+ 2034:   }
+ 2035: 
+ 2036:   const reg = state.registrations.find(
+ 2037:     (r) =>
+ 2038:       r.studentId === student.id &&
+ 2039:       r.session === state.settings.currentSession &&
+ 2040:       r.semester === state.settings.currentSemester
+ 2041:   );
+ 2042: 
+ 2043:   return res.json({ success: true, registration: reg || null });
+ 2044: });
+ 2045: 
+ 2046: apiRouter.post('/registrations/register', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+ 2047:   const state = db.getState();
+ 2048:   const student = state.students.find((s) => s.userId === req.user!.id);
+ 2049:   if (!student) {
+ 2050:     return res.status(403).json({ success: false, message: 'Only active students can register courses.' });
+ 2051:   }
+ 2052: 
+ 2053:   const { courseIds } = req.body;
+ 2054:   if (!courseIds || !Array.isArray(courseIds) || courseIds.length === 0) {
+ 2055:     return res.status(400).json({ success: false, message: 'Must select at least one course.' });
+ 2056:   }
+ 2057: 
+ 2058:   // Calculate credit units
+ 2059:   const courses = state.courses.filter((c) => courseIds.includes(c.id));
+ 2060:   const totalCredits = courses.reduce((sum, c) => sum + c.creditUnits, 0);
+ 2061: 
+ 2062:   const existing = state.registrations.find(
+ 2063:     (r) =>
+ 2064:       r.studentId === student.id &&
+ 2065:       r.session === state.settings.currentSession &&
+ 2066:       r.semester === state.settings.currentSemester
+ 2067:   );
+ 2068: 
+ 2069:   if (existing && existing.status !== 'REJECTED') {
+ 2070:     return res.status(409).json({
+ 2071:       success: false,
+ 2072:       message: 'Your course registration has already been submitted. It cannot be changed unless it is rejected by the reviewing officer.',
+ 2073:       registration: existing,
+ 2074:     });
+ 2075:   }
+ 2076: 
+ 2077:   if (courses.length !== new Set(courseIds).size) {
+ 2078:     return res.status(400).json({ success: false, message: 'One or more selected courses are invalid.' });
+ 2079:   }
+ 2080: 
+ 2081:   const registrationData: CourseRegistration = {
+ 2082:     id: existing?.id || 'reg-' + Date.now(),
+ 2083:     studentId: student.id,
+ 2084:     session: state.settings.currentSession,
+ 2085:     semester: state.settings.currentSemester,
+ 2086:     level: student.level,
+ 2087:     courseIds,
+ 2088:     totalCredits,
+ 2089:     status: 'SUBMITTED',
+ 2090:     createdAt: new Date().toISOString(),
+ 2091:   };
+ 2092: 
+ 2093:   if (existing) {
+ 2094:     const idx = state.registrations.findIndex((r) => r.id === existing.id);
+ 2095:     state.registrations[idx] = registrationData;
+ 2096:   } else {
+ 2097:     state.registrations.push(registrationData);
+ 2098:   }
+ 2099: 
+ 2100:   db.saveState();
+ 2101:   db.logAudit({
+ 2102:     userId: req.user!.id,
+ 2103:     userEmail: req.user!.email,
+ 2104:     action: 'COURSE_REGISTRATION_SUBMITTED',
+ 2105:     resource: 'REGISTRATION',
+ 2106:     details: { totalCredits, coursesCount: courseIds.length },
+ 2107:     ipAddress: req.ip,
+ 2108:   });
+ 2109: 
+ 2110:   return res.json({ success: true, registration: registrationData });
+ 2111: });
+ 2112: 
+ 2113: apiRouter.patch(
+ 2114:   '/registrations/:id/approve',
+ 2115:   authenticateToken,
+ 2116:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
+ 2117:   (req: AuthenticatedRequest, res: Response) => {
+ 2118:     const { id } = req.params;
+ 2119:     const reg = db.getState().registrations.find((r) => r.id === id);
+ 2120:     if (!reg) {
+ 2121:       return res.status(404).json({ success: false, message: 'Registration not found.' });
+ 2122:     }
+ 2123: 
+ 2124:     if (req.user!.role === 'HOD') {
+ 2125:       const departmentId = req.user!.departmentId;
+ 2126:       const allowedCourseIds = new Set(db.getState().courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+ 2127:       if (!departmentId || !reg.courseIds.every((courseId) => allowedCourseIds.has(courseId))) return res.status(403).json({ success: false, message: 'You can only approve registrations for your department.' });
+ 2128:     }
+ 2129:     if (reg.status === 'APPROVED_BY_HOD') {
+ 2130:       return res.status(409).json({ success: false, message: 'This registration has already been approved.' });
+ 2131:     }
+ 2132:     if (reg.status !== 'SUBMITTED') {
+ 2133:       return res.status(400).json({ success: false, message: 'Only submitted registrations can be approved.' });
+ 2134:     }
+ 2135:     reg.status = 'APPROVED_BY_HOD';
+ 2136:     reg.approvedAt = new Date().toISOString();
+ 2137:     reg.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
+ 2138: 
+ 2139:     db.saveState();
+ 2140:     db.logAudit({
+ 2141:       userId: req.user!.id,
+ 2142:       userEmail: req.user!.email,
+ 2143:       action: 'COURSE_REGISTRATION_APPROVED',
+ 2144:       resource: 'REGISTRATION',
+ 2145:       details: { registrationId: id, approvedBy: reg.approvedBy },
+ 2146:       ipAddress: req.ip,
+ 2147:     });
+ 2148: 
+ 2149:     return res.json({ success: true, registration: reg });
+ 2150:   }
+ 2151: );
+ 2152: 
+ 2153: apiRouter.post(
+ 2154:   '/registrations/approve-bulk',
+ 2155:   authenticateToken,
+ 2156:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
+ 2157:   (req: AuthenticatedRequest, res: Response) => {
+ 2158:     const { registrationIds, session, semester } = req.body;
+ 2159:     const state = db.getState();
+ 2160:     if (!Array.isArray(registrationIds) && !session && !semester) {
+ 2161:       return res.status(400).json({ success: false, message: 'Provide registrationIds or a session/semester filter.' });
+ 2162:     }
+ 2163:     const selectedIds = Array.isArray(registrationIds) ? new Set(registrationIds) : null;
+ 2164:     const now = new Date().toISOString();
+ 2165:     let approvedCount = 0;
+ 2166:     for (const registration of state.registrations) {
+ 2167:       const selected = selectedIds
+ 2168:         ? selectedIds.has(registration.id)
+ 2169:         : (!session || registration.session === session) && (!semester || registration.semester === semester);
+ 2170:       const hodDepartmentId = req.user!.role === 'HOD' ? req.user!.departmentId : undefined;
+ 2171:       const hodCourseIds = hodDepartmentId ? new Set(state.courses.filter((course) => course.departmentId === hodDepartmentId).map((course) => course.id)) : null;
+ 2172:       const withinHodDepartment = req.user!.role !== 'HOD' || Boolean(hodDepartmentId && registration.courseIds.every((courseId) => Boolean(hodCourseIds?.has(courseId))));
+ 2173:       if (selected && withinHodDepartment && registration.status === 'SUBMITTED') {
+ 2174:         registration.status = 'APPROVED_BY_HOD';
+ 2175:         registration.approvedAt = now;
+ 2176:         registration.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
+ 2177:         approvedCount++;
+ 2178:       }
+ 2179:     }
+ 2180:     db.saveState();
+ 2181:     db.logAudit({
+ 2182:       userId: req.user!.id,
+ 2183:       userEmail: req.user!.email,
+ 2184:       action: 'COURSE_REGISTRATIONS_BULK_APPROVED',
+ 2185:       resource: 'REGISTRATION',
+ 2186:       details: { approvedCount, registrationIds: Array.isArray(registrationIds) ? registrationIds : undefined, session, semester },
+ 2187:       ipAddress: req.ip,
+ 2188:     });
+ 2189:     return res.json({ success: true, approvedCount });
+ 2190:   }
+ 2191: );
+ 2192: 
+ 2193: apiRouter.patch(
+ 2194:   '/registrations/:id/reject',
+ 2195:   authenticateToken,
+ 2196:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
+ 2197:   (req: AuthenticatedRequest, res: Response) => {
+ 2198:     const { id } = req.params;
+ 2199:     const reg = db.getState().registrations.find((r) => r.id === id);
+ 2200:     if (!reg) return res.status(404).json({ success: false, message: 'Registration not found.' });
+ 2201:     if (req.user!.role === 'HOD') {
+ 2202:       const departmentId = req.user!.departmentId;
+ 2203:       const allowedCourseIds = new Set(db.getState().courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+ 2204:       if (!departmentId || !reg.courseIds.every((courseId) => allowedCourseIds.has(courseId))) return res.status(403).json({ success: false, message: 'You can only reject registrations for your department.' });
+ 2205:     }
+ 2206:     reg.status = 'REJECTED';
+ 2207:     reg.approvedAt = new Date().toISOString();
+ 2208:     reg.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
+ 2209:     db.saveState();
+ 2210:     return res.json({ success: true, registration: reg });
+ 2211:   }
+ 2212: );
+ 2213: 
+ 2214: apiRouter.put(
+ 2215:   '/registrations/:id',
+ 2216:   authenticateToken,
+ 2217:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'HOD'),
+ 2218:   (req: AuthenticatedRequest, res: Response) => {
+ 2219:     const { id } = req.params;
+ 2220:     const reg = db.getState().registrations.find((r) => r.id === id);
+ 2221:     if (!reg) return res.status(404).json({ success: false, message: 'Registration not found.' });
+ 2222:     if (req.user!.role === 'HOD') {
+ 2223:       const departmentId = req.user!.departmentId;
+ 2224:       const allowedCourseIds = new Set(db.getState().courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+ 2225:       if (!departmentId || !reg.courseIds.every((courseId) => allowedCourseIds.has(courseId))) return res.status(403).json({ success: false, message: 'You can only edit registrations for your department.' });
+ 2226:     }
+ 2227:     if (reg.status === 'APPROVED_BY_HOD') {
+ 2228:       return res.status(409).json({ success: false, message: 'Approved registrations are locked against changes.' });
+ 2229:     }
+ 2230:     const { courseIds } = req.body;
+ 2231:     if (courseIds !== undefined) {
+ 2232:       if (!Array.isArray(courseIds) || courseIds.length === 0) {
+ 2233:         return res.status(400).json({ success: false, message: 'At least one course must be selected.' });
+ 2234:       }
+ 2235:       const state = db.getState();
+ 2236:       const courses = state.courses.filter((c) => courseIds.includes(c.id));
+ 2237:       if (courses.length !== new Set(courseIds).size) {
+ 2238:         return res.status(400).json({ success: false, message: 'One or more selected courses are invalid.' });
+ 2239:       }
+ 2240:       reg.courseIds = courseIds;
+ 2241:       reg.totalCredits = courses.reduce((sum, course) => sum + course.creditUnits, 0);
+ 2242:     }
+ 2243:     db.saveState();
+ 2244:     return res.json({ success: true, registration: reg });
+ 2245:   }
+ 2246: );
+ 2247: 
+ 2248: apiRouter.delete(
+ 2249:   '/registrations/:id',
+ 2250:   authenticateToken,
+ 2251:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 2252:   (req: AuthenticatedRequest, res: Response) => {
+ 2253:     const { id } = req.params;
+ 2254:     const state = db.getState();
+ 2255:     const idx = state.registrations.findIndex((r) => r.id === id);
+ 2256:     if (idx === -1) return res.status(404).json({ success: false, message: 'Registration not found.' });
+ 2257:     state.registrations.splice(idx, 1);
+ 2258:     db.saveState();
+ 2259:     return res.json({ success: true, message: 'Registration deleted.' });
+ 2260:   }
+ 2261: );
+ 2262: 
+ 2263: // ==================== RESULTS & EXAMINATIONS ====================
+ 2264: 
+ 2265: function recalculateStudentAcademicTotals(state: ReturnType<typeof db.getState>, studentId: string) {
+ 2266:   const studentResults = state.results.filter((r) => r.studentId === studentId && r.status === 'PUBLISHED');
+ 2267:   const student = state.students.find((s) => s.id === studentId);
+ 2268:   if (!student || studentResults.length === 0) return;
+ 2269: 
+ 2270:   let totalWeightedPoints = 0;
+ 2271:   let totalUnits = 0;
+ 2272:   let earnedCredits = 0;
+ 2273:   for (const r of studentResults) {
+ 2274:     const crs = state.courses.find((c) => c.id === r.courseId);
+ 2275:     const units = crs?.creditUnits || 3;
+ 2276:     totalWeightedPoints += r.gradePoint * units;
+ 2277:     totalUnits += units;
+ 2278:     if (r.gradePoint > 0) earnedCredits += units;
+ 2279:   }
+ 2280:   if (totalUnits > 0) {
+ 2281:     student.cgpa = Number((totalWeightedPoints / totalUnits).toFixed(2));
+ 2282:     student.totalCreditsEarned = earnedCredits;
+ 2283:   }
+ 2284: }
+ 2285: 
+ 2286: apiRouter.get('/results', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER', 'HOD', 'LECTURER'), (req: AuthenticatedRequest, res: Response) => {
+ 2287:   const { courseId, session, semester, studentId, status } = req.query;
+ 2288:   let list = db.getState().results;
+ 2289: 
+ 2290:   if (courseId) list = list.filter((r) => r.courseId === courseId);
+ 2291:   if (session) list = list.filter((r) => r.session === session);
+ 2292:   if (semester) list = list.filter((r) => r.semester === semester);
+ 2293:   if (studentId) list = list.filter((r) => r.studentId === studentId);
+ 2294:   if (status) list = list.filter((r) => r.status === status);
+ 2295:   const state = db.getState();
+ 2296:   const role = req.user!.role;
+ 2297:   if (role === 'LECTURER') {
+ 2298:     const assignedCourseIds = new Set(state.courses.filter((c) => c.lecturerId === req.user!.id).map((c) => c.id));
+ 2299:     list = list.filter((r) => assignedCourseIds.has(r.courseId));
+ 2300:   }
+ 2301:   if (role === 'HOD') {
+ 2302:     const departmentId = req.user!.departmentId;
+ 2303:     const departmentCourseIds = new Set(state.courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+ 2304:     list = departmentId ? list.filter((result) => departmentCourseIds.has(result.courseId)) : [];
+ 2305:   }
+ 2306:   // EXAM_OFFICER has institution-wide result moderation access.
+ 2307: 
+ 2308:   return res.json({ success: true, results: list });
+ 2309: });
+ 2310: 
+ 2311: apiRouter.get(
+ 2312:   '/results/neon-attempts',
+ 2313:   authenticateToken,
+ 2314:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'EXAM_OFFICER'),
+ 2315:   async (req: AuthenticatedRequest, res: Response) => {
+ 2316:     try {
+ 2317:       const state = db.getState();
+ 2318:       const allowedStatuses = ['SUBMITTED', 'VERIFIED', 'APPROVED', 'PUBLISHED', 'INVALIDATED', 'CANCELLED'];
+ 2319:       const queryFilters = [
+ 2320:         ['studentId', req.query.studentId, 200],
+ 2321:         ['courseId', req.query.courseId, 200],
+ 2322:         ['session', req.query.session, 40],
+ 2323:       ] as const;
+ 2324:       for (const [label, value, maxLength] of queryFilters) {
+ 2325:         if (value !== undefined && (typeof value !== 'string' || !value.trim() || value.trim().length > maxLength)) {
+ 2326:           return res.status(400).json({ success: false, message: `Invalid ${label} filter.` });
+ 2327:         }
+ 2328:       }
+ 2329:       if (req.query.semester !== undefined
+ 2330:           && (typeof req.query.semester !== 'string'
+ 2331:             || !['First Semester', 'Second Semester'].includes(req.query.semester))) {
+ 2332:         return res.status(400).json({ success: false, message: 'Invalid semester filter.' });
+ 2333:       }
+ 2334:       if (req.query.status !== undefined
+ 2335:           && (typeof req.query.status !== 'string' || !allowedStatuses.includes(req.query.status))) {
+ 2336:         return res.status(400).json({ success: false, message: 'Invalid result status filter.' });
+ 2337:       }
+ 2338:       const filters = {
+ 2339:         studentId: typeof req.query.studentId === 'string' ? req.query.studentId.trim() : undefined,
+ 2340:         courseId: typeof req.query.courseId === 'string' ? req.query.courseId.trim() : undefined,
+ 2341:         academicSession: typeof req.query.session === 'string' ? req.query.session.trim() : undefined,
+ 2342:         semester: req.query.semester as 'First Semester' | 'Second Semester' | undefined,
+ 2343:       };
+ 2344:       const attempts = await listAcademicResultAttempts(filters);
+ 2345:       const assignedCourseIds = req.user!.role === 'LECTURER'
+ 2346:         ? new Set(state.courses.filter((course) => course.lecturerId === req.user!.id).map((course) => course.id))
+ 2347:         : null;
+ 2348:       const results = attempts
+ 2349:         .filter((attempt) => !assignedCourseIds || assignedCourseIds.has(String(attempt.course_id)))
+ 2350:         .filter((attempt) => req.query.status === undefined || attempt.latest_event_type === req.query.status)
+ 2351:         .map((attempt) => {
+ 2352:           const student = state.students.find((item) => item.id === attempt.student_id);
+ 2353:           const user = student ? state.users.find((item) => item.id === student.userId) : undefined;
+ 2354:           return {
+ 2355:             id: attempt.result_attempt_id,
+ 2356:             legacyResultId: attempt.legacy_result_id,
+ 2357:             courseId: attempt.course_id,
+ 2358:             studentId: attempt.student_id,
+ 2359:             matricNumber: student?.matricNumber || '',
+ 2360:             studentName: user?.fullName || 'Student',
+ 2361:             session: attempt.academic_session,
+ 2362:             semester: attempt.semester,
+ 2363:             attemptNumber: attempt.attempt_number,
+ 2364:             caScore: Number(attempt.ca_score),
+ 2365:             examScore: Number(attempt.exam_score),
+ 2366:             totalScore: Number(attempt.total_score),
+ 2367:             grade: attempt.grade,
+ 2368:             gradePoint: Number(attempt.grade_point),
+ 2369:             status: attempt.latest_event_type,
+ 2370:             submittedBy: attempt.entered_by,
+ 2371:             latestEvent: {
+ 2372:               actorUserId: attempt.latest_event_actor_user_id,
+ 2373:               reason: attempt.latest_event_reason,
+ 2374:               at: attempt.latest_event_at,
+ 2375:             },
+ 2376:             createdAt: attempt.created_at,
+ 2377:           };
+ 2378:         });
+ 2379:       return res.json({ success: true, results, source: 'NEON_ATTEMPT_LEDGER' });
+ 2380:     } catch {
+ 2381:       // Keep database and connection details out of API responses.
+ 2382:       return res.status(503).json({
+ 2383:         success: false,
+ 2384:         message: 'Neon result attempts are temporarily unavailable.',
+ 2385:       });
+ 2386:     }
+ 2387:   }
+ 2388: );
+ 2389: 
+ 2390: apiRouter.post(
+ 2391:   '/results/neon-attempts/:id/events',
+ 2392:   authenticateToken,
+ 2393:   requireRoles('SUPER_ADMIN', 'EXAM_OFFICER'),
+ 2394:   async (req: AuthenticatedRequest, res: Response) => {
+ 2395:     const resultAttemptId = String(req.params.id || '').trim();
+ 2396:     const { eventType, idempotencyKey, reason } = req.body || {};
+ 2397:     const allowedEvents = ['VERIFIED', 'APPROVED', 'PUBLISHED'] as const;
+ 2398: 
+ 2399:     if (!resultAttemptId || resultAttemptId.length > 200) {
+ 2400:       return res.status(400).json({ success: false, message: 'A valid result attempt ID is required.' });
+ 2401:     }
+ 2402:     if (typeof eventType !== 'string' || !allowedEvents.includes(eventType as typeof allowedEvents[number])) {
+ 2403:       return res.status(400).json({ success: false, message: 'Only VERIFIED, APPROVED, or PUBLISHED events may be recorded here.' });
+ 2404:     }
+ 2405:     if (typeof idempotencyKey !== 'string' || !idempotencyKey.trim() || idempotencyKey.trim().length > 200) {
+ 2406:       return res.status(400).json({ success: false, message: 'A valid idempotency key is required.' });
+ 2407:     }
+ 2408:     if (reason !== undefined && (typeof reason !== 'string' || reason.length > 1000)) {
+ 2409:       return res.status(400).json({ success: false, message: 'The reason must be text no longer than 1000 characters.' });
+ 2410:     }
+ 2411: 
+ 2412:     try {
+ 2413:       const outcome = await appendAcademicResultEvent({
+ 2414:         resultAttemptId,
+ 2415:         eventType: eventType as typeof allowedEvents[number],
+ 2416:         actorUserId: req.user!.id,
+ 2417:         idempotencyKey: idempotencyKey.trim(),
+ 2418:         reason: typeof reason === 'string' ? reason.trim() : undefined,
+ 2419:       });
+ 2420:       // The Neon event is already committed. Audit only newly created events;
+ 2421:       // an audit-file failure must not turn a committed workflow action into a
+ 2422:       // misleading HTTP conflict that encourages an unsafe second action.
+ 2423:       if (outcome.created) {
+ 2424:         try {
+ 2425:           db.logAudit({
+ 2426:             userId: req.user!.id,
+ 2427:             userEmail: req.user!.email,
+ 2428:             action: `ACADEMIC_RESULT_${eventType}`,
+ 2429:             resource: 'ACADEMIC_RESULT_ATTEMPT',
+ 2430:             details: { resultAttemptId, eventId: outcome.event.id },
+ 2431:             ipAddress: req.ip,
+ 2432:           });
+ 2433:         } catch (auditError) {
+ 2434:           console.error('Failed to write audit log for committed academic result event.', {
+ 2435:             eventId: outcome.event.id,
+ 2436:             error: auditError instanceof Error ? auditError.message : 'Unknown audit error',
+ 2437:           });
+ 2438:         }
+ 2439:       }
+ 2440:       return res.status(outcome.created ? 201 : 200).json({
+ 2441:         success: true,
+ 2442:         created: outcome.created,
+ 2443:         event: {
+ 2444:           id: outcome.event.id,
+ 2445:           resultAttemptId: outcome.event.result_attempt_id,
+ 2446:           eventType: outcome.event.event_type,
+ 2447:           actorUserId: outcome.event.actor_user_id,
+ 2448:           createdAt: outcome.event.created_at,
+ 2449:         },
+ 2450:       });
+ 2451:     } catch (error) {
+ 2452:       const message = error instanceof Error ? error.message : '';
+ 2453:       if (message === 'Academic result attempt not found.') {
+ 2454:         return res.status(404).json({ success: false, message: 'Academic result attempt not found.' });
+ 2455:       }
+ 2456:       // Database transition and idempotency failures are intentionally generic.
+ 2457:       return res.status(409).json({
+ 2458:         success: false,
+ 2459:         message: 'The result workflow transition was rejected. Check the current stage and use a new idempotency key only for a new action.',
+ 2460:       });
+ 2461:     }
+ 2462:   }
+ 2463: );
+ 2464: 
+ 2465: apiRouter.get('/results/my-results', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+ 2466:   const state = db.getState();
+ 2467:   const student = state.students.find((s) => s.userId === req.user!.id);
+ 2468:   if (!student) {
+ 2469:     return res.status(404).json({ success: false, message: 'Student record not found.' });
+ 2470:   }
+ 2471: 
+ 2472:   // Return only this student's results. Scores and grades are withheld until publication.
+ 2473:   const studentResults = state.results
+ 2474:     .filter((r) => r.studentId === student.id)
+ 2475:     .map((r) => {
+ 2476:       if (r.status === 'PUBLISHED') return r;
+ 2477: 
+ 2478:       return {
+ 2479:         id: r.id,
+ 2480:         courseId: r.courseId,
+ 2481:         studentId: r.studentId,
+ 2482:         matricNumber: r.matricNumber,
+ 2483:         studentName: r.studentName,
+ 2484:         session: r.session,
+ 2485:         semester: r.semester,
+ 2486:         status: r.status,
+ 2487:       };
+ 2488:     });
+ 2489: 
+ 2490:   return res.json({ success: true, results: studentResults });
+ 2491: });
+ 2492: 
+ 2493: apiRouter.post(
+ 2494:   '/results/score-entry',
+ 2495:   authenticateToken,
+ 2496:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER'),
+ 2497:   (req: AuthenticatedRequest, res: Response) => {
+ 2498:     const { courseId, studentId, matricNumber, studentName, session, semester, caScore, examScore } = req.body;
+ 2499:     if (!courseId || !studentId) {
+ 2500:       return res.status(400).json({ success: false, message: 'Course and student must be specified.' });
+ 2501:     }
+ 2502: 
+ 2503:     const state = db.getState();
+ 2504:     const targetCourse = state.courses.find((c) => c.id === courseId);
+ 2505:     if (!targetCourse) return res.status(404).json({ success: false, message: 'Course not found.' });
+ 2506:     if (req.user!.role === 'LECTURER' && targetCourse.lecturerId !== req.user!.id) {
+ 2507:       return res.status(403).json({ success: false, message: 'You can only enter scores for courses assigned to you.' });
+ 2508:     }
+ 2509:     const targetSession = session || state.settings.currentSession;
+ 2510:     const targetSemester = semester || state.settings.currentSemester;
+ 2511:     const ca = Math.max(0, Math.min(Number(caScore || 0), state.settings.caMaxMarks));
+ 2512:     const ex = Math.max(0, Math.min(Number(examScore || 0), state.settings.examMaxMarks));
+ 2513:     const total = ca + ex;
+ 2514:     const { grade, gradePoint } = computeGradeAndPoints(total);
+ 2515: 
+ 2516:     const existing = state.results.find(
+ 2517:       (r) => r.courseId === courseId && r.studentId === studentId && r.session === targetSession && r.semester === targetSemester
+ 2518:     );
+ 2519: 
+ 2520:     // Every score entry or revision restarts the approval chain.
+ 2521:     const nextStatus = 'SUBMITTED';
+ 2522: 
+ 2523:     const resultRecord: AssessmentResult = {
+ 2524:       id: existing?.id || 'res-' + Date.now() + '-' + Math.floor(Math.random() * 100),
+ 2525:       courseId,
+ 2526:       studentId,
+ 2527:       matricNumber: matricNumber || 'EDOCASTI/ND/2024/0000',
+ 2528:       studentName: studentName || 'Student',
+ 2529:       session: targetSession,
+ 2530:       semester: targetSemester,
+ 2531:       caScore: ca,
+ 2532:       examScore: ex,
+ 2533:       totalScore: total,
+ 2534:       grade,
+ 2535:       gradePoint,
+ 2536:       status: nextStatus,
+ 2537:       submittedBy: `${req.user!.fullName} (${req.user!.role})`,
+ 2538:     };
+ 2539: 
+ 2540:     if (existing) {
+ 2541:       const idx = state.results.findIndex((r) => r.id === existing.id);
+ 2542:       state.results[idx] = resultRecord;
+ 2543:     } else {
+ 2544:       state.results.push(resultRecord);
+ 2545:     }
+ 2546: 
+ 2547:     db.saveState();
+ 2548:     db.logAudit({
+ 2549:       userId: req.user!.id,
+ 2550:       userEmail: req.user!.email,
+ 2551:       action: 'RESULT_SCORE_ENTERED',
+ 2552:       resource: 'RESULT',
+ 2553:       details: { courseId, studentId, ca, exam: ex, total, grade },
+ 2554:       ipAddress: req.ip,
+ 2555:     });
+ 2556: 
+ 2557:     return res.json({ success: true, result: resultRecord });
+ 2558:   }
+ 2559: );
+ 2560: 
+ 2561: apiRouter.patch(
+ 2562:   '/results/:id/hod-approve',
+ 2563:   authenticateToken,
+ 2564:   requireRoles('HOD'),
+ 2565:   (req: AuthenticatedRequest, res: Response) => {
+ 2566:     const state = db.getState();
+ 2567:     const result = state.results.find((item) => item.id === req.params.id);
+ 2568:     if (!result) return res.status(404).json({ success: false, message: 'Result not found.' });
+ 2569: 
+ 2570:     const departmentId = req.user!.departmentId;
+ 2571:     const course = state.courses.find((item) => item.id === result.courseId);
+ 2572:     if (!departmentId || !canHodApproveResult(req.user, course, result)) {
+ 2573:       return res.status(403).json({ success: false, message: 'You can only approve submitted results for courses in your department.' });
+ 2574:     }
+ 2575: 
+ 2576:     result.status = 'HOD_APPROVED';
+ 2577:     result.hodApprovedAt = new Date().toISOString();
+ 2578:     result.hodApprovedBy = `${req.user!.fullName} (${req.user!.role})`;
+ 2579:     db.saveState();
+ 2580:     db.logAudit({
+ 2581:       userId: req.user!.id,
+ 2582:       userEmail: req.user!.email,
+ 2583:       action: 'RESULT_HOD_APPROVED',
+ 2584:       resource: 'RESULT',
+ 2585:       details: { resultId: result.id, courseId: result.courseId, studentId: result.studentId },
+ 2586:       ipAddress: req.ip,
+ 2587:     });
+ 2588:     return res.json({ success: true, result });
+ 2589:   }
+ 2590: );
+ 2591: 
+ 2592: apiRouter.post(
+ 2593:   '/results/hod-approve-bulk',
+ 2594:   authenticateToken,
+ 2595:   requireRoles('HOD'),
+ 2596:   (req: AuthenticatedRequest, res: Response) => {
+ 2597:     const { resultIds, courseId } = req.body || {};
+ 2598:     if (resultIds !== undefined && (!Array.isArray(resultIds) || resultIds.some((id: unknown) => typeof id !== 'string'))) {
+ 2599:       return res.status(400).json({ success: false, message: 'Result IDs must be an array of valid IDs.' });
+ 2600:     }
+ 2601:     const requestedIds = new Set<string>(resultIds || []);
+ 2602:     const hasCourseFilter = typeof courseId === 'string' && courseId.trim().length > 0;
+ 2603:     if (requestedIds.size === 0 && !hasCourseFilter) {
+ 2604:       return res.status(400).json({ success: false, message: 'Select submitted results or specify a course.' });
+ 2605:     }
+ 2606:     const departmentId = req.user!.departmentId;
+ 2607:     if (!departmentId) return res.status(403).json({ success: false, message: 'Your account has no assigned department.' });
+ 2608:     const state = db.getState();
+ 2609:     const departmentCourseIds = new Set(state.courses.filter((course) => course.departmentId === departmentId).map((course) => course.id));
+ 2610:     if (hasCourseFilter && !departmentCourseIds.has(courseId)) {
+ 2611:       return res.status(403).json({ success: false, message: 'You can only approve results for courses in your department.' });
+ 2612:     }
+ 2613:     const now = new Date().toISOString();
+ 2614:     const eligibleResults = state.results.filter((result) => {
+ 2615:       const course = state.courses.find((item) => item.id === result.courseId);
+ 2616:       return canHodApproveResult(req.user, course, result) &&
+ 2617:         departmentCourseIds.has(result.courseId) &&
+ 2618:         (requestedIds.has(result.id) || (hasCourseFilter && result.courseId === courseId));
+ 2619:     });
+ 2620:     for (const result of eligibleResults) {
+ 2621:       result.status = 'HOD_APPROVED';
+ 2622:       result.hodApprovedAt = now;
+ 2623:       result.hodApprovedBy = `${req.user!.fullName} (${req.user!.role})`;
+ 2624:     }
+ 2625:     if (eligibleResults.length > 0) db.saveState();
+ 2626:     db.logAudit({
+ 2627:       userId: req.user!.id,
+ 2628:       userEmail: req.user!.email,
+ 2629:       action: 'RESULTS_HOD_BULK_APPROVED',
+ 2630:       resource: 'RESULT',
+ 2631:       details: { count: eligibleResults.length, resultIds: eligibleResults.map((result) => result.id) },
+ 2632:       ipAddress: req.ip,
+ 2633:     });
+ 2634:     return res.json({
+ 2635:       success: true,
+ 2636:       approvedCount: eligibleResults.length,
+ 2637:       skippedCount: Math.max(0, requestedIds.size - eligibleResults.length),
+ 2638:     });
+ 2639:   }
+ 2640: );
+ 2641: 
+ 2642: apiRouter.patch(
+ 2643:   '/results/:id/publish',
+ 2644:   authenticateToken,
+ 2645:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+ 2646:   (req: AuthenticatedRequest, res: Response) => {
+ 2647:     const { id } = req.params;
+ 2648:     const state = db.getState();
+ 2649:     const resItem = state.results.find((r) => r.id === id);
+ 2650:     if (!resItem) {
+ 2651:       return res.status(404).json({ success: false, message: 'Result not found.' });
+ 2652:     }
+ 2653:     if (!isHodApprovedForPublication(resItem)) {
+ 2654:       return res.status(409).json({ success: false, message: 'Results must be approved by the HOD before Exam Officer moderation and publication.' });
+ 2655:     }
+ 2656:     if (req.user!.role === 'EXAM_OFFICER') {
+ 2657:       const course = state.courses.find((item) => item.id === resItem.courseId);
+ 2658:       if (!canExamOfficerModerateResult(req.user, course, resItem)) {
+ 2659:         return res.status(403).json({ success: false, message: 'You can only moderate HOD-approved results for your department.' });
+ 2660:       }
+ 2661:     }
+ 2662: 
+ 2663:     resItem.status = 'PUBLISHED';
+ 2664:     resItem.publishedAt = new Date().toISOString();
+ 2665:     resItem.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
+ 2666:     recalculateStudentAcademicTotals(state, resItem.studentId);
+ 2667: 
+ 2668:     db.saveState();
+ 2669:     db.logAudit({
+ 2670:       userId: req.user!.id,
+ 2671:       userEmail: req.user!.email,
+ 2672:       action: 'RESULT_APPROVED_AND_PUBLISHED',
+ 2673:       resource: 'RESULT',
+ 2674:       details: { resultId: id, courseId: resItem.courseId, studentId: resItem.studentId },
+ 2675:       ipAddress: req.ip,
+ 2676:     });
+ 2677: 
+ 2678:     return res.json({ success: true, result: resItem });
+ 2679:   }
+ 2680: );
+ 2681: 
+ 2682: apiRouter.post(
+ 2683:   '/results/approve-bulk',
+ 2684:   authenticateToken,
+ 2685:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+ 2686:   (req: AuthenticatedRequest, res: Response) => {
+ 2687:     const { resultIds, courseId } = req.body || {};
+ 2688: 
+ 2689:     if (resultIds !== undefined && (!Array.isArray(resultIds) || resultIds.some((id: unknown) => typeof id !== 'string'))) {
+ 2690:       return res.status(400).json({ success: false, message: 'Result IDs must be an array of valid IDs.' });
+ 2691:     }
+ 2692: 
+ 2693:     const requestedIds = new Set<string>(resultIds || []);
+ 2694:     const hasCourseFilter = typeof courseId === 'string' && courseId.trim().length > 0;
+ 2695:     if (requestedIds.size === 0 && !hasCourseFilter) {
+ 2696:       return res.status(400).json({ success: false, message: 'Select submitted results or specify a course.' });
+ 2697:     }
+ 2698: 
+ 2699:     const state = db.getState();
+ 2700:     const now = new Date().toISOString();
+ 2701:     const touchedStudents = new Set<string>();
+ 2702:     const eligibleResults = state.results.filter((result) => {
+ 2703:       const course = state.courses.find((item) => item.id === result.courseId);
+ 2704:       if (!isHodApprovedForPublication(result)) return false;
+ 2705:       if (req.user!.role === 'EXAM_OFFICER' && !canExamOfficerModerateResult(req.user, course, result)) return false;
+ 2706:       const matchesId = requestedIds.has(result.id);
+ 2707:       const matchesCourse = hasCourseFilter && result.courseId === courseId;
+ 2708:       return matchesId || matchesCourse;
+ 2709:     });
+ 2710: 
+ 2711:     for (const result of eligibleResults) {
+ 2712:       result.status = 'PUBLISHED';
+ 2713:       result.publishedAt = now;
+ 2714:       result.approvedBy = `${req.user!.fullName} (${req.user!.role})`;
+ 2715:       touchedStudents.add(result.studentId);
+ 2716:     }
+ 2717: 
+ 2718:     touchedStudents.forEach((studentId) => recalculateStudentAcademicTotals(state, studentId));
+ 2719:     if (eligibleResults.length > 0) db.saveState();
+ 2720: 
+ 2721:     db.logAudit({
+ 2722:       userId: req.user!.id,
+ 2723:       userEmail: req.user!.email,
+ 2724:       action: 'RESULTS_BULK_APPROVED',
+ 2725:       resource: 'RESULT',
+ 2726:       details: {
+ 2727:         count: eligibleResults.length,
+ 2728:         requestedCount: requestedIds.size,
+ 2729:         courseId: hasCourseFilter ? courseId : undefined,
+ 2730:         resultIds: eligibleResults.map((result) => result.id),
+ 2731:       },
+ 2732:       ipAddress: req.ip,
+ 2733:     });
+ 2734: 
+ 2735:     return res.json({
+ 2736:       success: true,
+ 2737:       approvedCount: eligibleResults.length,
+ 2738:       skippedCount: Math.max(0, requestedIds.size - eligibleResults.length),
+ 2739:     });
+ 2740:   }
+ 2741: );
+ 2742: 
+ 2743: apiRouter.put(
+ 2744:   '/results/:id',
+ 2745:   authenticateToken,
+ 2746:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER'),
+ 2747:   (req: AuthenticatedRequest, res: Response) => {
+ 2748:     const { id } = req.params;
+ 2749:     const state = db.getState();
+ 2750:     const resItem = state.results.find((r) => r.id === id);
+ 2751:     if (!resItem) {
+ 2752:       return res.status(404).json({ success: false, message: 'Result not found.' });
+ 2753:     }
+ 2754:     const resultCourse = state.courses.find((c) => c.id === resItem.courseId);
+ 2755:     if (req.user!.role === 'LECTURER' && resultCourse?.lecturerId !== req.user!.id) {
+ 2756:       return res.status(403).json({ success: false, message: 'You can only update results for courses assigned to you.' });
+ 2757:     }
+ 2758:     if (req.user!.role === 'LECTURER' && req.body.status !== undefined) {
+ 2759:       return res.status(403).json({ success: false, message: 'Lecturers cannot approve or publish results.' });
+ 2760:     }
+ 2761:     const { caScore, examScore } = req.body;
+ 2762:     if (req.body.status !== undefined) {
+ 2763:       return res.status(400).json({ success: false, message: 'Result status can only be changed through the approval workflow.' });
+ 2764:     }
+ 2765:     if (caScore !== undefined) {
+ 2766:       resItem.caScore = Math.max(0, Math.min(Number(caScore), state.settings.caMaxMarks));
+ 2767:     }
+ 2768:     if (examScore !== undefined) {
+ 2769:       resItem.examScore = Math.max(0, Math.min(Number(examScore), state.settings.examMaxMarks));
+ 2770:     }
+ 2771:     resItem.totalScore = resItem.caScore + resItem.examScore;
+ 2772:     const { grade, gradePoint } = computeGradeAndPoints(resItem.totalScore);
+ 2773:     resItem.grade = grade;
+ 2774:     resItem.gradePoint = gradePoint;
+ 2775:     // Any score revision invalidates prior HOD approval and publication.
+ 2776:     resItem.status = 'SUBMITTED';
+ 2777:     delete resItem.hodApprovedBy;
+ 2778:     delete resItem.hodApprovedAt;
+ 2779:     delete resItem.approvedBy;
+ 2780:     delete resItem.publishedAt;
+ 2781:     recalculateStudentAcademicTotals(state, resItem.studentId);
+ 2782:     db.saveState();
+ 2783:     return res.json({ success: true, result: resItem });
+ 2784:   }
+ 2785: );
+ 2786: 
+ 2787: apiRouter.delete(
+ 2788:   '/results/:id',
+ 2789:   authenticateToken,
+ 2790:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'EXAM_OFFICER'),
+ 2791:   (req: AuthenticatedRequest, res: Response) => {
+ 2792:     const { id } = req.params;
+ 2793:     const state = db.getState();
+ 2794:     const idx = state.results.findIndex((r) => r.id === id);
+ 2795:     if (idx === -1) return res.status(404).json({ success: false, message: 'Result not found.' });
+ 2796:     state.results.splice(idx, 1);
+ 2797:     db.saveState();
+ 2798:     return res.json({ success: true, message: 'Result record deleted.' });
+ 2799:   }
+ 2800: );
+ 2801: 
+ 2802: // ==================== TRANSCRIPTS & FINAL CERTIFICATES (REGISTRAR) ====================
+ 2803: 
+ 2804: apiRouter.delete(
+ 2805:   '/results/student/:studentId',
+ 2806:   authenticateToken,
+ 2807:   requireRoles('SUPER_ADMIN'),
+ 2808:   (req: AuthenticatedRequest, res: Response) => {
+ 2809:     const { studentId } = req.params;
+ 2810:     const state = db.getState();
+ 2811:     const student = state.students.find((item) => item.id === studentId);
+ 2812: 
+ 2813:     if (!student) {
+ 2814:       return res.status(404).json({ success: false, message: 'Student not found.' });
+ 2815:     }
+ 2816: 
+ 2817:     const originalCount = state.results.length;
+ 2818:     state.results = state.results.filter((result) => result.studentId !== studentId);
+ 2819:     const deletedCount = originalCount - state.results.length;
+ 2820: 
+ 2821:     // Clearing a student's results must also clear cached academic totals.
+ 2822:     student.cgpa = 0;
+ 2823:     student.totalCreditsEarned = 0;
+ 2824: 
+ 2825:     db.logAudit({
+ 2826:       userId: req.user!.id,
+ 2827:       userEmail: req.user!.email,
+ 2828:       action: 'STUDENT_RESULTS_CLEARED',
+ 2829:       resource: 'RESULT',
+ 2830:       details: {
+ 2831:         studentId: student.id,
+ 2832:         matricNumber: student.matricNumber,
+ 2833:         studentName: student.matricNumber,
+ 2834:         deletedCount,
+ 2835:       },
+ 2836:       ipAddress: req.ip,
+ 2837:     });
+ 2838: 
+ 2839:     return res.json({
+ 2840:       success: true,
+ 2841:       message: deletedCount > 0 ? 'Student results cleared.' : 'No result records were found for this student.',
+ 2842:       deletedCount,
+ 2843:     });
+ 2844:   }
+ 2845: );
+ 2846: function computeHonoursClassification(cgpa: number): string {
+ 2847:   if (cgpa >= 3.5) return 'Distinction';
+ 2848:   if (cgpa >= 3.0) return 'Upper Credit';
+ 2849:   if (cgpa >= 2.5) return 'Lower Credit';
+ 2850:   if (cgpa >= 2.0) return 'Pass';
+ 2851:   return 'Probation / Incomplete';
+ 2852: }
+ 2853: 
+ 2854: apiRouter.get(
+ 2855:   '/documents',
+ 2856:   authenticateToken,
+ 2857:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
+ 2858:   (req: AuthenticatedRequest, res: Response) => {
+ 2859:     const state = db.getState();
+ 2860:     const list = (state.issuedDocuments || []).map((doc) => {
+ 2861:       const inv = state.invoices.find((i) => i.id === doc.invoiceId);
+ 2862:       const publishedResults = state.results
+ 2863:         .filter((r) => r.studentId === doc.studentId && r.status === 'PUBLISHED')
+ 2864:         .map((r) => {
+ 2865:           const crs = state.courses.find((c) => c.id === r.courseId);
+ 2866:           return { ...r, courseCode: crs?.code || r.courseId, courseTitle: crs?.title || 'Course', creditUnits: crs?.creditUnits || 3 };
+ 2867:         });
+ 2868:       return {
+ 2869:         ...doc,
+ 2870:         paymentStatus: inv?.status || 'UNPAID',
+ 2871:         resultsSnapshot: publishedResults,
+ 2872:       };
+ 2873:     });
+ 2874:     return res.json({ success: true, documents: list });
+ 2875:   }
+ 2876: );
+ 2877: 
+ 2878: apiRouter.get('/documents/my-documents', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+ 2879:   const state = db.getState();
+ 2880:   const student = state.students.find((s) => s.userId === req.user!.id);
+ 2881:   if (!student) {
+ 2882:     return res.status(404).json({ success: false, message: 'Student profile not found.' });
+ 2883:   }
+ 2884: 
+ 2885:   const usr = state.users.find((u) => u.id === student.userId);
+ 2886:   const admissionApp = state.applications.find((a) => a.userId === student.userId && a.status === 'ACCEPTED');
+ 2887:   const programme = state.programmes.find((p) => p.id === student.programmeId);
+ 2888:   const department = state.departments.find((d) => d.id === student.departmentId);
+ 2889:   const school = state.schools.find((s) => s.id === student.schoolId);
+ 2890:   const admissionLetter = admissionApp ? [{
+ 2891:     id: `admission-${admissionApp.id}`,
+ 2892:     studentId: student.id,
+ 2893:     type: 'ADMISSION_LETTER',
+ 2894:     title: 'Official Admission Letter',
+ 2895:     documentNumber: admissionApp.applicationNumber,
+ 2896:     matricNumber: student.matricNumber,
+ 2897:     studentName: usr?.fullName || admissionApp.firstName + ' ' + admissionApp.lastName,
+ 2898:     programmeName: programme?.name || 'National Diploma Programme',
+ 2899:     departmentName: department?.name || '',
+ 2900:     schoolName: school?.name || '',
+ 2901:     level: student.level,
+ 2902:     photoUrl: student.photoUrl || usr?.photoUrl || admissionApp.photoUrl || '',
+ 2903:     session: admissionApp.session,
+ 2904:     generatedAt: admissionApp.decisionAt || admissionApp.submittedAt,
+ 2905:     generatedBy: admissionApp.reviewedBy || 'Admissions Office',
+ 2906:     paymentStatus: 'NOT_REQUIRED',
+ 2907:     isUnlocked: true,
+ 2908:     remarks: 'Admission offer accepted. This letter confirms the student admission.',
+ 2909:   }] : [];
+ 2910:   const issuedDocs = (state.issuedDocuments || [])
+ 2911:     .filter((d) => d.studentId === student.id)
+ 2912:     .map((doc) => {
+ 2913:       const inv = state.invoices.find((i) => i.id === doc.invoiceId);
+ 2914:       const paymentStatus = inv?.status || 'UNPAID';
+ 2915:       const isUnlocked = paymentStatus === 'PAID';
+ 2916: 
+ 2917:       const publishedResults = isUnlocked
+ 2918:         ? state.results
+ 2919:             .filter((r) => r.studentId === student.id && r.status === 'PUBLISHED')
+ 2920:             .map((r) => {
+ 2921:               const crs = state.courses.find((c) => c.id === r.courseId);
+ 2922:               return {
+ 2923:                 ...r,
+ 2924:                 courseCode: crs?.code || r.courseId,
+ 2925:                 courseTitle: crs?.title || 'Academic Course',
+ 2926:                 creditUnits: crs?.creditUnits || 3,
+ 2927:               };
+ 2928:             })
+ 2929:         : undefined;
+ 2930: 
+ 2931:       return {
+ 2932:         ...doc,
+ 2933:         photoUrl: doc.photoUrl || student.photoUrl || usr?.photoUrl || '',
+ 2934:         paymentStatus,
+ 2935:         resultsSnapshot: publishedResults,
+ 2936:       };
+ 2937:     });
+ 2938:   const myDocs = [...admissionLetter, ...issuedDocs];
+ 2939: 
+ 2940:   return res.json({ success: true, documents: myDocs });
+ 2941: });
+ 2942: 
+ 2943: apiRouter.post(
+ 2944:   '/documents/generate',
+ 2945:   authenticateToken,
+ 2946:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
+ 2947:   (req: AuthenticatedRequest, res: Response) => {
+ 2948:     const { studentId, type, feeAmount, remarks, classification } = req.body;
+ 2949:     if (!studentId || !type || !['TRANSCRIPT', 'FINAL_CERTIFICATE'].includes(type)) {
+ 2950:       return res.status(400).json({ success: false, message: 'Valid studentId and document type (TRANSCRIPT or FINAL_CERTIFICATE) are required.' });
+ 2951:     }
+ 2952: 
+ 2953:     const state = db.getState();
+ 2954:     const student = state.students.find((s) => s.id === studentId);
+ 2955:     if (!student) return res.status(404).json({ success: false, message: 'Student not found.' });
+ 2956: 
+ 2957:     const usr = state.users.find((u) => u.id === student.userId);
+ 2958:     const prog = state.programmes.find((p) => p.id === student.programmeId);
+ 2959:     const dept = state.departments.find((d) => d.id === student.departmentId);
+ 2960:     const sch = state.schools.find((s) => s.id === student.schoolId);
+ 2961:     const app = state.applications.find((a) => a.userId === student.userId);
+ 2962: 
+ 2963:     const existing = (state.issuedDocuments || []).find((d) => d.studentId === studentId && d.type === type);
+ 2964:     if (existing) {
+ 2965:       return res.status(409).json({ success: false, message: `${type === 'TRANSCRIPT' ? 'Transcript' : 'Final Certificate'} has already been generated for this student.` });
+ 2966:     }
+ 2967: 
+ 2968:     const defaultFee =
+ 2969:       type === 'TRANSCRIPT'
+ 2970:         ? state.settings.transcriptFee || 10000
+ 2971:         : state.settings.certificateFee || 25000;
+ 2972:     const resolvedFee = feeAmount !== undefined ? Number(feeAmount) : defaultFee;
+ 2973: 
+ 2974:     const inv: Invoice = {
+ 2975:       id: 'inv-doc-' + Date.now(),
+ 2976:       invoiceNumber: `INV/${state.settings.currentSession.slice(0, 4)}/${Math.floor(10000 + Math.random() * 90000)}`,
+ 2977:       studentId: student.id,
+ 2978:       session: state.settings.currentSession,
+ 2979:       title: type === 'TRANSCRIPT' ? 'Official Academic Transcript Processing Fee' : 'Final Graduation Certificate Issuance Fee',
+ 2980:       amount: resolvedFee,
+ 2981:       amountPaid: resolvedFee <= 0 ? 0 : 0,
+ 2982:       status: resolvedFee <= 0 ? 'PAID' : 'UNPAID',
+ 2983:       dueDate: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString().split('T')[0],
+ 2984:       createdAt: new Date().toISOString(),
+ 2985:     };
+ 2986:     state.invoices.push(inv);
+ 2987: 
+ 2988:     const docNumber = `${type === 'TRANSCRIPT' ? 'TRN' : 'CERT'}/EDOCASTI/${new Date().getFullYear()}/${String((state.issuedDocuments?.length || 0) + 1).padStart(4, '0')}`;
+ 2989:     const doc: IssuedDocument = {
+ 2990:       id: 'doc-' + Date.now(),
+ 2991:       studentId: student.id,
+ 2992:       matricNumber: student.matricNumber,
+ 2993:       studentName: usr?.fullName || 'Student',
+ 2994:       programmeName: prog?.name || 'National Diploma Programme',
+ 2995:       departmentName: dept?.name || '',
+ 2996:       schoolName: sch?.name || '',
+ 2997:       level: student.level,
+ 2998:       photoUrl: student.photoUrl || usr?.photoUrl || app?.photoUrl || '',
+ 2999:       type,
+ 3000:       documentNumber: docNumber,
+ 3001:       title: type === 'TRANSCRIPT' ? 'Official Academic Transcript' : 'Final Diploma / Graduation Certificate',
+ 3002:       session: state.settings.currentSession,
+ 3003:       cgpa: student.cgpa,
+ 3004:       classification: classification || computeHonoursClassification(student.cgpa),
+ 3005:       remarks: remarks || 'Completed all academic & practical requirements in good standing.',
+ 3006:       feeAmount: resolvedFee,
+ 3007:       invoiceId: inv.id,
+ 3008:       generatedBy: `${req.user!.fullName} (${req.user!.role})`,
+ 3009:       generatedAt: new Date().toISOString(),
+ 3010:     };
+ 3011: 
+ 3012:     if (!state.issuedDocuments) state.issuedDocuments = [];
+ 3013:     state.issuedDocuments.unshift(doc);
+ 3014:     db.saveState();
+ 3015: 
+ 3016:     db.logAudit({
+ 3017:       userId: req.user!.id,
+ 3018:       userEmail: req.user!.email,
+ 3019:       action: `${type}_GENERATED`,
+ 3020:       resource: 'ISSUED_DOCUMENT',
+ 3021:       details: { documentNumber: docNumber, studentId: student.id, feeAmount: resolvedFee },
+ 3022:       ipAddress: req.ip,
+ 3023:     });
+ 3024: 
+ 3025:     return res.status(201).json({ success: true, document: { ...doc, paymentStatus: inv.status }, invoice: inv });
+ 3026:   }
+ 3027: );
+ 3028: 
+ 3029: apiRouter.put(
+ 3030:   '/documents/:id',
+ 3031:   authenticateToken,
+ 3032:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
+ 3033:   (req: AuthenticatedRequest, res: Response) => {
+ 3034:     const { id } = req.params;
+ 3035:     const state = db.getState();
+ 3036:     const doc = (state.issuedDocuments || []).find((d) => d.id === id);
+ 3037:     if (!doc) return res.status(404).json({ success: false, message: 'Document not found.' });
+ 3038:     const { classification, remarks, feeAmount } = req.body;
+ 3039:     if (classification !== undefined) doc.classification = classification;
+ 3040:     if (remarks !== undefined) doc.remarks = remarks;
+ 3041:     if (feeAmount !== undefined) {
+ 3042:       doc.feeAmount = Number(feeAmount);
+ 3043:       const inv = state.invoices.find((i) => i.id === doc.invoiceId);
+ 3044:       if (inv && inv.status !== 'PAID') inv.amount = Number(feeAmount);
+ 3045:     }
+ 3046:     db.saveState();
+ 3047:     return res.json({ success: true, document: doc });
+ 3048:   }
+ 3049: );
+ 3050: 
+ 3051: apiRouter.delete(
+ 3052:   '/documents/:id',
+ 3053:   authenticateToken,
+ 3054:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR'),
+ 3055:   (req: AuthenticatedRequest, res: Response) => {
+ 3056:     const { id } = req.params;
+ 3057:     const state = db.getState();
+ 3058:     const idx = (state.issuedDocuments || []).findIndex((d) => d.id === id);
+ 3059:     if (idx === -1) return res.status(404).json({ success: false, message: 'Document not found.' });
+ 3060:     state.issuedDocuments.splice(idx, 1);
+ 3061:     db.saveState();
+ 3062:     return res.json({ success: true, message: 'Issued document deleted.' });
+ 3063:   }
+ 3064: );
+ 3065: 
+ 3066: // ==================== FINANCE & PAYMENTS ====================
+ 3067: 
+ 3068: apiRouter.get('/finance/fee-schedules', (req, res) => {
+ 3069:   return res.json({ success: true, feeSchedules: db.getState().feeSchedules });
+ 3070: });
+ 3071: 
+ 3072: apiRouter.post(
+ 3073:   '/finance/fee-schedules',
+ 3074:   authenticateToken,
+ 3075:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
+ 3076:   (req: AuthenticatedRequest, res: Response) => {
+ 3077:     const { title, category, level, session, amount, programmeId } = req.body;
+ 3078:     const state = db.getState();
+ 3079:     const cleanTitle = String(title || '').trim();
+ 3080:     const cleanCategory = String(category || '').trim();
+ 3081:     const cleanSession = String(session || state.settings.currentSession || '').trim();
+ 3082:     const cleanLevel = String(level || 'All').trim();
+ 3083:     const allowedLevels = ['All', 'ND I', 'ND II', 'HND I', 'HND II'];
+ 3084:     const allowedCategories: FeeSchedule['category'][] = ['Tuition', 'Acceptance', 'Registration', 'Laboratory', 'Hostel', 'Other'];
+ 3085: 
+ 3086:     if (!cleanTitle || !cleanCategory || amount === undefined || !cleanSession) {
+ 3087:       return res.status(400).json({ success: false, message: 'Fee title, category, amount, and academic session are required.' });
+ 3088:     }
+ 3089:     if (!allowedCategories.includes(cleanCategory as FeeSchedule['category'])) {
+ 3090:       return res.status(400).json({ success: false, message: 'Select a valid fee category.' });
+ 3091:     }
+ 3092:     if (!Number.isFinite(Number(amount)) || Number(amount) < 0) {
+ 3093:       return res.status(400).json({ success: false, message: 'Fee amount must be a valid non-negative number.' });
+ 3094:     }
+ 3095:     if (!allowedLevels.includes(cleanLevel)) {
+ 3096:       return res.status(400).json({ success: false, message: 'Select a valid fee level.' });
+ 3097:     }
+ 3098:     if (programmeId && !state.programmes.some((programme) => programme.id === String(programmeId))) {
+ 3099:       return res.status(400).json({ success: false, message: 'The selected programme does not exist.' });
+ 3100:     }
+ 3101:     const newFee: FeeSchedule = {
+ 3102:       id: 'fee-' + Date.now(),
+ 3103:       programmeId: programmeId ? String(programmeId) : undefined,
+ 3104:       title: cleanTitle,
+ 3105:       category: cleanCategory as FeeSchedule['category'],
+ 3106:       level: cleanLevel,
+ 3107:       session: cleanSession,
+ 3108:       amount: Number(amount),
+ 3109:     };
+ 3110:     db.getState().feeSchedules.push(newFee);
+ 3111:     db.saveState();
+ 3112:     return res.status(201).json({ success: true, feeSchedule: newFee });
+ 3113:   }
+ 3114: );
+ 3115: 
+ 3116: apiRouter.put(
+ 3117:   '/finance/fee-schedules/:id',
+ 3118:   authenticateToken,
+ 3119:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
+ 3120:   (req: AuthenticatedRequest, res: Response) => {
+ 3121:     const { id } = req.params;
+ 3122:     const state = db.getState();
+ 3123:     const fee = state.feeSchedules.find((f) => f.id === id);
+ 3124:     if (!fee) return res.status(404).json({ success: false, message: 'Fee schedule item not found.' });
+ 3125: 
+ 3126:     const { title, category, level, session, amount, programmeId } = req.body;
+ 3127:     const allowedLevels = ['All', 'ND I', 'ND II', 'HND I', 'HND II'];
+ 3128:     const allowedCategories: FeeSchedule['category'][] = ['Tuition', 'Acceptance', 'Registration', 'Laboratory', 'Hostel', 'Other'];
+ 3129:     const updated = { ...fee };
+ 3130: 
+ 3131:     if (title !== undefined) updated.title = String(title).trim();
+ 3132:     if (category !== undefined) {
+ 3133:       const cleanCategory = String(category).trim();
+ 3134:       if (!allowedCategories.includes(cleanCategory as FeeSchedule['category'])) {
+ 3135:         return res.status(400).json({ success: false, message: 'Select a valid fee category.' });
+ 3136:       }
+ 3137:       updated.category = cleanCategory as FeeSchedule['category'];
+ 3138:     }
+ 3139:     if (level !== undefined) updated.level = String(level).trim();
+ 3140:     if (session !== undefined) updated.session = String(session).trim();
+ 3141:     if (programmeId !== undefined) updated.programmeId = programmeId ? String(programmeId) : undefined;
+ 3142:     if (amount !== undefined) updated.amount = Number(amount);
+ 3143: 
+ 3144:     if (!updated.title) return res.status(400).json({ success: false, message: 'Fee title cannot be empty.' });
+ 3145:     if (!updated.category) return res.status(400).json({ success: false, message: 'Fee category cannot be empty.' });
+ 3146:     if (!updated.session) return res.status(400).json({ success: false, message: 'Academic session cannot be empty.' });
+ 3147:     if (!allowedLevels.includes(String(updated.level || 'All'))) {
+ 3148:       return res.status(400).json({ success: false, message: 'Select a valid fee level.' });
+ 3149:     }
+ 3150:     if (!Number.isFinite(Number(updated.amount)) || Number(updated.amount) < 0) {
+ 3151:       return res.status(400).json({ success: false, message: 'Fee amount must be a valid non-negative number.' });
+ 3152:     }
+ 3153:     if (updated.programmeId && !state.programmes.some((programme) => programme.id === updated.programmeId)) {
+ 3154:       return res.status(400).json({ success: false, message: 'The selected programme does not exist.' });
+ 3155:     }
+ 3156: 
+ 3157:     Object.assign(fee, updated);
+ 3158:     db.saveState();
+ 3159:     return res.json({ success: true, feeSchedule: fee });
+ 3160:   }
+ 3161: );
+ 3162: 
+ 3163: apiRouter.delete(
+ 3164:   '/finance/fee-schedules/:id',
+ 3165:   authenticateToken,
+ 3166:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
+ 3167:   (req: AuthenticatedRequest, res: Response) => {
+ 3168:     const { id } = req.params;
+ 3169:     const state = db.getState();
+ 3170:     const idx = state.feeSchedules.findIndex((f) => f.id === id);
+ 3171:     if (idx === -1) return res.status(404).json({ success: false, message: 'Fee schedule item not found.' });
+ 3172:     state.feeSchedules.splice(idx, 1);
+ 3173:     db.saveState();
+ 3174:     return res.json({ success: true, message: 'Fee item deleted.' });
+ 3175:   }
+ 3176: );
+ 3177: 
+ 3178: apiRouter.get('/finance/invoices', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+ 3179:   const user = req.user!;
+ 3180:   if (user.role !== 'STUDENT' && !['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'BURSAR'].includes(user.role)) {
+ 3181:     return res.status(403).json({ success: false, message: 'You do not have permission to view the fee ledger.' });
+ 3182:   }
+ 3183:   const { studentId } = req.query;
+ 3184:   let list = db.getState().invoices;
+ 3185:   if (user.role === 'STUDENT') {
+ 3186:     const student = db.getState().students.find((s) => s.userId === user.id);
+ 3187:     list = list.filter((invoice) => invoice.studentId === student?.id);
+ 3188:   } else if (studentId) {
+ 3189:     list = list.filter((invoice) => invoice.studentId === studentId);
+ 3190:   }
+ 3191:   return res.json({ success: true, invoices: list });
+ 3192: });
+ 3193: 
+ 3194: apiRouter.post('/finance/pay', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+ 3195:   const { invoiceId, channel } = req.body;
+ 3196:   const state = db.getState();
+ 3197:   const invoice = state.invoices.find((i) => i.id === invoiceId);
+ 3198:   const payingStudent = state.students.find((student) => student.userId === req.user!.id);
+ 3199:   if (req.user!.role !== 'STUDENT' || !payingStudent || invoice?.studentId !== payingStudent.id) {
+ 3200:     return res.status(403).json({ success: false, message: 'You can only pay invoices assigned to your own student account.' });
+ 3201:   }
+ 3202: 
+ 3203:   if (!invoice) {
+ 3204:     return res.status(404).json({ success: false, message: 'Invoice not found.' });
+ 3205:   }
+ 3206: 
+ 3207:   const remaining = invoice.amount - invoice.amountPaid;
+ 3208:   if (remaining <= 0) {
+ 3209:     return res.status(400).json({ success: false, message: 'Invoice is already fully settled.' });
+ 3210:   }
+ 3211: 
+ 3212:   // Create verified transaction record
+ 3213:   const ref = `EDOCASTI-TX-${Date.now().toString().slice(-6)}${Math.floor(100 + Math.random() * 900)}`;
+ 3214:   const transaction: PaymentTransaction = {
+ 3215:     id: 'pay-' + Date.now(),
+ 3216:     reference: ref,
+ 3217:     invoiceId: invoice.id,
+ 3218:     studentId: invoice.studentId,
+ 3219:     amount: remaining,
+ 3220:     channel: channel || 'Remita',
+ 3221:     status: 'VERIFIED',
+ 3222:     providerReference: `RRR-${Math.floor(1000 + Math.random() * 9000)}-${Date.now().toString().slice(-4)}`,
+ 3223:     paidAt: new Date().toISOString(),
+ 3224:     verifiedBy: 'Automated Gateway Reconciler',
+ 3225:   };
+ 3226: 
+ 3227:   invoice.amountPaid = invoice.amount;
+ 3228:   invoice.status = 'PAID';
+ 3229: 
+ 3230:   state.payments.unshift(transaction);
+ 3231:   db.saveState();
+ 3232: 
+ 3233:   db.logAudit({
+ 3234:     userId: req.user!.id,
+ 3235:     userEmail: req.user!.email,
+ 3236:     action: 'PAYMENT_SETTLED_VERIFIED',
+ 3237:     resource: 'FINANCE',
+ 3238:     details: { invoiceId: invoice.id, reference: ref, amount: remaining, channel: transaction.channel },
+ 3239:     ipAddress: req.ip,
+ 3240:   });
+ 3241: 
+ 3242:   return res.json({
+ 3243:     success: true,
+ 3244:     message: 'Payment verified and receipt generated successfully.',
+ 3245:     transaction,
+ 3246:     invoice,
+ 3247:   });
+ 3248: });
+ 3249: 
+ 3250: apiRouter.get(
+ 3251:   '/finance/payments',
+ 3252:   authenticateToken,
+ 3253:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
+ 3254:   (req: AuthenticatedRequest, res: Response) => {
+ 3255:     return res.json({ success: true, payments: db.getState().payments });
+ 3256:   }
+ 3257: );
+ 3258: 
+ 3259: apiRouter.post(
+ 3260:   '/finance/invoices',
+ 3261:   authenticateToken,
+ 3262:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
+ 3263:   (req: AuthenticatedRequest, res: Response) => {
+ 3264:     const { studentId, title, amount, session, dueDate, status } = req.body;
+ 3265:     if (!studentId || !title || amount === undefined) {
+ 3266:       return res.status(400).json({ success: false, message: 'Student, title, and amount are required.' });
+ 3267:     }
+ 3268:     const state = db.getState();
+ 3269:     const inv: Invoice = {
+ 3270:       id: 'inv-' + Date.now(),
+ 3271:       invoiceNumber: `INV/${state.settings.currentSession.slice(0, 4)}/${Math.floor(10000 + Math.random() * 90000)}`,
+ 3272:       studentId,
+ 3273:       session: session || state.settings.currentSession,
+ 3274:       title: String(title).trim(),
+ 3275:       amount: Number(amount),
+ 3276:       amountPaid: status === 'PAID' ? Number(amount) : 0,
+ 3277:       status: status || 'UNPAID',
+ 3278:       dueDate: dueDate || new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString().split('T')[0],
+ 3279:       createdAt: new Date().toISOString(),
+ 3280:     };
+ 3281:     state.invoices.unshift(inv);
+ 3282:     db.saveState();
+ 3283:     return res.status(201).json({ success: true, invoice: inv });
+ 3284:   }
+ 3285: );
+ 3286: 
+ 3287: apiRouter.put(
+ 3288:   '/finance/invoices/:id',
+ 3289:   authenticateToken,
+ 3290:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
+ 3291:   (req: AuthenticatedRequest, res: Response) => {
+ 3292:     const { id } = req.params;
+ 3293:     const inv = db.getState().invoices.find((i) => i.id === id);
+ 3294:     if (!inv) return res.status(404).json({ success: false, message: 'Invoice not found.' });
+ 3295:     const { title, amount, amountPaid, status, dueDate, session } = req.body;
+ 3296:     if (title !== undefined) inv.title = String(title).trim();
+ 3297:     if (amount !== undefined) inv.amount = Number(amount);
+ 3298:     if (amountPaid !== undefined) inv.amountPaid = Number(amountPaid);
+ 3299:     if (status !== undefined) inv.status = status;
+ 3300:     if (dueDate !== undefined) inv.dueDate = dueDate;
+ 3301:     if (session !== undefined) inv.session = session;
+ 3302:     db.saveState();
+ 3303:     return res.json({ success: true, invoice: inv });
+ 3304:   }
+ 3305: );
+ 3306: 
+ 3307: apiRouter.delete(
+ 3308:   '/finance/invoices/:id',
+ 3309:   authenticateToken,
+ 3310:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
+ 3311:   (req: AuthenticatedRequest, res: Response) => {
+ 3312:     const { id } = req.params;
+ 3313:     const state = db.getState();
+ 3314:     const idx = state.invoices.findIndex((i) => i.id === id);
+ 3315:     if (idx === -1) return res.status(404).json({ success: false, message: 'Invoice not found.' });
+ 3316:     state.invoices.splice(idx, 1);
+ 3317:     db.saveState();
+ 3318:     return res.json({ success: true, message: 'Invoice deleted.' });
+ 3319:   }
+ 3320: );
+ 3321: 
+ 3322: apiRouter.delete(
+ 3323:   '/finance/payments/:id',
+ 3324:   authenticateToken,
+ 3325:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'BURSAR'),
+ 3326:   (req: AuthenticatedRequest, res: Response) => {
+ 3327:     const { id } = req.params;
+ 3328:     const state = db.getState();
+ 3329:     const idx = state.payments.findIndex((p) => p.id === id);
+ 3330:     if (idx === -1) return res.status(404).json({ success: false, message: 'Payment not found.' });
+ 3331:     state.payments.splice(idx, 1);
+ 3332:     db.saveState();
+ 3333:     return res.json({ success: true, message: 'Payment record deleted.' });
+ 3334:   }
+ 3335: );
+ 3336: 
+ 3337: // ==================== ATTENDANCE ====================
+ 3338: 
+ 3339: apiRouter.get('/attendance', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+ 3340:   const { courseId } = req.query;
+ 3341:   const user = req.user!;
+ 3342:   if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'LECTURER'].includes(user.role)) {
+ 3343:     return res.status(403).json({ success: false, message: 'You do not have permission to view attendance records.' });
+ 3344:   }
+ 3345:   const state = db.getState();
+ 3346:   let list = state.attendance;
+ 3347:   if (user.role === 'LECTURER') {
+ 3348:     const assignedCourseIds = new Set(state.courses.filter((course) => course.lecturerId === user.id).map((course) => course.id));
+ 3349:     list = list.filter((record) => assignedCourseIds.has(record.courseId));
+ 3350:   }
+ 3351:   if (courseId) list = list.filter((record) => record.courseId === courseId);
+ 3352:   return res.json({ success: true, attendance: list });
+ 3353: });
+ 3354: 
+ 3355: apiRouter.post(
+ 3356:   '/attendance',
+ 3357:   authenticateToken,
+ 3358:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER'),
+ 3359:   (req: AuthenticatedRequest, res: Response) => {
+ 3360:     const { courseId, type, topic, records } = req.body;
+ 3361:     if (!courseId || !topic) {
+ 3362:       return res.status(400).json({ success: false, message: 'Course and topic are required.' });
+ 3363:     }
+ 3364: 
+ 3365:     const state = db.getState();
+ 3366:     const assignedCourse = state.courses.find((course) => course.id === courseId);
+ 3367:     if (!assignedCourse) return res.status(404).json({ success: false, message: 'Course not found.' });
+ 3368:     if (req.user!.role === 'LECTURER' && assignedCourse.lecturerId !== req.user!.id) {
+ 3369:       return res.status(403).json({ success: false, message: 'You can only record attendance for courses assigned to you.' });
+ 3370:     }
+ 3371:     const newSession: AttendanceSession = {
+ 3372:       id: 'att-' + Date.now(),
+ 3373:       courseId,
+ 3374:       lecturerId: req.user!.id,
+ 3375:       date: new Date().toISOString().split('T')[0],
+ 3376:       type: type || 'Lecture',
+ 3377:       topic,
+ 3378:       records: records || [],
+ 3379:     };
+ 3380: 
+ 3381:     state.attendance.unshift(newSession);
+ 3382:     db.saveState();
+ 3383: 
+ 3384:     db.logAudit({
+ 3385:       userId: req.user!.id,
+ 3386:       userEmail: req.user!.email,
+ 3387:       action: 'ATTENDANCE_SESSION_RECORDED',
+ 3388:       resource: 'ATTENDANCE',
+ 3389:       details: { courseId, topic, attendeesCount: records?.length || 0 },
+ 3390:       ipAddress: req.ip,
+ 3391:     });
+ 3392: 
+ 3393:     return res.status(201).json({ success: true, session: newSession });
+ 3394:   }
+ 3395: );
+ 3396: 
+ 3397: apiRouter.put(
+ 3398:   '/attendance/:id',
+ 3399:   authenticateToken,
+ 3400:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'LECTURER', 'HOD'),
+ 3401:   (req: AuthenticatedRequest, res: Response) => {
+ 3402:     const { id } = req.params;
+ 3403:     const state = db.getState();
+ 3404:     const session = state.attendance.find((a) => a.id === id);
+ 3405:     if (!session) return res.status(404).json({ success: false, message: 'Attendance session not found.' });
+ 3406:     if (req.user!.role === 'LECTURER' && session.lecturerId !== req.user!.id) {
+ 3407:       return res.status(403).json({ success: false, message: 'You can only update attendance sessions you recorded.' });
+ 3408:     }
+ 3409:     const { topic, type, date } = req.body;
+ 3410:     if (topic !== undefined) session.topic = String(topic).trim();
+ 3411:     if (type !== undefined) session.type = type;
+ 3412:     if (date !== undefined) session.date = date;
+ 3413:     db.saveState();
+ 3414:     return res.json({ success: true, session });
+ 3415:   }
+ 3416: );
+ 3417: 
+ 3418: apiRouter.delete(
+ 3419:   '/attendance/:id',
+ 3420:   authenticateToken,
+ 3421:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 3422:   (req: AuthenticatedRequest, res: Response) => {
+ 3423:     const { id } = req.params;
+ 3424:     const state = db.getState();
+ 3425:     const idx = state.attendance.findIndex((a) => a.id === id);
+ 3426:     if (idx === -1) return res.status(404).json({ success: false, message: 'Attendance session not found.' });
+ 3427:     state.attendance.splice(idx, 1);
+ 3428:     db.saveState();
+ 3429:     return res.json({ success: true, message: 'Attendance session deleted.' });
+ 3430:   }
+ 3431: );
+ 3432: 
+ 3433: // ==================== SUPPORT TICKETS ====================
+ 3434: 
+ 3435: apiRouter.get('/support', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+ 3436:   const user = req.user!;
+ 3437:   let list = db.getState().supportTickets;
+ 3438:   if (user.role === 'STUDENT' || user.role === 'APPLICANT') {
+ 3439:     list = list.filter((ticket) => ticket.userId === user.id);
+ 3440:   } else if (user.role === 'BURSAR') {
+ 3441:     list = list.filter((ticket) => ticket.category === 'Bursary & Payments');
+ 3442:   } else if (user.role === 'ADMISSIONS_OFFICER') {
+ 3443:     list = list.filter((ticket) => ticket.category === 'Admissions');
+ 3444:   } else if (user.role === 'REGISTRAR') {
+ 3445:     list = list.filter((ticket) => ['Course Registration', 'Results'].includes(ticket.category));
+ 3446:   } else if (!['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'].includes(user.role)) {
+ 3447:     return res.status(403).json({ success: false, message: 'You do not have permission to view support queues.' });
+ 3448:   }
+ 3449:   return res.json({ success: true, tickets: list });
+ 3450: });
+ 3451: 
+ 3452: apiRouter.post('/support', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+ 3453:   const user = req.user!;
+ 3454:   const { subject, category, priority, message } = req.body;
+ 3455: 
+ 3456:   if (!subject || !message) {
+ 3457:     return res.status(400).json({ success: false, message: 'Subject and message are required.' });
+ 3458:   }
+ 3459: 
+ 3460:   const state = db.getState();
+ 3461:   const ticketNumber = `TKT-${new Date().getFullYear()}-${String(state.supportTickets.length + 42).padStart(4, '0')}`;
+ 3462: 
+ 3463:   const ticket: SupportTicket = {
+ 3464:     id: 'tkt-' + Date.now(),
+ 3465:     ticketNumber,
+ 3466:     userId: user.id,
+ 3467:     userName: user.fullName,
+ 3468:     userEmail: user.email,
+ 3469:     subject: subject.trim(),
+ 3470:     category: category || 'Admissions',
+ 3471:     priority: priority || 'MEDIUM',
+ 3472:     status: 'OPEN',
+ 3473:     messages: [
+ 3474:       {
+ 3475:         sender: user.fullName,
+ 3476:         role: user.role,
+ 3477:         message: message.trim(),
+ 3478:         timestamp: new Date().toISOString(),
+ 3479:       },
+ 3480:     ],
+ 3481:     createdAt: new Date().toISOString(),
+ 3482:   };
+ 3483: 
+ 3484:   state.supportTickets.unshift(ticket);
+ 3485:   db.saveState();
+ 3486: 
+ 3487:   db.logAudit({
+ 3488:     userId: user.id,
+ 3489:     userEmail: user.email,
+ 3490:     action: 'SUPPORT_TICKET_CREATED',
+ 3491:     resource: 'SUPPORT',
+ 3492:     details: { ticketNumber, category, subject },
+ 3493:     ipAddress: req.ip,
+ 3494:   });
+ 3495: 
+ 3496:   return res.status(201).json({ success: true, ticket });
+ 3497: });
+ 3498: 
+ 3499: apiRouter.post('/support/:id/reply', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+ 3500:   const { id } = req.params;
+ 3501:   const { message } = req.body;
+ 3502:   const user = req.user!;
+ 3503: 
+ 3504:   const ticket = db.getState().supportTickets.find((t) => t.id === id);
+ 3505:   if (!ticket) {
+ 3506:     return res.status(404).json({ success: false, message: 'Ticket not found.' });
+ 3507:   }
+ 3508:   const supportRoles = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'ADMISSIONS_OFFICER', 'BURSAR'];
+ 3509:   if (ticket.userId !== user.id && !supportRoles.includes(user.role)) {
+ 3510:     return res.status(403).json({ success: false, message: 'You can only reply to your own ticket or an authorized support queue.' });
+ 3511:   }
+ 3512:   if (ticket.userId !== user.id && user.role === 'BURSAR' && ticket.category !== 'Bursary & Payments') {
+ 3513:     return res.status(403).json({ success: false, message: 'This ticket is outside the Bursar support queue.' });
+ 3514:   }
+ 3515:   if (ticket.userId !== user.id && user.role === 'ADMISSIONS_OFFICER' && ticket.category !== 'Admissions') {
+ 3516:     return res.status(403).json({ success: false, message: 'This ticket is outside the Admissions support queue.' });
+ 3517:   }
+ 3518:   if (ticket.userId !== user.id && user.role === 'REGISTRAR' && !['Course Registration', 'Results'].includes(ticket.category)) {
+ 3519:     return res.status(403).json({ success: false, message: 'This ticket is outside the Registry support queue.' });
+ 3520:   }
+ 3521: 
+ 3522:   ticket.messages.push({
+ 3523:     sender: user.fullName,
+ 3524:     role: user.role,
+ 3525:     message: message.trim(),
+ 3526:     timestamp: new Date().toISOString(),
+ 3527:   });
+ 3528: 
+ 3529:   if (user.role !== 'STUDENT' && user.role !== 'APPLICANT' && ticket.status === 'OPEN') {
+ 3530:     ticket.status = 'IN_PROGRESS';
+ 3531:   }
+ 3532: 
+ 3533:   db.saveState();
+ 3534:   return res.json({ success: true, ticket });
+ 3535: });
+ 3536: 
+ 3537: apiRouter.patch(
+ 3538:   '/support/:id',
+ 3539:   authenticateToken,
+ 3540:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'REGISTRAR', 'ADMISSIONS_OFFICER', 'BURSAR'),
+ 3541:   (req: AuthenticatedRequest, res: Response) => {
+ 3542:     const { id } = req.params;
+ 3543:     const ticket = db.getState().supportTickets.find((t) => t.id === id);
+ 3544:     if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found.' });
+ 3545:     if (req.user!.role === 'BURSAR' && ticket.category !== 'Bursary & Payments') {
+ 3546:       return res.status(403).json({ success: false, message: 'This ticket is outside the Bursar support queue.' });
+ 3547:     }
+ 3548:     if (req.user!.role === 'ADMISSIONS_OFFICER' && ticket.category !== 'Admissions') {
+ 3549:       return res.status(403).json({ success: false, message: 'This ticket is outside the Admissions support queue.' });
+ 3550:     }
+ 3551:     if (req.user!.role === 'REGISTRAR' && !['Course Registration', 'Results'].includes(ticket.category)) {
+ 3552:       return res.status(403).json({ success: false, message: 'This ticket is outside the Registry support queue.' });
+ 3553:     }
+ 3554:     const { status, priority, subject, category } = req.body;
+ 3555:     if (status !== undefined) ticket.status = status;
+ 3556:     if (priority !== undefined) ticket.priority = priority;
+ 3557:     if (subject !== undefined) ticket.subject = String(subject).trim();
+ 3558:     if (category !== undefined) ticket.category = category;
+ 3559:     db.saveState();
+ 3560:     return res.json({ success: true, ticket });
+ 3561:   }
+ 3562: );
+ 3563: 
+ 3564: apiRouter.delete(
+ 3565:   '/support/:id',
+ 3566:   authenticateToken,
+ 3567:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 3568:   (req: AuthenticatedRequest, res: Response) => {
+ 3569:     const { id } = req.params;
+ 3570:     const state = db.getState();
+ 3571:     const idx = state.supportTickets.findIndex((t) => t.id === id);
+ 3572:     if (idx === -1) return res.status(404).json({ success: false, message: 'Ticket not found.' });
+ 3573:     state.supportTickets.splice(idx, 1);
+ 3574:     db.saveState();
+ 3575:     return res.json({ success: true, message: 'Support ticket deleted.' });
+ 3576:   }
+ 3577: );
+ 3578: 
+ 3579: // ==================== AUDIT TRAIL ====================
+ 3580: 
+ 3581: apiRouter.get(
+ 3582:   '/audit',
+ 3583:   authenticateToken,
+ 3584:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 3585:   (req: AuthenticatedRequest, res: Response) => {
+ 3586:     const { action, search, limit = 50 } = req.query;
+ 3587:     let list = db.getState().auditLogs;
+ 3588: 
+ 3589:     if (action) list = list.filter((l) => l.action === action);
+ 3590:     if (search) {
+ 3591:       const q = String(search).toLowerCase();
+ 3592:       list = list.filter(
+ 3593:         (l) =>
+ 3594:           l.action.toLowerCase().includes(q) ||
+ 3595:           l.userEmail?.toLowerCase().includes(q) ||
+ 3596:           l.resource.toLowerCase().includes(q)
+ 3597:       );
+ 3598:     }
+ 3599: 
+ 3600:     return res.json({ success: true, logs: list.slice(0, Number(limit)) });
+ 3601:   }
+ 3602: );
+ 3603: 
+ 3604: // ==================== DASHBOARD & EXECUTIVE ANALYTICS ====================
+ 3605: 
+ 3606: apiRouter.get('/dashboard/stats', authenticateToken, requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR'), (req: AuthenticatedRequest, res: Response) => {
+ 3607:   const state = db.getState();
+ 3608:   const studentsCount = state.students.length;
+ 3609:   const applicantsCount = state.applications.length;
+ 3610:   const staffCount = state.users.filter((u) => ['LECTURER', 'HOD', 'DEAN', 'REGISTRAR', 'BURSAR'].includes(u.role)).length;
+ 3611:   const coursesCount = state.courses.length;
+ 3612: 
+ 3613:   const totalRevenue = state.payments
+ 3614:     .filter((p) => p.status === 'VERIFIED')
+ 3615:     .reduce((sum, p) => sum + p.amount, 0);
+ 3616: 
+ 3617:   const pendingApplications = state.applications.filter((a) => a.status === 'SUBMITTED' || a.status === 'UNDER_REVIEW').length;
+ 3618:   const pendingRegistrations = state.registrations.filter((r) => r.status === 'SUBMITTED').length;
+ 3619: 
+ 3620:   return res.json({
+ 3621:     success: true,
+ 3622:     stats: {
+ 3623:       studentsCount,
+ 3624:       applicantsCount,
+ 3625:       staffCount,
+ 3626:       coursesCount,
+ 3627:       totalRevenue,
+ 3628:       pendingApplications,
+ 3629:       pendingRegistrations,
+ 3630:       schoolsCount: state.schools.length,
+ 3631:       departmentsCount: state.departments.length,
+ 3632:       programmesCount: state.programmes.length,
+ 3633:     },
+ 3634:   });
+ 3635: });
+ 3636: 
+ 3637: // ==================== CONTENT MANAGEMENT MODULE (CMS) ====================
+ 3638: 
+ 3639: // --- News Articles ---
+ 3640: 
+ 3641: apiRouter.get('/cms/news', (req, res) => {
+ 3642:   const { category, status, sliderOnly, search } = req.query;
+ 3643:   let list = [...db.getState().newsArticles];
+ 3644: 
+ 3645:   if (category && category !== 'ALL') {
+ 3646:     list = list.filter((a) => a.category === category);
+ 3647:   }
+ 3648:   if (status && status !== 'ALL') {
+ 3649:     list = list.filter((a) => a.status === status);
+ 3650:   }
+ 3651:   if (sliderOnly === 'true') {
+ 3652:     list = list.filter((a) => a.isFeaturedInSlider && a.status === 'PUBLISHED');
+ 3653:   }
+ 3654:   if (search) {
+ 3655:     const q = String(search).toLowerCase();
+ 3656:     list = list.filter(
+ 3657:       (a) =>
+ 3658:         a.title.toLowerCase().includes(q) ||
+ 3659:         a.summary.toLowerCase().includes(q) ||
+ 3660:         a.content.toLowerCase().includes(q) ||
+ 3661:         a.author.toLowerCase().includes(q)
+ 3662:     );
+ 3663:   }
+ 3664: 
+ 3665:   // Sort latest first
+ 3666:   list.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+ 3667: 
+ 3668:   return res.json({ success: true, articles: list });
+ 3669: });
+ 3670: 
+ 3671: apiRouter.get('/cms/news/:id', (req, res) => {
+ 3672:   const { id } = req.params;
+ 3673:   const state = db.getState();
+ 3674:   const article = state.newsArticles.find((a) => a.id === id || a.slug === id);
+ 3675: 
+ 3676:   if (!article) {
+ 3677:     return res.status(404).json({ success: false, message: 'Article not found.' });
+ 3678:   }
+ 3679: 
+ 3680:   // Increment views
+ 3681:   article.views = (article.views || 0) + 1;
+ 3682:   db.saveState();
+ 3683: 
+ 3684:   return res.json({ success: true, article });
+ 3685: });
+ 3686: 
+ 3687: apiRouter.post(
+ 3688:   '/cms/news',
+ 3689:   authenticateToken,
+ 3690:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 3691:   (req: AuthenticatedRequest, res: Response) => {
+ 3692:     const { title, summary, content, category, imageUrl, isFeaturedInSlider, status, author } = req.body;
+ 3693: 
+ 3694:     if (!title || !summary || !content) {
+ 3695:       return res.status(400).json({ success: false, message: 'Title, summary, and content are required.' });
+ 3696:     }
+ 3697: 
+ 3698:     const state = db.getState();
+ 3699:     const slug = title
+ 3700:       .toLowerCase()
+ 3701:       .replace(/[^a-z0-9]+/g, '-')
+ 3702:       .replace(/(^-|-$)+/g, '')
+ 3703:       .slice(0, 80);
+ 3704: 
+ 3705:     const newArticle: NewsArticle = {
+ 3706:       id: 'news-' + Date.now(),
+ 3707:       title: title.trim(),
+ 3708:       slug: `${slug}-${Math.floor(Math.random() * 1000)}`,
+ 3709:       summary: summary.trim(),
+ 3710:       content: content.trim(),
+ 3711:       category: category || 'Academics',
+ 3712:       imageUrl: imageUrl || '',
+ 3713:       isFeaturedInSlider: Boolean(isFeaturedInSlider),
+ 3714:       status: status || 'PUBLISHED',
+ 3715:       author: author?.trim() || req.user!.fullName,
+ 3716:       publishedAt: new Date().toISOString(),
+ 3717:       views: 0,
+ 3718:     };
+ 3719: 
+ 3720:     state.newsArticles.unshift(newArticle);
+ 3721:     db.saveState();
+ 3722: 
+ 3723:     db.logAudit({
+ 3724:       userId: req.user!.id,
+ 3725:       userEmail: req.user!.email,
+ 3726:       action: 'NEWS_ARTICLE_CREATED',
+ 3727:       resource: 'CMS_NEWS',
+ 3728:       details: { articleId: newArticle.id, title: newArticle.title, status: newArticle.status },
+ 3729:       ipAddress: req.ip,
+ 3730:     });
+ 3731: 
+ 3732:     return res.status(201).json({ success: true, article: newArticle });
+ 3733:   }
+ 3734: );
+ 3735: 
+ 3736: apiRouter.put(
+ 3737:   '/cms/news/:id',
+ 3738:   authenticateToken,
+ 3739:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 3740:   (req: AuthenticatedRequest, res: Response) => {
+ 3741:     const { id } = req.params;
+ 3742:     const { title, summary, content, category, imageUrl, isFeaturedInSlider, status, author } = req.body;
+ 3743: 
+ 3744:     const state = db.getState();
+ 3745:     const article = state.newsArticles.find((a) => a.id === id);
+ 3746: 
+ 3747:     if (!article) {
+ 3748:       return res.status(404).json({ success: false, message: 'Article not found.' });
+ 3749:     }
+ 3750: 
+ 3751:     if (title) article.title = title.trim();
+ 3752:     if (summary) article.summary = summary.trim();
+ 3753:     if (content) article.content = content.trim();
+ 3754:     if (category) article.category = category;
+ 3755:     if (imageUrl !== undefined) article.imageUrl = imageUrl;
+ 3756:     if (isFeaturedInSlider !== undefined) article.isFeaturedInSlider = Boolean(isFeaturedInSlider);
+ 3757:     if (status) article.status = status;
+ 3758:     if (author) article.author = author.trim();
+ 3759: 
+ 3760:     db.saveState();
+ 3761: 
+ 3762:     db.logAudit({
+ 3763:       userId: req.user!.id,
+ 3764:       userEmail: req.user!.email,
+ 3765:       action: 'NEWS_ARTICLE_UPDATED',
+ 3766:       resource: 'CMS_NEWS',
+ 3767:       details: { articleId: article.id, title: article.title },
+ 3768:       ipAddress: req.ip,
+ 3769:     });
+ 3770: 
+ 3771:     return res.json({ success: true, article });
+ 3772:   }
+ 3773: );
+ 3774: 
+ 3775: apiRouter.delete(
+ 3776:   '/cms/news/:id',
+ 3777:   authenticateToken,
+ 3778:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 3779:   (req: AuthenticatedRequest, res: Response) => {
+ 3780:     const { id } = req.params;
+ 3781:     const state = db.getState();
+ 3782:     const index = state.newsArticles.findIndex((a) => a.id === id);
+ 3783: 
+ 3784:     if (index === -1) {
+ 3785:       return res.status(404).json({ success: false, message: 'Article not found.' });
+ 3786:     }
+ 3787: 
+ 3788:     const removed = state.newsArticles.splice(index, 1)[0];
+ 3789:     db.saveState();
+ 3790: 
+ 3791:     db.logAudit({
+ 3792:       userId: req.user!.id,
+ 3793:       userEmail: req.user!.email,
+ 3794:       action: 'NEWS_ARTICLE_DELETED',
+ 3795:       resource: 'CMS_NEWS',
+ 3796:       details: { articleId: id, title: removed.title },
+ 3797:       ipAddress: req.ip,
+ 3798:     });
+ 3799: 
+ 3800:     return res.json({ success: true, message: 'Article deleted successfully.' });
+ 3801:   }
+ 3802: );
+ 3803: 
+ 3804: apiRouter.patch(
+ 3805:   '/cms/news/:id/toggle-slider',
+ 3806:   authenticateToken,
+ 3807:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 3808:   (req: AuthenticatedRequest, res: Response) => {
+ 3809:     const { id } = req.params;
+ 3810:     const state = db.getState();
+ 3811:     const article = state.newsArticles.find((a) => a.id === id);
+ 3812: 
+ 3813:     if (!article) {
+ 3814:       return res.status(404).json({ success: false, message: 'Article not found.' });
+ 3815:     }
+ 3816: 
+ 3817:     article.isFeaturedInSlider = !article.isFeaturedInSlider;
+ 3818:     db.saveState();
+ 3819: 
+ 3820:     return res.json({ success: true, isFeaturedInSlider: article.isFeaturedInSlider });
+ 3821:   }
+ 3822: );
+ 3823: 
+ 3824: // --- Hero Slide Show ---
+ 3825: 
+ 3826: apiRouter.get('/cms/slides', (req, res) => {
+ 3827:   const { activeOnly } = req.query;
+ 3828:   let slides = [...db.getState().sliderSlides];
+ 3829: 
+ 3830:   if (activeOnly === 'true') {
+ 3831:     slides = slides.filter((s) => s.isActive);
+ 3832:   }
+ 3833: 
+ 3834:   slides.sort((a, b) => a.order - b.order);
+ 3835:   return res.json({ success: true, slides });
+ 3836: });
+ 3837: 
+ 3838: apiRouter.post(
+ 3839:   '/cms/slides',
+ 3840:   authenticateToken,
+ 3841:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 3842:   (req: AuthenticatedRequest, res: Response) => {
+ 3843:     const {
+ 3844:       title,
+ 3845:       subtitle,
+ 3846:       badge,
+ 3847:       bgGradient,
+ 3848:       accentColor,
+ 3849:       bgColor,
+ 3850:       bgSecondaryColor,
+ 3851:       textColor,
+ 3852:       subtitleColor,
+ 3853:       accentHex,
+ 3854:       ctaBgColor,
+ 3855:       ctaTextColor,
+ 3856:       secondaryBtnBgColor,
+ 3857:       secondaryBtnTextColor,
+ 3858:       footerBarBgColor,
+ 3859:       imageUrl,
+ 3860:       ctaText,
+ 3861:       ctaTab,
+ 3862:       ctaSubSection,
+ 3863:       iconName,
+ 3864:       order,
+ 3865:       isActive,
+ 3866:     } = req.body;
+ 3867: 
+ 3868:     if (!title || !subtitle) {
+ 3869:       return res.status(400).json({ success: false, message: 'Title and subtitle are required.' });
+ 3870:     }
+ 3871: 
+ 3872:     const state = db.getState();
+ 3873:     const newSlide: HeroSlide = {
+ 3874:       id: 'slide-' + Date.now(),
+ 3875:       title: title.trim(),
+ 3876:       subtitle: subtitle.trim(),
+ 3877:       badge: badge || 'College Update',
+ 3878:       bgGradient: bgGradient || 'from-emerald-950 via-emerald-900 to-slate-950',
+ 3879:       accentColor: accentColor || 'amber-400',
+ 3880:       bgColor: bgColor || '',
+ 3881:       bgSecondaryColor: bgSecondaryColor || '',
+ 3882:       textColor: textColor || '',
+ 3883:       subtitleColor: subtitleColor || '',
+ 3884:       accentHex: accentHex || '',
+ 3885:       ctaBgColor: ctaBgColor || '',
+ 3886:       ctaTextColor: ctaTextColor || '',
+ 3887:       secondaryBtnBgColor: secondaryBtnBgColor || '',
+ 3888:       secondaryBtnTextColor: secondaryBtnTextColor || '',
+ 3889:       footerBarBgColor: footerBarBgColor || '',
+ 3890:       imageUrl: imageUrl || '',
+ 3891:       ctaText: ctaText || 'Learn More',
+ 3892:       ctaTab: ctaTab || 'public',
+ 3893:       ctaSubSection: ctaSubSection || 'overview',
+ 3894:       iconName: iconName || 'Sparkles',
+ 3895:       order: order !== undefined ? Number(order) : state.sliderSlides.length + 1,
+ 3896:       isActive: isActive !== undefined ? Boolean(isActive) : true,
+ 3897:     };
+ 3898: 
+ 3899:     state.sliderSlides.push(newSlide);
+ 3900:     db.saveState();
+ 3901: 
+ 3902:     db.logAudit({
+ 3903:       userId: req.user!.id,
+ 3904:       userEmail: req.user!.email,
+ 3905:       action: 'HERO_SLIDE_CREATED',
+ 3906:       resource: 'CMS_SLIDER',
+ 3907:       details: { slideId: newSlide.id, title: newSlide.title },
+ 3908:       ipAddress: req.ip,
+ 3909:     });
+ 3910: 
+ 3911:     return res.status(201).json({ success: true, slide: newSlide });
+ 3912:   }
+ 3913: );
+ 3914: 
+ 3915: apiRouter.put(
+ 3916:   '/cms/slides/:id',
+ 3917:   authenticateToken,
+ 3918:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 3919:   (req: AuthenticatedRequest, res: Response) => {
+ 3920:     const { id } = req.params;
+ 3921:     const state = db.getState();
+ 3922:     const slide = state.sliderSlides.find((s) => s.id === id);
+ 3923: 
+ 3924:     if (!slide) {
+ 3925:       return res.status(404).json({ success: false, message: 'Slide not found.' });
+ 3926:     }
+ 3927: 
+ 3928:     const {
+ 3929:       title,
+ 3930:       subtitle,
+ 3931:       badge,
+ 3932:       bgGradient,
+ 3933:       accentColor,
+ 3934:       bgColor,
+ 3935:       bgSecondaryColor,
+ 3936:       textColor,
+ 3937:       subtitleColor,
+ 3938:       accentHex,
+ 3939:       ctaBgColor,
+ 3940:       ctaTextColor,
+ 3941:       secondaryBtnBgColor,
+ 3942:       secondaryBtnTextColor,
+ 3943:       footerBarBgColor,
+ 3944:       imageUrl,
+ 3945:       ctaText,
+ 3946:       ctaTab,
+ 3947:       ctaSubSection,
+ 3948:       iconName,
+ 3949:       order,
+ 3950:       isActive,
+ 3951:     } = req.body;
+ 3952: 
+ 3953:     if (title !== undefined) slide.title = title.trim();
+ 3954:     if (subtitle !== undefined) slide.subtitle = subtitle.trim();
+ 3955:     if (badge !== undefined) slide.badge = badge.trim();
+ 3956:     if (bgGradient !== undefined) slide.bgGradient = bgGradient;
+ 3957:     if (accentColor !== undefined) slide.accentColor = accentColor;
+ 3958:     if (bgColor !== undefined) slide.bgColor = bgColor;
+ 3959:     if (bgSecondaryColor !== undefined) slide.bgSecondaryColor = bgSecondaryColor;
+ 3960:     if (textColor !== undefined) slide.textColor = textColor;
+ 3961:     if (subtitleColor !== undefined) slide.subtitleColor = subtitleColor;
+ 3962:     if (accentHex !== undefined) slide.accentHex = accentHex;
+ 3963:     if (ctaBgColor !== undefined) slide.ctaBgColor = ctaBgColor;
+ 3964:     if (ctaTextColor !== undefined) slide.ctaTextColor = ctaTextColor;
+ 3965:     if (secondaryBtnBgColor !== undefined) slide.secondaryBtnBgColor = secondaryBtnBgColor;
+ 3966:     if (secondaryBtnTextColor !== undefined) slide.secondaryBtnTextColor = secondaryBtnTextColor;
+ 3967:     if (footerBarBgColor !== undefined) slide.footerBarBgColor = footerBarBgColor;
+ 3968:     if (imageUrl !== undefined) slide.imageUrl = imageUrl;
+ 3969:     if (ctaText !== undefined) slide.ctaText = ctaText.trim();
+ 3970:     if (ctaTab !== undefined) slide.ctaTab = ctaTab;
+ 3971:     if (ctaSubSection !== undefined) slide.ctaSubSection = ctaSubSection;
+ 3972:     if (iconName !== undefined) slide.iconName = iconName;
+ 3973:     if (order !== undefined) slide.order = Number(order);
+ 3974:     if (isActive !== undefined) slide.isActive = Boolean(isActive);
+ 3975: 
+ 3976:     db.saveState();
+ 3977: 
+ 3978:     db.logAudit({
+ 3979:       userId: req.user!.id,
+ 3980:       userEmail: req.user!.email,
+ 3981:       action: 'HERO_SLIDE_UPDATED',
+ 3982:       resource: 'CMS_SLIDER',
+ 3983:       details: { slideId: slide.id, title: slide.title },
+ 3984:       ipAddress: req.ip,
+ 3985:     });
+ 3986: 
+ 3987:     return res.json({ success: true, slide });
+ 3988:   }
+ 3989: );
+ 3990: 
+ 3991: apiRouter.delete(
+ 3992:   '/cms/slides/:id',
+ 3993:   authenticateToken,
+ 3994:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 3995:   (req: AuthenticatedRequest, res: Response) => {
+ 3996:     const { id } = req.params;
+ 3997:     const state = db.getState();
+ 3998:     const index = state.sliderSlides.findIndex((s) => s.id === id);
+ 3999: 
+ 4000:     if (index === -1) {
+ 4001:       return res.status(404).json({ success: false, message: 'Slide not found.' });
+ 4002:     }
+ 4003: 
+ 4004:     const removed = state.sliderSlides.splice(index, 1)[0];
+ 4005:     db.saveState();
+ 4006: 
+ 4007:     db.logAudit({
+ 4008:       userId: req.user!.id,
+ 4009:       userEmail: req.user!.email,
+ 4010:       action: 'HERO_SLIDE_DELETED',
+ 4011:       resource: 'CMS_SLIDER',
+ 4012:       details: { slideId: id, title: removed.title },
+ 4013:       ipAddress: req.ip,
+ 4014:     });
+ 4015: 
+ 4016:     return res.json({ success: true, message: 'Slide deleted successfully.' });
+ 4017:   }
+ 4018: );
+ 4019: 
+ 4020: // --- Page Builder Content ---
+ 4021: 
+ 4022: apiRouter.get('/cms/page-content', (req, res) => {
+ 4023:   return res.json({ success: true, pageContent: db.getState().pageContent });
+ 4024: });
+ 4025: 
+ 4026: apiRouter.put(
+ 4027:   '/cms/page-content',
+ 4028:   authenticateToken,
+ 4029:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+ 4030:   (req: AuthenticatedRequest, res: Response) => {
+ 4031:     const current = db.getState().pageContent;
+ 4032:     const updated = { ...current, ...req.body };
+ 4033:     db.getState().pageContent = updated;
+ 4034:     db.saveState();
+ 4035: 
+ 4036:     db.logAudit({
+ 4037:       userId: req.user!.id,
+ 4038:       userEmail: req.user!.email,
+ 4039:       action: 'PAGE_CONTENT_UPDATED',
+ 4040:       resource: 'CMS_PAGE_BUILDER',
+ 4041:       details: { updatedFields: Object.keys(req.body) },
+ 4042:       ipAddress: req.ip,
+ 4043:     });
+ 4044: 
+ 4045:     return res.json({ success: true, pageContent: updated });
+ 4046:   }
+ 4047: );
+ 4048: 
+ 4049: 
+ 4050: 
+
+===== ISSUED DOCUMENT TYPE =====
+  366: export interface IssuedDocument {
+  367:   id: string;
+  368:   studentId: string;
+  369:   matricNumber: string;
+  370:   studentName: string;
+  371:   programmeName: string;
+  372:   departmentName?: string;
+  373:   schoolName?: string;
+  374:   level?: string;
+  375:   photoUrl?: string;
+  376:   type: 'TRANSCRIPT' | 'FINAL_CERTIFICATE';
+  377:   documentNumber: string;
+  378:   title: string;
+  379:   session: string;
+  380:   cgpa: number;
+  381:   classification: string;
+  382:   remarks?: string;
+  383:   feeAmount: number;
+  384:   invoiceId: string;
+  385:   generatedBy: string;
+  386:   generatedAt: string;
+  387: }

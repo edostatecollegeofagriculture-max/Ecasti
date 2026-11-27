@@ -1,0 +1,263 @@
+﻿
+===== FILE: server\apiRouter.ts =====
+3951:       action: 'HERO_SLIDE_DELETED',
+3952:       resource: 'CMS_SLIDER',
+3953:       details: { slideId: id, title: removed.title },
+3954:       ipAddress: req.ip,
+3955:     });
+3956: 
+3957:     return res.json({ success: true, message: 'Slide deleted successfully.' });
+3958:   }
+3959: );
+3960: 
+3961: // --- Page Builder Content ---
+3962: 
+3963: apiRouter.get('/cms/page-content', (req, res) => {
+3964:   return res.json({ success: true, pageContent: db.getState().pageContent });
+3965: });
+3966: 
+3967: apiRouter.put(
+3968:   '/cms/page-content',
+3969:   authenticateToken,
+3970:   requireRoles('SUPER_ADMIN', 'INSTITUTION_ADMIN'),
+3971:   (req: AuthenticatedRequest, res: Response) => {
+3972:     const current = db.getState().pageContent;
+3973:     const updated = { ...current, ...req.body };
+3974:     db.getState().pageContent = updated;
+3975:     db.saveState();
+3976: 
+3977:     db.logAudit({
+3978:       userId: req.user!.id,
+3979:       userEmail: req.user!.email,
+3980:       action: 'PAGE_CONTENT_UPDATED',
+3981:       resource: 'CMS_PAGE_BUILDER',
+3982:       details: { updatedFields: Object.keys(req.body) },
+3983:       ipAddress: req.ip,
+3984:     });
+3985: 
+3986:     return res.json({ success: true, pageContent: updated });
+3987:   }
+3988: );
+3989: 
+3990: 
+3991: 
+
+===== FILE: src\components\PageBuilder.tsx =====
+23: CalendarHighlight,
+24: FaqItem,
+32: Save,
+46: Calendar,
+91: | { type: 'header' }
+94: | { type: 'newsHeader' }
+96: | { type: 'rector' }
+97: | { type: 'schoolsHeader' }
+102: | { type: 'calendarHeader' }
+103: | { type: 'calendarItem'; id: string }
+104: | { type: 'faqHeader' }
+105: | { type: 'faq'; id: string }
+106: | { type: 'footer' }
+123: rectorName: 'Prof. Patrick O. Aghimien',
+124: rectorTitle: 'Rector & Provost',
+125: rectorInstitution: 'Edo State College of Agriculture, Science and Technology, Iguoriakhi',
+126: rectorKicker: 'Leadership & Institutional Mission',
+127: rectorHeadline: 'Fostering Practical Innovation in Agronomy, Food Security & Technology',
+128: rectorParagraph1:
+130: rectorParagraph2:
+132: rectorCtaText: 'Apply for 2025/2026 Session',
+133: rectorAvatarEmoji: 'ðŸ‘¨â€ðŸ«',
+138: calendarSectionKicker: 'Official Schedule',
+139: calendarSectionHeading: '2025/2026 Academic Calendar Highlights',
+140: calendarCurrentPeriodLabel: 'Current Period',
+141: calendarCurrentPeriodText: '',
+142: calendarAddHighlightLabel: 'Add Highlight',
+143: calendarBgColor: '#073f31',
+144: calendarBgSecondaryColor: '#0b5b43',
+145: calendarTextColor: '#ffffff',
+146: calendarAccentColor: '#fbbf24',
+147: calendarCardBgColor: 'rgba(255,255,255,0.05)',
+148: calendarCardBorderColor: 'rgba(255,255,255,0.10)',
+149: calendarItems: [],
+150: faqSectionKicker: 'Help & Guidance',
+151: faqSectionHeading: 'Frequently Asked Questions',
+152: faqs: [],
+153: footerBrandTitle: 'EDOCASTI PORTAL',
+154: footerBrandSubtitle: 'Edo State College of Agriculture, Science & Technology, Iguoriakhi',
+155: footerDescription:
+157: footerLocationHeading: 'Main Campus Location',
+158: footerLocationAddress:
+160: footerContactHeading: 'Helpdesk & Admissions',
+161: sectionOrder: ['hero', 'news', 'rector', 'schools', 'calendar', 'faqs', 'footer'],
+163: customSections: [],
+168: header: 'Main Header',
+170: rector: "Rector's Message",
+172: calendar: 'Academic Calendar',
+173: faqs: 'FAQs Accordion',
+174: footer: 'Campus Footer',
+177: const ADMIN_EDIT_ROLES = ['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'RECTOR', 'REGISTRAR', 'BURSAR', 'ADMISSIONS_OFFICER', 'DEAN'];
+185: // All live app data states (updated in real-time on left edit so right preview updates immediately)
+210: const [previewWidth, setPreviewWidth] = useState<'full' | 'tablet' | 'mobile'>('full');
+211: const [activeSlidePreviewIdx, setActiveSlidePreviewIdx] = useState(0);
+338: showToast('success', `${title} uploaded. Click Save to persist.`);
+372: // ==================== SAVE & MUTATION HELPERS ====================
+376: showToast('error', 'Click "Quick Super Admin" on the left (or Sign In) to save changes.');
+382: const saveSettings = async () => {
+401: showToast('success', 'Institution settings & banner saved.');
+403: showToast('error', err.message || 'Failed to save institution settings.');
+409: const savePageContent = async (updatedContent: PageContent = pageContent, successMsg = 'Page content saved.') => {
+420: showToast('error', err.message || 'Failed to save page content.');
+426: const saveSlide = async (slide: HeroSlide) => {
+433: showToast('success', 'Hero slide saved.');
+461: setActiveSlidePreviewIdx(slides.length);
+478: setActiveSlidePreviewIdx(0);
+488: const saveArticle = async (article: NewsArticle) => {
+495: showToast('success', 'News bulletin saved.');
+513: status: 'PUBLISHED',
+544: const saveSchool = async (school: School) => {
+596: const saveDepartment = async (dept: Department) => {
+650: const saveProgramme = async (prog: Programme) => {
+657: showToast('success', 'Programme saved.');
+708: const saveCourse = async (course: Course) => {
+764: const saveFeeSchedule = async (fee: FeeSchedule) => {
+771: showToast('success', 'Fee item saved.');
+818: const saveInvoice = async (inv: Invoice) => {
+841: const saveResult = async (resItem: AssessmentResult) => {
+877: const saveAttendance = async (att: AttendanceSession) => {
+897: const saveTicket = async (tkt: SupportTicket) => {
+915: showToast('success', 'Support ticket saved.');
+924: const saveStudent = async (student: Student) => {
+950: const saveApplication = async (app: AdmissionApplication) => {
+960: showToast('success', 'Admission application decision saved.');
+963: showToast('error', err.message || 'Failed to save application decision.');
+969: const saveUser = async (usr: User) => {
+982: showToast('success', 'User account saved.');
+992: const handleAddCalendarItem = async () => {
+993: const newItem: CalendarHighlight = {
+999: const next = { ...pageContent, calendarItems: [...pageContent.calendarItems, newItem] };
+1001: setSelected({ type: 'calendarItem', id: newItem.id });
+1002: if (canEdit) await savePageContent(next, 'Calendar highlight added.');
+1005: const handleAddFaq = async () => {
+1006: const newFaq: FaqItem = {
+1007: id: 'faq-' + Date.now(),
+1011: const next = { ...pageContent, faqs: [...pageContent.faqs, newFaq] };
+1013: setSelected({ type: 'faq', id: newFaq.id });
+1014: if (canEdit) await savePageContent(next, 'FAQ added.');
+1030: customSections: [...(pageContent.customSections || []), newSec],
+1035: if (canEdit) await savePageContent(next, 'Custom section added to page.');
+1045: if (canEdit) await savePageContent(next, 'Section order updated.');
+1054: if (canEdit) await savePageContent(next, 'Section visibility updated.');
+1060: : ['hero', 'news', 'rector', 'schools', 'calendar', 'faqs', 'footer'];
+1063: (pageContent.customSections || []).forEach((c) => {
+1067: }, [pageContent.sectionOrder, pageContent.customSections]);
+1118: const custom = (pageContent.customSections || []).find((c) => c.id === key);
+1140: if (canEdit) savePageContent(next, 'Section order updated.');
+1154: else if (key === 'rector') setSelected({ type: 'rector' });
+1155: else if (key === 'news') setSelected({ type: 'newsHeader' });
+1156: else if (key === 'schools') setSelected({ type: 'schoolsHeader' });
+1157: else if (key === 'calendar') setSelected({ type: 'calendarHeader' });
+1158: else if (key === 'faqs') setSelected({ type: 'faqHeader' });
+1159: else if (key === 'footer') setSelected({ type: 'footer' });
+1206: App Information Directory ({totalItems} Items)
+1211: onClick={() => setSelected({ type: 'header' })}
+1215: <Palette className="w-4 h-4" /> Main Header Appearance
+1240: onClick={() => setSelected({ type: 'rector' })}
+1244: <Sparkles className="w-4 h-4 text-emerald-700 dark:text-emerald-400" /> Rector&apos;s Profile &amp; Mission
+1284: // MAIN HEADER APPEARANCE EDITOR
+1285: if (selected.type === 'header') {
+
+===== FILE: src\views\PublicPortal.tsx =====
+11: Calendar,
+32: rectorName: 'Prof. Patrick O. Aghimien',
+33: rectorTitle: 'Rector & Provost',
+34: rectorInstitution: 'Edo State College of Agriculture, Science and Technology, Iguoriakhi',
+35: rectorKicker: 'Leadership & Institutional Mission',
+36: rectorHeadline: 'Fostering Practical Innovation in Agronomy, Food Security & Technology',
+37: rectorParagraph1:
+39: rectorParagraph2:
+41: rectorCtaText: 'Apply for 2025/2026 Session',
+42: rectorAvatarEmoji: '👨‍🏫',
+47: calendarSectionKicker: 'Official Schedule',
+48: calendarSectionHeading: '2025/2026 Academic Calendar Highlights',
+49: calendarCurrentPeriodLabel: 'Current Period',
+50: calendarCurrentPeriodText: '',
+51: calendarAddHighlightLabel: 'Add Highlight',
+52: calendarBgColor: '#073f31',
+53: calendarBgSecondaryColor: '#0b5b43',
+54: calendarTextColor: '#ffffff',
+55: calendarAccentColor: '#fbbf24',
+56: calendarCardBgColor: 'rgba(255,255,255,0.05)',
+57: calendarCardBorderColor: 'rgba(255,255,255,0.10)',
+58: calendarItems: [
+78: faqSectionKicker: 'Help & Guidance',
+79: faqSectionHeading: 'Frequently Asked Questions',
+80: faqs: [
+82: id: 'faq-1',
+87: id: 'faq-2',
+92: id: 'faq-3',
+97: id: 'faq-4',
+102: footerBrandTitle: 'EDOCASTI PORTAL',
+103: footerBrandSubtitle: 'Edo State College of Agriculture, Science & Technology, Iguoriakhi',
+104: footerDescription:
+106: footerLocationHeading: 'Main Campus Location',
+107: footerLocationAddress:
+109: footerContactHeading: 'Helpdesk & Admissions',
+110: sectionOrder: ['hero', 'news', 'rector', 'schools', 'calendar', 'faqs', 'footer'],
+112: customSections: [],
+119: const [activeFaq, setActiveFaq] = useState<number | null>(null);
+134: // Load the complete published bulletin set once. Category tabs and wildcard
+139: api.getNews({ status: 'PUBLISHED' })
+142: setNewsArticles(res.articles.filter((article: NewsArticle) => article.status === 'PUBLISHED'));
+146: console.error('Unable to load published bulletins:', err);
+180: // even when older saved Page Builder content has the previous section order.
+239: <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center text-sm text-slate-500">Loading published bulletins…</div>
+243: <p className="text-sm text-slate-500">{newsArticles.length === 0 ? 'There are no published bulletins yet.' : 'No published bulletins match this category and search. Try another category or clear the wildcard filter.'}</p>
+270: {new Date(article.publishedAt).toLocaleDateString('en-GB', {
+302: if (sectionKey === 'rector') {
+304: <section key="rector" className="portal-section">
+307: backgroundColor: content.rectorBgColor || undefined,
+308: backgroundImage: content.rectorBackgroundImageUrl
+309: ? `linear-gradient(135deg, ${content.rectorBgColor || '#052e24'}dd, ${content.rectorBgSecondaryColor || '#064e3b'}cc), url(${content.rectorBackgroundImageUrl})`
+310: : content.rectorBgColor || content.rectorBgSecondaryColor
+311: ? `linear-gradient(135deg, ${content.rectorBgColor || '#052e24'}, ${content.rectorBgSecondaryColor || '#064e3b'})`
+315: color: content.rectorTextColor || undefined,
+316: borderColor: content.rectorBorderColor || undefined,
+323: {content.rectorPhotoUrl ? (
+325: src={content.rectorPhotoUrl}
+326: alt={content.rectorName}
+330: content.rectorAvatarEmoji || '👨‍🏫'
+338: <h3 className="font-black text-white text-lg" style={{ color: content.rectorTextColor || undefined }}>{content.rectorName}</h3>
+339: <p className="text-xs text-amber-300 font-bold uppercase tracking-wider" style={{ color: content.rectorAccentHex || undefined }}>{content.rectorTitle}</p>
+340: <p className="text-[11px] text-emerald-200 mt-1" style={{ color: content.rectorSubtitleColor || undefined }}>{content.rectorInstitution}</p>
+345: <span className="inline-flex items-center gap-1.5 text-amber-300 text-xs font-bold uppercase tracking-wider" style={{ color: content.rectorAccentHex || undefined }}>
+346: <Sparkles className="w-3.5 h-3.5 text-amber-400" /> {content.rectorKicker}
+348: <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight" style={{ color: content.rectorTextColor || undefined }}>
+349: {content.rectorHeadline}
+351: <p className="text-sm text-emerald-100 leading-relaxed" style={{ color: content.rectorSubtitleColor || undefined }}>{content.rectorParagraph1}</p>
+352: <p className="text-sm text-emerald-100 leading-relaxed" style={{ color: content.rectorSubtitleColor || undefined }}>{content.rectorParagraph2}</p>
+357: style={{ backgroundColor: content.rectorButtonBgColor || undefined, color: content.rectorButtonTextColor || undefined }}
+360: {content.rectorCtaText} <ArrowRight className="w-4 h-4" />
+545: if (sectionKey === 'calendar') {
+547: <section key="calendar" className="portal-section">
+548: <div style={{ backgroundImage: content.calendarBackgroundImageUrl ? `linear-gradient(rgba(3,35,27,0.72), rgba(3,35,27,0.72)), url(${content.calendarBackgroundImageUrl})` : `linear-gradient(135deg, ${content.calendarBgColor || '#073f31'}, ${content.calendarBgSecondaryColor || '#0b5b43'})`, backgroundSize: 'cover', backgroundPosition: 'center', color: content.calendarTextColor || '#ffffff' }} className="rounded-2xl sm:rounded-3xl p-6 sm:p-9 lg:p-10 border border-emerald-800 shadow-lg">
+551: <span className="text-xs font-bold uppercase tracking-wider" style={{ color: content.calendarKickerColor || content.calendarAccentColor || "#fbbf24" }}>
+552: {content.calendarSectionKicker}
+554: <h2 className="text-2xl font-bold mt-1">{content.calendarSectionHeading}</h2>
+557: {content.calendarCurrentPeriodLabel || 'Current Period'}: {content.calendarCurrentPeriodText || settings?.currentSemester || 'First Semester'}
+562: {content.calendarItems.map((item) => (
+563: <div key={item.id} style={{ backgroundColor: item.backgroundColor || content.calendarCardBgColor || "rgba(255,255,255,0.05)", borderColor: item.borderColor || content.calendarCardBorderColor || "rgba(255,255,255,0.10)" }} className="p-4 rounded-xl border space-y-2">
+564: <div className="flex items-center gap-2 font-bold text-sm" style={{ color: item.titleColor || content.calendarAccentColor || "#fbbf24" }}>
+565: <Calendar className="w-4 h-4" style={{ color: item.iconColor || content.calendarAccentColor || "#fbbf24" }} /> {item.title}
+577: if (sectionKey === 'faqs') {
+579: <section key="faqs" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+582: {content.faqSectionKicker}
+585: {content.faqSectionHeading}
+590: {content.faqs.map((faq, idx) => (
+592: key={faq.id || idx}
+596: onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
+599: <span>{faq.q}</span>
+600: <span className="text-slate-400 dark:text-slate-500 text-lg">{activeFaq === idx ? '−' : '+'}</span>
+602: {activeFaq === idx && (
+604: {faq.a}
+614: if (sectionKey === 'footer') {
+615: // The shared application footer is rendered by App.tsx on every page.
+619: const custom = (content.customSections || []).find((c) => c.id === sectionKey);
+672: {(content.customSections || [])

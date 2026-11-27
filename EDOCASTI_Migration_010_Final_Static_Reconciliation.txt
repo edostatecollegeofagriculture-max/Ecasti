@@ -1,0 +1,30 @@
+﻿EDOCASTI MIGRATION 010 STATIC RECONCILIATION
+
+Database connected: NO
+SQL executed: NO
+Source JSON modified: NO
+
+Checks passed: 11
+Checks failed: 0
+Status: STATIC_RECONCILIATION_PASS
+
+Structural counts:
+Original CREATE TABLE: 9
+Draft CREATE TABLE: 9
+Original CREATE INDEX: 14
+Draft CREATE INDEX: 14
+Original ADD CONSTRAINT: 5
+Draft guard blocks: 5
+
+Check results:
+PASS - Original target tables
+PASS - Draft target tables
+PASS - Inventory target tables
+PASS - Nine CREATE TABLE declarations in original and draft
+PASS - Fourteen CREATE INDEX declarations in original and draft
+PASS - Five ADD CONSTRAINT statements in original
+PASS - Five guarded FK blocks in draft
+PASS - All expected FK guard names present
+PASS - Original and draft column names agree
+PASS - Original column names agree with inventory
+PASS - Draft column names agree with inventory
